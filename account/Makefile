@@ -245,20 +245,13 @@ upgrade: build
 	cp xcontrol-account /usr/bin/xcontrol-account
 	systemctl start xcontrol-account
 
-start:
-	@./$(APP_NAME) --config config/account.yaml &
+start: build
+	@./$(APP_NAME) --config config/account.yaml
 
 stop:
 	@pkill -f "$(APP_NAME)" || echo "⚠️ 未找到运行进程"
 
 restart: stop start
-
-dev:
-	@if command -v air >/dev/null; then \
-		PORT=$(PORT) air -c .air.toml; \
-	else \
-		PORT=$(PORT) go run $(MAIN_FILE); \
-	fi
 
 test:
 	go test ./...

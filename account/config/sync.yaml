@@ -1,0 +1,50 @@
+# ============================================
+# 🔄 XControl Account Sync Configuration
+# ============================================
+# 将本地与远端账号服务通过 SSH 安全同步。默认提供单向 push/pull/mirror
+# 三种模式，可直接通过 `go run ./cmd/syncctl/main.go push --config config/sync.yaml`
+# 等命令执行。
+#
+# 请复制本文件为 config/sync.yaml 并按需修改。
+# ============================================
+
+local:
+  # 本地 PostgreSQL 连接地址，用于导入/导出账号数据
+  dsn: "postgres://shenlan:password@127.0.0.1:5432/account?sslmode=disable"
+  # 可选：按 email 关键字过滤导出的账号
+  email_keyword: ""
+  # 导出的快照文件路径（默认 account-export.yaml）
+  export_path: "account-export.yaml"
+  # 导入行为配置，支持 merge / dry-run / allowlist 等参数
+  import:
+    merge: false
+    merge_strategy: ""
+    dry_run: false
+    allowlist: []
+
+remote:
+  # 远端服务器地址与 SSH 账户
+  address: "cn-homepage.svc.plus"
+  port: 22
+  user: "root"
+
+  # SSH 私钥与 known_hosts 用于强化安全（推荐使用专用部署密钥）
+  identity_file: "/root/.ssh/id_rsa"
+  known_hosts_file: "/root/.ssh/known_hosts"
+
+  # 远端账号服务所在目录，用于执行 make account-export/import
+  account_dir: "/var/www/XControl/account"
+
+  # 远端快照文件路径（默认 account-export.yaml，可使用绝对路径）
+  export_path: "account-export.yaml"
+  import_path: "account-export.yaml"
+
+  # 可选：覆盖远端的 ACCOUNT_EMAIL_KEYWORD 环境变量
+  email_keyword: ""
+
+  # 可选：额外注入的环境变量，例如覆盖数据库连接信息
+  env: {}
+
+  # SSH 连接超时时间
+  timeout: 30s
+

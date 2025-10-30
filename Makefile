@@ -14,7 +14,7 @@ endif
 
 HOSTS_FILE ?= /etc/hosts
 HOSTS_IP ?= 127.0.0.1
-HOSTS_DOMAINS ?= accounts.svc.plus api.svc.plus accounts-dev.svc.plus dev-api.svc.plus
+HOSTS_DOMAINS ?= dev-accounts.svc.plus dev-api.svc.plus
 
 ifeq ($(OS),Darwin)
 NGINX_PREFIX ?= /opt/homebrew/openresty/nginx
@@ -27,11 +27,16 @@ NGINX_CONF_ROOT ?= $(NGINX_PREFIX)/conf
 NGINX_CONF_DIR ?= $(NGINX_CONF_ROOT)/conf.d
 NGINX_MAIN_CONF ?= $(NGINX_CONF_ROOT)/nginx.conf
 
-NGINX_SIT_CONFIGS := example/sit/nginx/accounts-dev.svc.plus.conf
+NGINX_SIT_CONFIGS := example/sit/nginx/nginx.conf
 NGINX_SIT_CONFIGS += example/sit/nginx/dev.svc.plus.conf
 NGINX_SIT_CONFIGS += example/sit/nginx/dev-api.svc.plus.conf
+NGINX_SIT_CONFIGS := example/sit/nginx/dev-accounts.svc.plus.conf
 
-NGINX_PROD_CONFIGS := example/prod/nginx/accounts.svc.plus.conf example/prod/nginx/api.svc.plus.conf
+NGINX_PROD_CONFIGS := example/prod/nginx/nginx.conf
+NGINX_PROD_CONFIGS := example/prod/nginx/dev.svc.plus.conf
+NGINX_PROD_CONFIGS := example/prod/nginx/api.svc.plus.conf
+NGINX_PROD_CONFIGS := example/prod/nginx/accounts.svc.plus.conf
+
 NGINX_ALL_CONFIGS := $(NGINX_SIT_CONFIGS) $(NGINX_PROD_CONFIGS)
 
 export PATH := $(GO_BIN):$(PATH)
