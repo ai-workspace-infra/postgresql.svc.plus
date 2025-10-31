@@ -331,20 +331,18 @@ export default function LoginContent({ children }: LoginContentProps) {
     )
   }, [children, handleSubmit, isSubmitting, t])
   return (
-    <>
-      <AuthLayout
-        mode="login"
-        badge={t.badge}
-        title={t.form.title}
-        description={t.form.subtitle}
-        alert={alert}
-        socialHeading={t.social.title}
-        socialButtons={socialButtons}
-        switchAction={{ text: t.registerPrompt.text, linkLabel: t.registerPrompt.link, href: '/register' }}
-        bottomNote={t.bottomNote}
-      >
-        {formContent}
-      </AuthLayout>
-    </>
+    <AuthLayout
+      mode="login"
+      badge={t.badge}
+      title={t.form.title}
+      description={t.form.subtitle}
+      alert={alert}
+      socialHeading={t.social.title}
+      socialButtons={socialButtons}
+      switchAction={{ text: t.registerPrompt.text, linkLabel: t.registerPrompt.link, href: '/register' }}
+      bottomNote={t.bottomNote}
+    >
+      {formContent}
+    </AuthLayout>
   )
 }

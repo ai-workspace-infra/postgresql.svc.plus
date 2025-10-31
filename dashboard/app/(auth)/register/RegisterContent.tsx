@@ -645,91 +645,90 @@ export default function RegisterContent() {
       : t.form.verificationCodeResend
 
   return (
-    <>
-      <AuthLayout
-        mode="register"
-        badge={t.badge}
-        title={t.form.title}
-        description={t.form.subtitle}
-        alert={alert}
-        socialHeading={t.social.title}
-        socialButtons={socialButtons}
-        aboveForm={aboveForm}
-        switchAction={{ text: t.loginPrompt.text, linkLabel: t.loginPrompt.link, href: '/login' }}
-        bottomNote={t.bottomNote}
+    <AuthLayout
+      mode="register"
+      badge={t.badge}
+      title={t.form.title}
+      description={t.form.subtitle}
+      alert={alert}
+      socialHeading={t.social.title}
+      socialButtons={socialButtons}
+      aboveForm={aboveForm}
+      switchAction={{ text: t.loginPrompt.text, linkLabel: t.loginPrompt.link, href: '/login' }}
+      bottomNote={t.bottomNote}
+    >
+      <form
+        ref={formRef}
+        className="space-y-5"
+        method="post"
+        onSubmit={handleSubmit}
+        noValidate
       >
-        <form
-          ref={formRef}
-          className="space-y-5"
-          method="post"
-          onSubmit={handleSubmit}
-          noValidate
-        >
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-medium text-slate-600">
+            {t.form.email}
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder={t.form.emailPlaceholder}
+            className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+            required
+            disabled={isVerificationStep}
+          />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-slate-600" htmlFor="verification-code-0">
+              {t.form.verificationCodeLabel}
+            </label>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={isResending || resendCooldown > 0}
+              className="rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {resendLabel}
+            </button>
+          </div>
+          {t.form.verificationCodeDescription ? (
+            <p className="text-xs text-slate-500">{t.form.verificationCodeDescription}</p>
+          ) : null}
+          <div className="flex gap-2">
+            {codeDigits.map((digit, index) => (
+              <input
+                key={index}
+                id={`verification-code-${index}`}
+                ref={(element) => {
+                  codeInputRefs.current[index] = element
+                }}
+                type="text"
+                inputMode="numeric"
+                autoComplete={index === 0 ? 'one-time-code' : undefined}
+                pattern="[0-9]*"
+                maxLength={1}
+                value={digit}
+                onChange={(event) => handleCodeChange(index, event.target.value)}
+                onKeyDown={(event) => handleCodeKeyDown(index, event)}
+                onPaste={(event) => handleCodePaste(index, event)}
+                disabled={!isVerificationStep}
+                className="h-12 w-12 rounded-2xl border border-slate-200 bg-white/90 text-center text-lg font-semibold text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                aria-label={`${t.form.verificationCodeLabel} ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-slate-600">
-              {t.form.email}
+            <label htmlFor="password" className="text-sm font-medium text-slate-600">
+              {t.form.password}
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder={t.form.emailPlaceholder}
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-              required
-              disabled={isVerificationStep}
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-600" htmlFor="verification-code-0">
-                {t.form.verificationCodeLabel}
-              </label>
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={isResending || resendCooldown > 0}
-                className="rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {resendLabel}
-              </button>
-            </div>
-            {t.form.verificationCodeDescription ? (
-              <p className="text-xs text-slate-500">{t.form.verificationCodeDescription}</p>
-            ) : null}
-            <div className="flex gap-2">
-              {codeDigits.map((digit, index) => (
-                <input
-                  key={index}
-                  id={`verification-code-${index}`}
-                  ref={(element) => {
-                    codeInputRefs.current[index] = element
-                  }}
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete={index === 0 ? 'one-time-code' : undefined}
-                  pattern="[0-9]*"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(event) => handleCodeChange(index, event.target.value)}
-                  onKeyDown={(event) => handleCodeKeyDown(index, event)}
-                  onPaste={(event) => handleCodePaste(index, event)}
-                  disabled={!isVerificationStep}
-                  className="h-12 w-12 rounded-2xl border border-slate-200 bg-white/90 text-center text-lg font-semibold text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                  aria-label={`${t.form.verificationCodeLabel} ${index + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-slate-600">
-                {t.form.password}
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
+              id="password"
+              name="password"
+              type="password"
               autoComplete="new-password"
               placeholder={t.form.passwordPlaceholder}
               className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
@@ -740,10 +739,10 @@ export default function RegisterContent() {
           <div className="space-y-2">
             <label htmlFor="confirm-password" className="text-sm font-medium text-slate-600">
               {t.form.confirmPassword}
-              </label>
-              <input
-                id="confirm-password"
-                name="confirmPassword"
+            </label>
+            <input
+              id="confirm-password"
+              name="confirmPassword"
               type="password"
               autoComplete="new-password"
               placeholder={t.form.confirmPasswordPlaceholder}
@@ -761,22 +760,21 @@ export default function RegisterContent() {
             disabled={isVerificationStep}
             className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
           />
-            <span>
-              {t.form.agreement}{' '}
-              <Link href="/docs" className="font-semibold text-sky-600 hover:text-sky-500">
-                {t.form.terms}
-              </Link>
-            </span>
-          </label>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {submitLabel}
-          </button>
-        </form>
-      </AuthLayout>
-    </>
+          <span>
+            {t.form.agreement}{' '}
+            <Link href="/docs" className="font-semibold text-sky-600 hover:text-sky-500">
+              {t.form.terms}
+            </Link>
+          </span>
+        </label>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {submitLabel}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }
