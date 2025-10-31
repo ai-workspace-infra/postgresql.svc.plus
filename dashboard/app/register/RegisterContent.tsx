@@ -1,8 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { ChevronDown, Github } from 'lucide-react'
-import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Github } from 'lucide-react'
+import {
+  ClipboardEvent,
+  FormEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { AskAIButton } from '@components/AskAIButton'
@@ -137,6 +146,9 @@ function deriveSameOriginFallback(url: string): string | undefined {
   return undefined
 }
 
+const VERIFICATION_CODE_LENGTH = 6
+const RESEND_COOLDOWN_SECONDS = 60
+
 export default function RegisterContent() {
   const { language } = useLanguage()
   const t = translations[language].auth.register
@@ -234,19 +246,120 @@ export default function RegisterContent() {
 
   const [alert, setAlert] = useState<AlertState | null>(initialAlert)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showOptionalFields, setShowOptionalFields] = useState(false)
-  const optionalSectionId = useId()
+  const [codeDigits, setCodeDigits] = useState<string[]>(() => Array(VERIFICATION_CODE_LENGTH).fill(''))
+  const [hasRequestedCode, setHasRequestedCode] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState('')
+  const [isResending, setIsResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const formRef = useRef<HTMLFormElement | null>(null)
+  const codeInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
     setAlert(initialAlert)
   }, [initialAlert])
 
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return
+    }
+
+    const timer = window.setInterval(() => {
+      setResendCooldown((current) => (current > 0 ? current - 1 : 0))
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [resendCooldown])
+
+  const focusCodeInput = useCallback((index: number) => {
+    const input = codeInputRefs.current[index]
+    if (input) {
+      input.focus()
+      input.select()
+    }
+  }, [])
+
+  const resetCodeDigits = useCallback(() => {
+    setCodeDigits(Array(VERIFICATION_CODE_LENGTH).fill(''))
+  }, [])
+
+  const handleCodeChange = useCallback(
+    (index: number, value: string) => {
+      const sanitized = value.replace(/\D/g, '')
+      setCodeDigits((previous) => {
+        const next = [...previous]
+        next[index] = sanitized ? sanitized[sanitized.length - 1] ?? '' : ''
+        return next
+      })
+
+      if (sanitized && index < VERIFICATION_CODE_LENGTH - 1) {
+        focusCodeInput(index + 1)
+      }
+    },
+    [focusCodeInput],
+  )
+
+  const handleCodeKeyDown = useCallback(
+    (index: number, event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Backspace' && !codeDigits[index] && index > 0) {
+        event.preventDefault()
+        setCodeDigits((previous) => {
+          const next = [...previous]
+          next[index - 1] = ''
+          return next
+        })
+        focusCodeInput(index - 1)
+        return
+      }
+
+      if (event.key === 'ArrowLeft' && index > 0) {
+        event.preventDefault()
+        focusCodeInput(index - 1)
+        return
+      }
+
+      if (event.key === 'ArrowRight' && index < VERIFICATION_CODE_LENGTH - 1) {
+        event.preventDefault()
+        focusCodeInput(index + 1)
+      }
+    },
+    [codeDigits, focusCodeInput],
+  )
+
+  const handleCodePaste = useCallback(
+    (index: number, event: ClipboardEvent<HTMLInputElement>) => {
+      event.preventDefault()
+      const clipboardValue = event.clipboardData.getData('text').replace(/\D/g, '')
+      if (!clipboardValue) {
+        return
+      }
+
+      const digits = clipboardValue.slice(0, VERIFICATION_CODE_LENGTH - index).split('')
+      setCodeDigits((previous) => {
+        const next = [...previous]
+        digits.forEach((digit, offset) => {
+          const targetIndex = index + offset
+          if (targetIndex < VERIFICATION_CODE_LENGTH) {
+            next[targetIndex] = digit
+          }
+        })
+        return next
+      })
+
+      const lastFilledIndex = Math.min(index + digits.length - 1, VERIFICATION_CODE_LENGTH - 1)
+      focusCodeInput(lastFilledIndex)
+    },
+    [focusCodeInput],
+  )
+
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault()
+
       if (isSubmitting) {
         return
       }
+
+      formRef.current = event.currentTarget
 
       const formData = new FormData(event.currentTarget)
       const name = String(formData.get('name') ?? '').trim()
@@ -254,24 +367,137 @@ export default function RegisterContent() {
       const password = String(formData.get('password') ?? '')
       const confirmPassword = String(formData.get('confirmPassword') ?? '')
       const agreementAccepted = formData.get('agreement') === 'on'
+      const verificationCode = codeDigits.join('')
 
-      if (!email || !password || !confirmPassword) {
-        setAlert({ type: 'error', message: alerts.missingFields })
+      if (!hasRequestedCode) {
+        if (!email || !password || !confirmPassword) {
+          setAlert({ type: 'error', message: alerts.missingFields })
+          return
+        }
+
+        if (!agreementAccepted) {
+          setAlert({ type: 'error', message: alerts.agreementRequired ?? alerts.missingFields })
+          return
+        }
+
+        if (password !== confirmPassword) {
+          setAlert({ type: 'error', message: alerts.passwordMismatch })
+          return
+        }
+
+        if (password.length < 8) {
+          setAlert({ type: 'error', message: alerts.weakPassword })
+          return
+        }
+
+        setIsSubmitting(true)
+        setAlert(null)
+
+        try {
+          const fallbackNameFromEmail = email.includes('@') ? email.split('@')[0] : email
+          const normalizedName = (name || fallbackNameFromEmail || 'svc_user').trim() || 'svc_user'
+
+          const requestPayload = {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: normalizedName,
+              email,
+              password,
+            }),
+          } as const
+
+          let response: Response
+          let usedUrl = registerUrlRef.current
+
+          try {
+            response = await fetch(usedUrl, requestPayload)
+          } catch (primaryError) {
+            const sameOriginFallback = deriveSameOriginFallback(usedUrl)
+            if (sameOriginFallback && sameOriginFallback !== usedUrl) {
+              try {
+                response = await fetch(sameOriginFallback, requestPayload)
+                registerUrlRef.current = sameOriginFallback
+                usedUrl = sameOriginFallback
+              } catch (fallbackError) {
+                console.error('Primary register request failed, same-origin fallback also failed', fallbackError)
+                throw fallbackError
+              }
+            } else {
+              const httpsPattern = /^https:/i
+              if (httpsPattern.test(usedUrl)) {
+                const insecureUrl = usedUrl.replace(httpsPattern, 'http:')
+
+                try {
+                  response = await fetch(insecureUrl, requestPayload)
+                  registerUrlRef.current = insecureUrl
+                  usedUrl = insecureUrl
+                } catch (fallbackError) {
+                  console.error('Primary register request failed, insecure fallback also failed', fallbackError)
+                  throw fallbackError
+                }
+              } else {
+                throw primaryError
+              }
+            }
+          }
+
+          if (!response.ok) {
+            let errorCode = 'generic_error'
+            try {
+              const data = await response.json()
+              if (typeof data?.error === 'string') {
+                errorCode = data.error
+              }
+            } catch (error) {
+              console.error('Failed to parse register response', error)
+            }
+
+            const errorMap: Record<string, string> = {
+              invalid_request: alerts.genericError,
+              missing_credentials: alerts.missingFields,
+              invalid_email: alerts.invalidEmail,
+              password_too_short: alerts.weakPassword,
+              email_already_exists: alerts.userExists,
+              name_already_exists: alerts.usernameExists ?? alerts.userExists,
+              invalid_name: alerts.invalidName ?? alerts.genericError,
+              name_required: alerts.invalidName ?? alerts.genericError,
+              hash_failure: alerts.genericError,
+              user_creation_failed: alerts.genericError,
+              credentials_in_query: alerts.genericError,
+              verification_email_failed: alerts.genericError,
+            }
+
+            setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
+            setIsSubmitting(false)
+            return
+          }
+
+          setPendingEmail(email)
+          setHasRequestedCode(true)
+          resetCodeDigits()
+          focusCodeInput(0)
+          setResendCooldown(RESEND_COOLDOWN_SECONDS)
+          setAlert({ type: 'success', message: alerts.verificationSent ?? alerts.success })
+          setIsSubmitting(false)
+        } catch (error) {
+          console.error('Failed to register user', error)
+          setAlert({ type: 'error', message: alerts.genericError })
+          setIsSubmitting(false)
+        }
         return
       }
 
-      if (!agreementAccepted) {
-        setAlert({ type: 'error', message: alerts.agreementRequired ?? alerts.missingFields })
+      const emailForVerification = pendingEmail || email
+      if (!emailForVerification) {
+        setAlert({ type: 'error', message: alerts.invalidEmail })
         return
       }
 
-      if (password !== confirmPassword) {
-        setAlert({ type: 'error', message: alerts.passwordMismatch })
-        return
-      }
-
-      if (password.length < 8) {
-        setAlert({ type: 'error', message: alerts.weakPassword })
+      if (verificationCode.length !== VERIFICATION_CODE_LENGTH) {
+        setAlert({ type: 'error', message: alerts.codeRequired ?? alerts.missingFields })
         return
       }
 
@@ -279,55 +505,16 @@ export default function RegisterContent() {
       setAlert(null)
 
       try {
-        const fallbackNameFromEmail = email.includes('@') ? email.split('@')[0] : email
-        const normalizedName = (name || fallbackNameFromEmail || 'svc_user').trim() || 'svc_user'
-
-        const requestPayload = {
+        const response = await fetch('/api/auth/verify-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: normalizedName,
-            email,
-            password,
+            email: emailForVerification,
+            code: verificationCode,
           }),
-        } as const
-
-        let response: Response
-        let usedUrl = registerUrlRef.current
-
-        try {
-          response = await fetch(usedUrl, requestPayload)
-        } catch (primaryError) {
-          const sameOriginFallback = deriveSameOriginFallback(usedUrl)
-          if (sameOriginFallback && sameOriginFallback !== usedUrl) {
-            try {
-              response = await fetch(sameOriginFallback, requestPayload)
-              registerUrlRef.current = sameOriginFallback
-              usedUrl = sameOriginFallback
-            } catch (fallbackError) {
-              console.error('Primary register request failed, same-origin fallback also failed', fallbackError)
-              throw fallbackError
-            }
-          } else {
-            const httpsPattern = /^https:/i
-            if (httpsPattern.test(usedUrl)) {
-              const insecureUrl = usedUrl.replace(httpsPattern, 'http:')
-
-              try {
-                response = await fetch(insecureUrl, requestPayload)
-                registerUrlRef.current = insecureUrl
-                usedUrl = insecureUrl
-              } catch (fallbackError) {
-                console.error('Primary register request failed, insecure fallback also failed', fallbackError)
-                throw fallbackError
-              }
-            } else {
-              throw primaryError
-            }
-          }
-        }
+        })
 
         if (!response.ok) {
           let errorCode = 'generic_error'
@@ -337,21 +524,15 @@ export default function RegisterContent() {
               errorCode = data.error
             }
           } catch (error) {
-            console.error('Failed to parse register response', error)
+            console.error('Failed to parse verification response', error)
           }
 
           const errorMap: Record<string, string> = {
             invalid_request: alerts.genericError,
-            missing_credentials: alerts.missingFields,
-            invalid_email: alerts.invalidEmail,
-            password_too_short: alerts.weakPassword,
-            email_already_exists: alerts.userExists,
-            name_already_exists: alerts.usernameExists ?? alerts.userExists,
-            invalid_name: alerts.invalidName ?? alerts.genericError,
-            name_required: alerts.invalidName ?? alerts.genericError,
-            hash_failure: alerts.genericError,
-            user_creation_failed: alerts.genericError,
-            credentials_in_query: alerts.genericError,
+            missing_verification: alerts.codeRequired ?? alerts.missingFields,
+            invalid_code: alerts.invalidCode ?? alerts.genericError,
+            verification_failed: alerts.verificationFailed ?? alerts.genericError,
+            account_service_unreachable: alerts.genericError,
           }
 
           setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
@@ -363,19 +544,106 @@ export default function RegisterContent() {
         setIsSubmitting(false)
         router.push('/login?registered=1&setupMfa=1')
       } catch (error) {
-        console.error('Failed to register user', error)
+        console.error('Failed to verify email', error)
         setAlert({ type: 'error', message: alerts.genericError })
         setIsSubmitting(false)
       }
     },
-    [alerts, isSubmitting, normalize, router],
+    [
+      alerts,
+      codeDigits,
+      focusCodeInput,
+      hasRequestedCode,
+      isSubmitting,
+      normalize,
+      pendingEmail,
+      resetCodeDigits,
+      router,
+    ],
   )
+
+  const handleResend = useCallback(async () => {
+    if (isResending || resendCooldown > 0) {
+      return
+    }
+
+    const emailFromForm =
+      pendingEmail ||
+      (formRef.current ? String(new FormData(formRef.current).get('email') ?? '').trim() : '')
+
+    if (!emailFromForm) {
+      setAlert({ type: 'error', message: alerts.invalidEmail })
+      return
+    }
+
+    setIsResending(true)
+
+    try {
+      const response = await fetch('/api/auth/verify-email/resend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: emailFromForm }),
+      })
+
+      if (!response.ok) {
+        let errorCode = 'generic_error'
+        try {
+          const data = await response.json()
+          if (typeof data?.error === 'string') {
+            errorCode = data.error
+          }
+        } catch (error) {
+          console.error('Failed to parse resend response', error)
+        }
+
+        const errorMap: Record<string, string> = {
+          invalid_request: alerts.genericError,
+          invalid_email: alerts.invalidEmail,
+          verification_failed: alerts.verificationFailed ?? alerts.genericError,
+          already_verified: alerts.verificationFailed ?? alerts.genericError,
+          account_service_unreachable: alerts.genericError,
+        }
+
+        setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
+        setIsResending(false)
+        return
+      }
+
+      setPendingEmail(emailFromForm)
+      setHasRequestedCode(true)
+      resetCodeDigits()
+      focusCodeInput(0)
+      setResendCooldown(RESEND_COOLDOWN_SECONDS)
+      setAlert({ type: 'success', message: alerts.verificationSent ?? alerts.success })
+      setIsResending(false)
+    } catch (error) {
+      console.error('Failed to resend verification code', error)
+      setAlert({ type: 'error', message: alerts.genericError })
+      setIsResending(false)
+    }
+  }, [alerts, focusCodeInput, isResending, normalize, pendingEmail, resetCodeDigits, resendCooldown])
 
   const aboveForm = t.uuidNote ? (
     <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
       {t.uuidNote}
     </div>
   ) : null
+
+  const isVerificationStep = hasRequestedCode
+  const submitLabel = isVerificationStep
+    ? isSubmitting
+      ? t.form.verifying ?? t.form.verifySubmit ?? t.form.submit
+      : t.form.verifySubmit ?? t.form.submit
+    : isSubmitting
+      ? t.form.submitting ?? t.form.submit
+      : t.form.submit
+  const resendLabel = isResending
+    ? t.form.verificationCodeResending ?? t.form.verificationCodeResend
+    : resendCooldown > 0
+      ? `${t.form.verificationCodeResend} (${resendCooldown}s)`
+      : t.form.verificationCodeResend
 
   return (
     <>
@@ -391,7 +659,13 @@ export default function RegisterContent() {
         switchAction={{ text: t.loginPrompt.text, linkLabel: t.loginPrompt.link, href: '/login' }}
         bottomNote={t.bottomNote}
       >
-        <form className="space-y-5" method="post" onSubmit={handleSubmit} noValidate>
+        <form
+          ref={formRef}
+          className="space-y-5"
+          method="post"
+          onSubmit={handleSubmit}
+          noValidate
+        >
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium text-slate-600">
               {t.form.email}
@@ -402,47 +676,50 @@ export default function RegisterContent() {
               type="email"
               autoComplete="email"
               placeholder={t.form.emailPlaceholder}
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
               required
+              disabled={isVerificationStep}
             />
           </div>
-          <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 px-4 py-4">
-            <button
-              type="button"
-              onClick={() => setShowOptionalFields(current => !current)}
-              className="flex w-full items-center justify-between rounded-xl bg-white/90 px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
-              aria-expanded={showOptionalFields}
-              aria-controls={optionalSectionId}
-            >
-              <span>{showOptionalFields ? t.form.moreOptionsToggleHide : t.form.moreOptionsToggleShow}</span>
-              <ChevronDown
-                aria-hidden
-                className={`h-4 w-4 transition-transform ${showOptionalFields ? 'rotate-180' : ''}`}
-              />
-            </button>
-            <div
-              id={optionalSectionId}
-              className={`space-y-3 border-t border-slate-100 pt-3 ${showOptionalFields ? 'mt-3' : 'hidden'}`}
-            >
-              {t.form.moreOptionsDescription ? (
-                <p className="text-xs text-slate-500">{t.form.moreOptionsDescription}</p>
-              ) : null}
-              <div className="space-y-2">
-                <label htmlFor="full-name" className="text-sm font-medium text-slate-600">
-                  {t.form.fullName}
-                </label>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-slate-600" htmlFor="verification-code-0">
+                {t.form.verificationCodeLabel}
+              </label>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={isResending || resendCooldown > 0}
+                className="rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {resendLabel}
+              </button>
+            </div>
+            {t.form.verificationCodeDescription ? (
+              <p className="text-xs text-slate-500">{t.form.verificationCodeDescription}</p>
+            ) : null}
+            <div className="flex gap-2">
+              {codeDigits.map((digit, index) => (
                 <input
-                  id="full-name"
-                  name="name"
+                  key={index}
+                  id={`verification-code-${index}`}
+                  ref={(element) => {
+                    codeInputRefs.current[index] = element
+                  }}
                   type="text"
-                  autoComplete="name"
-                  placeholder={t.form.fullNamePlaceholder}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? 'one-time-code' : undefined}
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(event) => handleCodeChange(index, event.target.value)}
+                  onKeyDown={(event) => handleCodeKeyDown(index, event)}
+                  onPaste={(event) => handleCodePaste(index, event)}
+                  disabled={!isVerificationStep}
+                  className="h-12 w-12 rounded-2xl border border-slate-200 bg-white/90 text-center text-lg font-semibold text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                  aria-label={`${t.form.verificationCodeLabel} ${index + 1}`}
                 />
-                {t.form.fullNameHint ? (
-                  <p className="text-xs text-slate-400">{t.form.fullNameHint}</p>
-                ) : null}
-              </div>
+              ))}
             </div>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -454,34 +731,37 @@ export default function RegisterContent() {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="new-password"
-                placeholder={t.form.passwordPlaceholder}
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="confirm-password" className="text-sm font-medium text-slate-600">
-                {t.form.confirmPassword}
+              autoComplete="new-password"
+              placeholder={t.form.passwordPlaceholder}
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+              required={!isVerificationStep}
+              disabled={isVerificationStep}
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="confirm-password" className="text-sm font-medium text-slate-600">
+              {t.form.confirmPassword}
               </label>
               <input
                 id="confirm-password"
                 name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                placeholder={t.form.confirmPasswordPlaceholder}
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                required
-              />
-            </div>
-          </div>
-          <label className="flex items-start gap-3 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              name="agreement"
-              required
-              className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+              type="password"
+              autoComplete="new-password"
+              placeholder={t.form.confirmPasswordPlaceholder}
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+              required={!isVerificationStep}
+              disabled={isVerificationStep}
             />
+          </div>
+        </div>
+        <label className="flex items-start gap-3 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            name="agreement"
+            required={!isVerificationStep}
+            disabled={isVerificationStep}
+            className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+          />
             <span>
               {t.form.agreement}{' '}
               <Link href="/docs" className="font-semibold text-sky-600 hover:text-sky-500">
@@ -494,7 +774,7 @@ export default function RegisterContent() {
             disabled={isSubmitting}
             className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isSubmitting ? t.form.submitting ?? t.form.submit : t.form.submit}
+            {submitLabel}
           </button>
         </form>
       </AuthLayout>
