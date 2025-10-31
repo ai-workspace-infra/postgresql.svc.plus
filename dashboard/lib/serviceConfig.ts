@@ -65,6 +65,13 @@ const runtimeServiceConfig = parseSimpleYaml(runtimeServiceConfigSource)
 const runtimeEnvironments: Record<string, EnvironmentRuntimeConfig> =
   runtimeServiceConfig.environments ?? {}
 
+type RuntimeEnvironmentName = keyof typeof runtimeEnvironments
+
+const runtimeEnvironmentNames = Object.keys(
+  runtimeEnvironments,
+) as RuntimeEnvironmentName[]
+const hasRuntimeEnvironments = runtimeEnvironmentNames.length > 0
+
 type ServiceKey = keyof EnvironmentRuntimeConfig
 
 const FALLBACK_ACCOUNT_SERVICE_URL = 'https://accounts.svc.plus'
@@ -74,8 +81,13 @@ const FALLBACK_SERVER_SERVICE_INTERNAL_URL = 'http://127.0.0.1:8090'
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
 
 function getRuntimeServiceBaseUrl(serviceKey: ServiceKey): string | undefined {
-  const environmentName = resolveRuntimeEnvironment()
   const runtimeDefaults = runtimeServiceConfig.defaults?.[serviceKey]?.baseUrl
+
+  if (!hasRuntimeEnvironments) {
+    return runtimeDefaults
+  }
+
+  const environmentName = resolveRuntimeEnvironment()
   const environmentValue = environmentName
     ? runtimeEnvironments[environmentName]?.[serviceKey]?.baseUrl
     : undefined
@@ -88,8 +100,6 @@ const DEFAULT_ACCOUNT_SERVICE_URL =
 const DEFAULT_SERVER_SERVICE_URL =
   getRuntimeServiceBaseUrl('serverService') ?? FALLBACK_SERVER_SERVICE_URL
 
-type RuntimeEnvironmentName = keyof typeof runtimeEnvironments
-
 function normalizeEnvKey(value?: string | null): string | undefined {
   if (!value) return undefined
   return value
@@ -100,6 +110,10 @@ function normalizeEnvKey(value?: string | null): string | undefined {
 }
 
 function resolveRuntimeEnvironment(): RuntimeEnvironmentName | undefined {
+  if (!hasRuntimeEnvironments) {
+    return undefined
+  }
+
   const envCandidates = [
     process.env.NEXT_PUBLIC_RUNTIME_ENV,
     process.env.NEXT_RUNTIME_ENV,
@@ -113,9 +127,9 @@ function resolveRuntimeEnvironment(): RuntimeEnvironmentName | undefined {
     const normalizedCandidate = normalizeEnvKey(candidate)
     if (!normalizedCandidate) continue
 
-    const matchedEntry = Object.keys(runtimeEnvironments).find(
+    const matchedEntry = runtimeEnvironmentNames.find(
       (key) => normalizeEnvKey(key) === normalizedCandidate,
-    ) as RuntimeEnvironmentName | undefined
+    )
 
     if (matchedEntry) {
       return matchedEntry
@@ -128,6 +142,11 @@ function resolveRuntimeEnvironment(): RuntimeEnvironmentName | undefined {
 function getRuntimeAccountServiceBaseUrl(): string | undefined {
   const environmentName = resolveRuntimeEnvironment()
   const runtimeDefaults = runtimeServiceConfig.defaults?.accountService?.baseUrl
+
+  if (!hasRuntimeEnvironments) {
+    return runtimeDefaults
+  }
+
   const environmentValue = environmentName
     ? runtimeEnvironments[environmentName]?.accountService?.baseUrl
     : undefined

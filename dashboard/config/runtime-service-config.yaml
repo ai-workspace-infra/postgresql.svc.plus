@@ -1,22 +1,5 @@
-defaultEnvironment: production
 defaults:
   accountService:
     baseUrl: https://accounts.svc.plus
   serverService:
     baseUrl: https://api.svc.plus
-environments:
-  development:
-    accountService:
-      baseUrl: https://dev-accounts.svc.plus
-    serverService:
-      baseUrl: https://dev-api.svc.plus
-  production:
-    accountService:
-      baseUrl: https://accounts.svc.plus
-    serverService:
-      baseUrl: https://api.svc.plus
-  production_tls:
-    accountService:
-      baseUrl: https://accounts.svc.plus
-    serverService:
-      baseUrl: https://api.svc.plus
