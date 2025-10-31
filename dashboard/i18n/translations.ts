@@ -176,6 +176,10 @@ type AuthRegisterAlerts = {
   invalidEmail: string
   weakPassword: string
   genericError: string
+  verificationSent?: string
+  verificationFailed?: string
+  invalidCode?: string
+  codeRequired?: string
 }
 
 type AuthLoginAlerts = {
@@ -204,9 +208,6 @@ type AuthRegisterTranslation = {
   form: {
     title: string
     subtitle: string
-    fullName: string
-    fullNamePlaceholder: string
-    fullNameHint?: string
     email: string
     emailPlaceholder: string
     password: string
@@ -217,9 +218,12 @@ type AuthRegisterTranslation = {
     terms: string
     submit: string
     submitting?: string
-    moreOptionsToggleShow: string
-    moreOptionsToggleHide: string
-    moreOptionsDescription?: string
+    verifySubmit?: string
+    verifying?: string
+    verificationCodeLabel: string
+    verificationCodeDescription?: string
+    verificationCodeResend: string
+    verificationCodeResending?: string
   }
   social: {
     title: string
@@ -662,9 +666,6 @@ export const translations: Record<'en' | 'zh', Translation> = {
         form: {
           title: 'Create your account',
           subtitle: 'Share a few details or continue with a social login.',
-          fullName: 'Display name (optional)',
-          fullNamePlaceholder: 'Ada Lovelace',
-          fullNameHint: 'Shown in notifications and workspace invites. You can change this later.',
           email: 'Work email',
           emailPlaceholder: 'name@example.com',
           password: 'Password',
@@ -675,9 +676,12 @@ export const translations: Record<'en' | 'zh', Translation> = {
           terms: 'terms & privacy policy',
           submit: 'Create account',
           submitting: 'Creating account…',
-          moreOptionsToggleShow: 'More options',
-          moreOptionsToggleHide: 'Hide options',
-          moreOptionsDescription: 'Add optional profile details to personalize your workspace.',
+          verifySubmit: 'Verify & complete',
+          verifying: 'Verifying…',
+          verificationCodeLabel: 'Email verification code',
+          verificationCodeDescription: 'Enter the 6-digit code sent to your email. It expires in 10 minutes.',
+          verificationCodeResend: 'Resend',
+          verificationCodeResending: 'Resending…',
         },
         social: {
           title: 'Or continue with',
@@ -699,6 +703,10 @@ export const translations: Record<'en' | 'zh', Translation> = {
           invalidEmail: 'Enter a valid email address.',
           weakPassword: 'Your password must be at least 8 characters long.',
           genericError: 'We could not complete your registration. Please try again.',
+          verificationSent: 'Verification code sent. Check your email.',
+          verificationFailed: 'Verification failed. Request a new code and try again.',
+          invalidCode: 'Enter the 6-digit verification code sent to your email.',
+          codeRequired: 'Enter the 6-digit verification code to continue.',
         },
       },
       login: {
@@ -1267,9 +1275,6 @@ export const translations: Record<'en' | 'zh', Translation> = {
         form: {
           title: '创建账号',
           subtitle: '填写基础信息，或选择社交账号直接注册。',
-          fullName: '展示名称（可选）',
-          fullNamePlaceholder: '王小云',
-          fullNameHint: '用于通知、团队邀请等场景，后续可以随时修改。',
           email: '邮箱',
           emailPlaceholder: 'name@example.com',
           password: '密码',
@@ -1280,9 +1285,12 @@ export const translations: Record<'en' | 'zh', Translation> = {
           terms: '服务条款与隐私政策',
           submit: '立即注册',
           submitting: '注册中…',
-          moreOptionsToggleShow: '更多选项',
-          moreOptionsToggleHide: '收起选项',
-          moreOptionsDescription: '补充可选信息，帮助我们为你个性化工作区体验。',
+          verifySubmit: '验证并完成',
+          verifying: '验证中…',
+          verificationCodeLabel: '动态验证码',
+          verificationCodeDescription: '请输入发送到注册邮箱的 6 位数字验证码，10 分钟内有效。',
+          verificationCodeResend: '重发',
+          verificationCodeResending: '重发中…',
         },
         social: {
           title: '或选择以下方式',
@@ -1304,6 +1312,10 @@ export const translations: Record<'en' | 'zh', Translation> = {
           invalidEmail: '请输入有效的邮箱地址。',
           weakPassword: '密码长度至少需要 8 个字符。',
           genericError: '注册失败，请稍后重试。',
+          verificationSent: '验证码已发送，请查收邮箱。',
+          verificationFailed: '验证码验证失败，请重新获取验证码再试。',
+          invalidCode: '请输入邮箱收到的 6 位数字验证码。',
+          codeRequired: '请输入验证码后再继续。',
         },
       },
       login: {

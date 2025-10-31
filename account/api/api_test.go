@@ -99,6 +99,19 @@ func extractTokenFromMessage(t *testing.T, msg capturedEmail) string {
 	return ""
 }
 
+func extractVerificationCodeFromMessage(t *testing.T, msg capturedEmail) string {
+	t.Helper()
+	re := regexp.MustCompile(`\b[0-9]{6}\b`)
+	if match := re.FindString(msg.PlainBody); match != "" {
+		return match
+	}
+	if match := re.FindString(msg.HTMLBody); match != "" {
+		return match
+	}
+	t.Fatalf("failed to extract verification code from email body: %q", msg.PlainBody)
+	return ""
+}
+
 func decodeResponse(t *testing.T, rr *httptest.ResponseRecorder) apiResponse {
 	t.Helper()
 	var resp apiResponse
@@ -211,8 +224,11 @@ func TestRegisterEndpoint(t *testing.T) {
 		t.Fatalf("expected verification subject, got %q", msg.Subject)
 	}
 
-	token := extractTokenFromMessage(t, msg)
-	verifyPayload := map[string]string{"token": token}
+	code := extractVerificationCodeFromMessage(t, msg)
+	verifyPayload := map[string]string{
+		"email": payload["email"],
+		"code":  code,
+	}
 	verifyBody, err := json.Marshal(verifyPayload)
 	if err != nil {
 		t.Fatalf("failed to marshal verification payload: %v", err)
@@ -233,6 +249,159 @@ func TestRegisterEndpoint(t *testing.T) {
 	}
 	if verified, ok := resp.User["emailVerified"].(bool); !ok || !verified {
 		t.Fatalf("expected emailVerified true after verification, got %#v", resp.User["emailVerified"])
+	}
+}
+
+func TestResendVerificationEndpoint(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	router := gin.New()
+	mailer := &testEmailSender{}
+	RegisterRoutes(router, WithEmailSender(mailer))
+
+	payload := map[string]string{
+		"name":     "Resend User",
+		"email":    "resend@example.com",
+		"password": "supersecure",
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("failed to marshal payload: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	initialMsg, ok := mailer.last()
+	if !ok {
+		t.Fatalf("expected initial verification email")
+	}
+	initialCode := extractVerificationCodeFromMessage(t, initialMsg)
+
+	resendPayload := map[string]string{"email": payload["email"]}
+	resendBody, err := json.Marshal(resendPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal resend payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/resend", bytes.NewReader(resendBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected resend success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	resentMsg, ok := mailer.last()
+	if !ok {
+		t.Fatalf("expected verification email after resend")
+	}
+	resentCode := extractVerificationCodeFromMessage(t, resentMsg)
+	if strings.TrimSpace(resentCode) == "" {
+		t.Fatalf("expected verification code in resent email")
+	}
+	if strings.TrimSpace(initialCode) == strings.TrimSpace(resentCode) {
+		t.Logf("verification code repeated across resend; continuing to verify")
+	}
+
+	verifyPayload := map[string]string{
+		"email": payload["email"],
+		"code":  resentCode,
+	}
+	verifyBody, err := json.Marshal(verifyPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal verify payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/verify", bytes.NewReader(verifyBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected verification success after resend, got %d: %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestResendVerificationEndpointErrors(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	router := gin.New()
+	mailer := &testEmailSender{}
+	RegisterRoutes(router, WithEmailSender(mailer))
+
+	payload := map[string]string{
+		"name":     "Verified User",
+		"email":    "verified@example.com",
+		"password": "supersecure",
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("failed to marshal payload: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	msg, ok := mailer.last()
+	if !ok {
+		t.Fatalf("expected verification email after registration")
+	}
+	code := extractVerificationCodeFromMessage(t, msg)
+	verifyPayload := map[string]string{
+		"email": payload["email"],
+		"code":  code,
+	}
+	verifyBody, err := json.Marshal(verifyPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal verify payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/verify", bytes.NewReader(verifyBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected verification success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	resendPayload := map[string]string{"email": payload["email"]}
+	resendBody, err := json.Marshal(resendPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal resend payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/resend", bytes.NewReader(resendBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected resend to fail for verified email, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	unknownPayload := map[string]string{"email": "missing@example.com"}
+	unknownBody, err := json.Marshal(unknownPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal unknown payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/resend", bytes.NewReader(unknownBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("expected resend to fail for unknown email, got %d: %s", rr.Code, rr.Body.String())
 	}
 }
 
@@ -384,8 +553,11 @@ func TestMFATOTPFlow(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected verification email during registration")
 	}
-	token := extractTokenFromMessage(t, msg)
-	verifyPayload := map[string]string{"token": token}
+	code := extractVerificationCodeFromMessage(t, msg)
+	verifyPayload := map[string]string{
+		"email": registerPayload["email"],
+		"code":  code,
+	}
 	verifyBody, err := json.Marshal(verifyPayload)
 	if err != nil {
 		t.Fatalf("failed to marshal verify payload: %v", err)
@@ -482,11 +654,11 @@ func TestMFATOTPFlow(t *testing.T) {
 	}
 
 	waitForStableTOTPWindow(t)
-	code := generateCode(-30 * time.Second)
+	mfaCode := generateCode(-30 * time.Second)
 
 	totpVerifyPayload := map[string]string{
 		"token": resp.MFAToken,
-		"code":  code,
+		"code":  mfaCode,
 	}
 	totpVerifyBody, err := json.Marshal(totpVerifyPayload)
 	if err != nil {
@@ -826,8 +998,11 @@ func TestPasswordResetFlow(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected verification email during registration")
 	}
-	verifyToken := extractTokenFromMessage(t, msg)
-	verifyPayload := map[string]string{"token": verifyToken}
+	verificationCode := extractVerificationCodeFromMessage(t, msg)
+	verifyPayload := map[string]string{
+		"email": registerPayload["email"],
+		"code":  verificationCode,
+	}
 	verifyBody, err := json.Marshal(verifyPayload)
 	if err != nil {
 		t.Fatalf("failed to marshal verification payload: %v", err)

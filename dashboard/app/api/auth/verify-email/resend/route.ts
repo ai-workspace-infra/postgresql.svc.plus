@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
+
+const ACCOUNT_SERVICE_URL = getAccountServiceBaseUrl()
+const ACCOUNT_API_BASE = `${ACCOUNT_SERVICE_URL}/api/auth`
+
+type ResendPayload = {
+  email?: string
+}
+
+function normalizeEmail(value: unknown) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+export async function POST(request: NextRequest) {
+  let payload: ResendPayload
+  try {
+    payload = (await request.json()) as ResendPayload
+  } catch (error) {
+    console.error('Failed to decode verification resend payload', error)
+    return NextResponse.json({ success: false, error: 'invalid_request', needMfa: false }, { status: 400 })
+  }
+
+  const email = normalizeEmail(payload?.email)
+  if (!email) {
+    return NextResponse.json({ success: false, error: 'invalid_email', needMfa: false }, { status: 400 })
+  }
+
+  try {
+    const response = await fetch(`${ACCOUNT_API_BASE}/register/resend`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+      cache: 'no-store',
+    })
+
+    const data = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      const errorCode = typeof (data as { error?: string })?.error === 'string' ? data.error : 'verification_failed'
+      return NextResponse.json({ success: false, error: errorCode, needMfa: false }, { status: response.status || 400 })
+    }
+
+    return NextResponse.json({ success: true, error: null, needMfa: false })
+  } catch (error) {
+    console.error('Account service verification resend proxy failed', error)
+    return NextResponse.json(
+      { success: false, error: 'account_service_unreachable', needMfa: false },
+      { status: 502 },
+    )
+  }
+}
+
+export function GET() {
+  return NextResponse.json(
+    { success: false, error: 'method_not_allowed', needMfa: false },
+    {
+      status: 405,
+      headers: {
+        Allow: 'POST',
+      },
+    },
+  )
+}

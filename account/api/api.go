@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html"
 	"log/slog"
+	"math/big"
 	"net/http"
 	"strings"
 	"sync"
@@ -27,7 +28,7 @@ import (
 const defaultSessionTTL = 24 * time.Hour
 const defaultMFAChallengeTTL = 10 * time.Minute
 const defaultTOTPIssuer = "XControl Account"
-const defaultEmailVerificationTTL = 24 * time.Hour
+const defaultEmailVerificationTTL = 10 * time.Minute
 const defaultPasswordResetTTL = 30 * time.Minute
 const maxMFAVerificationAttempts = 5
 const defaultMFALockoutDuration = 5 * time.Minute
@@ -74,6 +75,7 @@ type mfaChallenge struct {
 type emailVerification struct {
 	userID    string
 	email     string
+	code      string
 	expiresAt time.Time
 }
 
@@ -185,6 +187,7 @@ func RegisterRoutes(r *gin.Engine, opts ...Option) {
 
 	auth.POST("/register", h.register)
 	auth.POST("/register/verify", h.verifyEmail)
+	auth.POST("/register/resend", h.resendEmailVerification)
 
 	auth.POST("/login", h.login)
 
@@ -221,8 +224,13 @@ type loginRequest struct {
 	TOTPCode   string `json:"totpCode"`
 }
 
-type tokenRequest struct {
-	Token string `json:"token"`
+type verificationCodeRequest struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
+
+type verificationResendRequest struct {
+	Email string `json:"email"`
 }
 
 type passwordResetRequestBody struct {
@@ -339,26 +347,45 @@ func (h *handler) register(c *gin.Context) {
 }
 
 func (h *handler) verifyEmail(c *gin.Context) {
-	if hasQueryParameter(c, "token") {
-		respondError(c, http.StatusBadRequest, "token_in_query", "verification token must be sent in the request body")
+	if hasQueryParameter(c, "token", "code") {
+		respondError(c, http.StatusBadRequest, "token_in_query", "verification code must be sent in the request body")
 		return
 	}
 
-	var req tokenRequest
+	var req verificationCodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		respondError(c, http.StatusBadRequest, "invalid_request", "invalid request payload")
 		return
 	}
 
-	token := strings.TrimSpace(req.Token)
-	if token == "" {
-		respondError(c, http.StatusBadRequest, "invalid_token", "verification token is required")
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	code := strings.TrimSpace(req.Code)
+
+	if email == "" || code == "" {
+		respondError(c, http.StatusBadRequest, "invalid_request", "email and verification code are required")
 		return
 	}
 
-	verification, ok := h.lookupEmailVerification(token)
+	if len(code) != 6 {
+		respondError(c, http.StatusBadRequest, "invalid_code", "verification code must be 6 digits")
+		return
+	}
+
+	for _, r := range code {
+		if r < '0' || r > '9' {
+			respondError(c, http.StatusBadRequest, "invalid_code", "verification code must be 6 digits")
+			return
+		}
+	}
+
+	verification, ok := h.lookupEmailVerification(email)
 	if !ok {
-		respondError(c, http.StatusBadRequest, "invalid_token", "verification token is invalid or expired")
+		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
+		return
+	}
+
+	if verification.code != code {
+		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
 		return
 	}
 
@@ -370,8 +397,8 @@ func (h *handler) verifyEmail(c *gin.Context) {
 	}
 
 	if !strings.EqualFold(strings.TrimSpace(user.Email), verification.email) {
-		h.removeEmailVerification(token)
-		respondError(c, http.StatusBadRequest, "invalid_token", "verification token is invalid or expired")
+		h.removeEmailVerification(email)
+		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
 		return
 	}
 
@@ -384,7 +411,7 @@ func (h *handler) verifyEmail(c *gin.Context) {
 		}
 	}
 
-	h.removeEmailVerification(token)
+	h.removeEmailVerification(email)
 
 	sessionToken, expiresAt, err := h.createSession(user.ID)
 	if err != nil {
@@ -400,6 +427,53 @@ func (h *handler) verifyEmail(c *gin.Context) {
 		"expiresAt": expiresAt.UTC(),
 		"user":      sanitizeUser(user, nil),
 	})
+}
+
+func (h *handler) resendEmailVerification(c *gin.Context) {
+	if hasQueryParameter(c, "email") {
+		respondError(c, http.StatusBadRequest, "email_in_query", "email must be sent in the request body")
+		return
+	}
+
+	var req verificationResendRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid_request", "invalid request payload")
+		return
+	}
+
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	if email == "" {
+		respondError(c, http.StatusBadRequest, "invalid_email", "email must be a valid address")
+		return
+	}
+
+	user, err := h.store.GetUserByEmail(c.Request.Context(), email)
+	if err != nil {
+		if errors.Is(err, store.ErrUserNotFound) {
+			respondError(c, http.StatusNotFound, "verification_failed", "verification email could not be sent")
+			return
+		}
+		respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
+		return
+	}
+
+	if strings.TrimSpace(user.Email) == "" {
+		respondError(c, http.StatusBadRequest, "invalid_email", "email must be a valid address")
+		return
+	}
+
+	if user.EmailVerified {
+		respondError(c, http.StatusBadRequest, "already_verified", "email is already verified")
+		return
+	}
+
+	if err := h.enqueueEmailVerification(c.Request.Context(), user); err != nil {
+		slog.Error("failed to resend verification email", "err", err, "email", user.Email)
+		respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "verification email resent"})
 }
 
 func (h *handler) requestPasswordReset(c *gin.Context) {
@@ -867,6 +941,15 @@ func (h *handler) newRandomToken() (string, error) {
 	return hex.EncodeToString(buffer), nil
 }
 
+func (h *handler) newVerificationCode() (string, error) {
+	max := big.NewInt(1000000)
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%06d", n.Int64()), nil
+}
+
 func (h *handler) effectiveMFAChallengeTTL() time.Duration {
 	ttl := h.mfaChallengeTTL
 	if ttl <= 0 {
@@ -945,25 +1028,27 @@ func (h *handler) enqueueEmailVerification(ctx context.Context, user *store.User
 		return errors.New("user email is empty")
 	}
 
-	token, err := h.newRandomToken()
-	if err != nil {
-		return err
-	}
-
 	ttl := h.verificationTTL
 	if ttl <= 0 {
 		ttl = defaultEmailVerificationTTL
 	}
 
 	expiresAt := time.Now().Add(ttl)
+	code, err := h.newVerificationCode()
+	if err != nil {
+		return err
+	}
+
+	normalizedEmail := strings.ToLower(email)
 	verification := emailVerification{
 		userID:    user.ID,
-		email:     strings.ToLower(email),
+		email:     normalizedEmail,
+		code:      code,
 		expiresAt: expiresAt,
 	}
 
 	h.verificationMu.Lock()
-	h.verifications[token] = verification
+	h.verifications[normalizedEmail] = verification
 	h.verificationMu.Unlock()
 
 	name := strings.TrimSpace(user.Name)
@@ -972,8 +1057,8 @@ func (h *handler) enqueueEmailVerification(ctx context.Context, user *store.User
 	}
 
 	subject := "Verify your XControl account"
-	plainBody := fmt.Sprintf("Hello %s,\n\nUse the following token to verify your XControl account: %s\n\nThis token expires at %s UTC.\nIf you did not request this email you can ignore it.\n", name, token, expiresAt.UTC().Format(time.RFC3339))
-	htmlBody := fmt.Sprintf("<p>Hello %s,</p><p>Use the following token to verify your XControl account:</p><p><strong>%s</strong></p><p>This token expires at %s UTC.</p><p>If you did not request this email you can ignore it.</p>", html.EscapeString(name), token, expiresAt.UTC().Format(time.RFC3339))
+	plainBody := fmt.Sprintf("Hello %s,\n\nUse the following verification code to verify your XControl account: %s\n\nThis code expires at %s UTC (in %d minutes).\nIf you did not request this email you can ignore it.\n", name, code, expiresAt.UTC().Format(time.RFC3339), int(ttl.Minutes()))
+	htmlBody := fmt.Sprintf("<p>Hello %s,</p><p>Use the following verification code to verify your XControl account:</p><p><strong>%s</strong></p><p>This code expires at %s UTC (in %d minutes).</p><p>If you did not request this email you can ignore it.</p>", html.EscapeString(name), code, expiresAt.UTC().Format(time.RFC3339), int(ttl.Minutes()))
 
 	msg := EmailMessage{
 		To:        []string{email},
@@ -983,37 +1068,37 @@ func (h *handler) enqueueEmailVerification(ctx context.Context, user *store.User
 	}
 
 	if err := h.emailSender.Send(ctx, msg); err != nil {
-		h.removeEmailVerification(token)
+		h.removeEmailVerification(normalizedEmail)
 		return err
 	}
 
 	return nil
 }
 
-func (h *handler) lookupEmailVerification(token string) (emailVerification, bool) {
-	token = strings.TrimSpace(token)
-	if token == "" {
+func (h *handler) lookupEmailVerification(email string) (emailVerification, bool) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email == "" {
 		return emailVerification{}, false
 	}
 
 	h.verificationMu.RLock()
-	verification, ok := h.verifications[token]
+	verification, ok := h.verifications[email]
 	h.verificationMu.RUnlock()
 	if !ok {
 		return emailVerification{}, false
 	}
 
 	if time.Now().After(verification.expiresAt) {
-		h.removeEmailVerification(token)
+		h.removeEmailVerification(email)
 		return emailVerification{}, false
 	}
 
 	return verification, true
 }
 
-func (h *handler) removeEmailVerification(token string) {
+func (h *handler) removeEmailVerification(email string) {
 	h.verificationMu.Lock()
-	delete(h.verifications, strings.TrimSpace(token))
+	delete(h.verifications, strings.ToLower(strings.TrimSpace(email)))
 	h.verificationMu.Unlock()
 }
 
