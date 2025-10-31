@@ -1,8 +1,18 @@
 'use client'
+import { usePathname } from 'next/navigation'
+
 import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
 
+const HIDDEN_PATH_PREFIXES = ['/login', '/register']
+
 export default function Footer() {
+  const pathname = usePathname()
+  const isHidden = pathname ? HIDDEN_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix)) : false
+  if (isHidden) {
+    return null
+  }
+
   const { language } = useLanguage()
   const t = translations[language].footerLinks
   const [privacy, terms, contact] = t

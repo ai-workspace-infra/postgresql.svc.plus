@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
@@ -25,6 +26,8 @@ type NavSubItem = {
 }
 
 export default function Navbar() {
+  const pathname = usePathname()
+  const isHiddenRoute = pathname ? ['/login', '/register'].some((prefix) => pathname.startsWith(prefix)) : false
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false)
   const [selectedChannels, setSelectedChannels] = useState<ReleaseChannel[]>(['stable'])
@@ -277,6 +280,10 @@ export default function Navbar() {
     setPendingQuestion({ key: Date.now(), text: trimmed })
     setAskDialogOpen(true)
     setSearchValue('')
+  }
+
+  if (isHiddenRoute) {
+    return null
   }
 
   return (
