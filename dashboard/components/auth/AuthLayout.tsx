@@ -98,7 +98,10 @@ export function AuthLayout({
         className="pointer-events-none absolute inset-x-0 -top-1/3 h-1/2 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-100 via-transparent to-transparent"
         aria-hidden
       />
-      <main className="relative flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <main
+        className="relative flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8"
+        data-testid="auth-layout"
+      >
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
             <Link href="/" className="text-3xl font-semibold tracking-tight text-slate-900">

@@ -5,13 +5,12 @@ import { ChevronDown, Github } from 'lucide-react'
 import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-import { AskAIButton } from '@components/AskAIButton'
 import { AuthLayout, AuthLayoutSocialButton } from '@components/auth/AuthLayout'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
 
-import { WeChatIcon } from '../components/icons/WeChatIcon'
+import { WeChatIcon } from '../../components/icons/WeChatIcon'
 
 type AlertState = { type: 'error' | 'success'; message: string }
 
@@ -498,7 +497,6 @@ export default function RegisterContent() {
           </button>
         </form>
       </AuthLayout>
-      <AskAIButton />
     </>
   )
 }

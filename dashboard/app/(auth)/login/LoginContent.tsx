@@ -5,13 +5,12 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Github } from 'lucide-react'
 
-import { AskAIButton } from '@components/AskAIButton'
 import { AuthLayout, AuthLayoutSocialButton } from '@components/auth/AuthLayout'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
 
-import { WeChatIcon } from '../components/icons/WeChatIcon'
+import { WeChatIcon } from '../../components/icons/WeChatIcon'
 
 type LoginContentProps = {
   children?: ReactNode
@@ -346,7 +345,6 @@ export default function LoginContent({ children }: LoginContentProps) {
       >
         {formContent}
       </AuthLayout>
-      <AskAIButton />
     </>
   )
 }
