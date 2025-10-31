@@ -10,7 +10,7 @@ import { isFeatureEnabled } from '@lib/featureToggles'
 import RegisterContent from './RegisterContent'
 
 function RegisterPageFallback() {
-  return <div className="flex min-h-screen flex-col bg-gray-50" />
+  return <div className="flex min-h-screen flex-col bg-slate-50" />
 }
 
 export default function RegisterPage() {

@@ -248,7 +248,7 @@ export function LoginForm() {
   return (
     <>
       {user ? (
-        <div className="space-y-4 rounded-xl border border-purple-200 bg-purple-50/80 p-5 text-sm text-purple-700">
+        <div className="space-y-4 rounded-2xl border border-sky-200 bg-sky-50/80 p-5 text-sm text-sky-700">
           <p className="text-base font-semibold">
             {pageCopy.success.replace('{username}', user.username)}
           </p>
@@ -256,14 +256,14 @@ export function LoginForm() {
             <button
               type="button"
               onClick={handleGoHome}
-              className="inline-flex items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow transition hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
             >
               {pageCopy.goHome}
             </button>
             <button
               type="button"
               onClick={handleLogout}
-              className="inline-flex items-center justify-center rounded-lg border border-purple-200 px-4 py-2 text-sm font-medium text-purple-600 transition hover:border-purple-300 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
             >
               {navCopy.logout}
             </button>
@@ -272,9 +272,9 @@ export function LoginForm() {
       ) : null}
 
       {!user ? (
-        <form method="post" onSubmit={handleSubmit} className="space-y-6" noValidate>
+        <form method="post" onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="space-y-2">
-            <label htmlFor="login-identifier" className="text-sm font-medium text-gray-700">
+            <label htmlFor="login-identifier" className="text-sm font-medium text-slate-600">
               {authCopy.form.email}
             </label>
             <input
@@ -285,21 +285,21 @@ export function LoginForm() {
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
               placeholder={authCopy.form.emailPlaceholder}
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-gray-900 shadow-sm transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
             />
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">{authCopy.form.mfa.mode}</p>
-            <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+            <p className="text-sm font-medium text-slate-600">{authCopy.form.mfa.mode}</p>
+            <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
               {mfaModeLabel}
             </div>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <label htmlFor="login-password" className="font-medium text-gray-700">
+              <label htmlFor="login-password" className="font-medium text-slate-600">
                 {authCopy.form.password}
               </label>
-              <Link href="#" className="font-medium text-purple-600 hover:text-purple-500">
+              <Link href="#" className="font-medium text-sky-600 hover:text-sky-500">
                 {authCopy.forgotPassword}
               </Link>
             </div>
@@ -311,12 +311,12 @@ export function LoginForm() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder={authCopy.form.passwordPlaceholder}
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-gray-900 shadow-sm transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
             />
           </div>
           {requiresTotpInput ? (
             <div className="space-y-2">
-              <label htmlFor="login-totp" className="text-sm font-medium text-gray-700">
+              <label htmlFor="login-totp" className="text-sm font-medium text-slate-600">
                 {authCopy.form.mfa.codeLabel}
               </label>
               <input
@@ -331,15 +331,15 @@ export function LoginForm() {
                   setTotpCode(digits)
                 }}
                 placeholder={authCopy.form.mfa.codePlaceholder}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-gray-900 shadow-sm transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200"
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
               />
             </div>
           ) : null}
-          <label className="flex items-center gap-3 text-sm text-gray-600">
+          <label className="flex items-center gap-3 text-sm text-slate-600">
             <input
               type="checkbox"
               name="remember"
-              className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
               checked={remember}
               onChange={(event) => setRemember(event.target.checked)}
             />
@@ -351,11 +351,11 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-600/20 transition hover:bg-purple-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isSubmitting ? `${authCopy.form.submit}…` : authCopy.form.submit}
           </button>
-          <p className="text-xs text-gray-500">* {pageCopy.disclaimer}</p>
+          <p className="text-xs text-slate-500">* {pageCopy.disclaimer}</p>
         </form>
       ) : null}
     </>
