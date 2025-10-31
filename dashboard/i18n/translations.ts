@@ -206,6 +206,7 @@ type AuthRegisterTranslation = {
     subtitle: string
     fullName: string
     fullNamePlaceholder: string
+    fullNameHint?: string
     email: string
     emailPlaceholder: string
     password: string
@@ -216,6 +217,9 @@ type AuthRegisterTranslation = {
     terms: string
     submit: string
     submitting?: string
+    moreOptionsToggleShow: string
+    moreOptionsToggleHide: string
+    moreOptionsDescription?: string
   }
   social: {
     title: string
@@ -658,8 +662,9 @@ export const translations: Record<'en' | 'zh', Translation> = {
         form: {
           title: 'Create your account',
           subtitle: 'Share a few details or continue with a social login.',
-          fullName: 'Full name',
+          fullName: 'Display name (optional)',
           fullNamePlaceholder: 'Ada Lovelace',
+          fullNameHint: 'Shown in notifications and workspace invites. You can change this later.',
           email: 'Work email',
           emailPlaceholder: 'name@example.com',
           password: 'Password',
@@ -670,6 +675,9 @@ export const translations: Record<'en' | 'zh', Translation> = {
           terms: 'terms & privacy policy',
           submit: 'Create account',
           submitting: 'Creating account…',
+          moreOptionsToggleShow: 'More options',
+          moreOptionsToggleHide: 'Hide options',
+          moreOptionsDescription: 'Add optional profile details to personalize your workspace.',
         },
         social: {
           title: 'Or continue with',
@@ -1259,8 +1267,9 @@ export const translations: Record<'en' | 'zh', Translation> = {
         form: {
           title: '创建账号',
           subtitle: '填写基础信息，或选择社交账号直接注册。',
-          fullName: '姓名',
+          fullName: '展示名称（可选）',
           fullNamePlaceholder: '王小云',
+          fullNameHint: '用于通知、团队邀请等场景，后续可以随时修改。',
           email: '邮箱',
           emailPlaceholder: 'name@example.com',
           password: '密码',
@@ -1271,6 +1280,9 @@ export const translations: Record<'en' | 'zh', Translation> = {
           terms: '服务条款与隐私政策',
           submit: '立即注册',
           submitting: '注册中…',
+          moreOptionsToggleShow: '更多选项',
+          moreOptionsToggleHide: '收起选项',
+          moreOptionsDescription: '补充可选信息，帮助我们为你个性化工作区体验。',
         },
         social: {
           title: '或选择以下方式',

@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Github } from 'lucide-react'
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown, Github } from 'lucide-react'
+import { FormEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 import { AskAIButton } from '@components/AskAIButton'
@@ -234,6 +234,8 @@ export default function RegisterContent() {
 
   const [alert, setAlert] = useState<AlertState | null>(initialAlert)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showOptionalFields, setShowOptionalFields] = useState(false)
+  const optionalSectionId = useId()
 
   useEffect(() => {
     setAlert(initialAlert)
@@ -253,7 +255,7 @@ export default function RegisterContent() {
       const confirmPassword = String(formData.get('confirmPassword') ?? '')
       const agreementAccepted = formData.get('agreement') === 'on'
 
-      if (!name || !email || !password || !confirmPassword) {
+      if (!email || !password || !confirmPassword) {
         setAlert({ type: 'error', message: alerts.missingFields })
         return
       }
@@ -277,13 +279,16 @@ export default function RegisterContent() {
       setAlert(null)
 
       try {
+        const fallbackNameFromEmail = email.includes('@') ? email.split('@')[0] : email
+        const normalizedName = (name || fallbackNameFromEmail || 'svc_user').trim() || 'svc_user'
+
         const requestPayload = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name,
+            name: normalizedName,
             email,
             password,
           }),
@@ -388,20 +393,6 @@ export default function RegisterContent() {
       >
         <form className="space-y-5" method="post" onSubmit={handleSubmit} noValidate>
           <div className="space-y-2">
-            <label htmlFor="full-name" className="text-sm font-medium text-slate-600">
-              {t.form.fullName}
-            </label>
-            <input
-              id="full-name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              placeholder={t.form.fullNamePlaceholder}
-              className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
-              required
-            />
-          </div>
-          <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium text-slate-600">
               {t.form.email}
             </label>
@@ -414,6 +405,45 @@ export default function RegisterContent() {
               className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
               required
             />
+          </div>
+          <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 px-4 py-4">
+            <button
+              type="button"
+              onClick={() => setShowOptionalFields(current => !current)}
+              className="flex w-full items-center justify-between rounded-xl bg-white/90 px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500"
+              aria-expanded={showOptionalFields}
+              aria-controls={optionalSectionId}
+            >
+              <span>{showOptionalFields ? t.form.moreOptionsToggleHide : t.form.moreOptionsToggleShow}</span>
+              <ChevronDown
+                aria-hidden
+                className={`h-4 w-4 transition-transform ${showOptionalFields ? 'rotate-180' : ''}`}
+              />
+            </button>
+            <div
+              id={optionalSectionId}
+              className={`space-y-3 border-t border-slate-100 pt-3 ${showOptionalFields ? 'mt-3' : 'hidden'}`}
+            >
+              {t.form.moreOptionsDescription ? (
+                <p className="text-xs text-slate-500">{t.form.moreOptionsDescription}</p>
+              ) : null}
+              <div className="space-y-2">
+                <label htmlFor="full-name" className="text-sm font-medium text-slate-600">
+                  {t.form.fullName}
+                </label>
+                <input
+                  id="full-name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder={t.form.fullNamePlaceholder}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+                {t.form.fullNameHint ? (
+                  <p className="text-xs text-slate-400">{t.form.fullNameHint}</p>
+                ) : null}
+              </div>
+            </div>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
