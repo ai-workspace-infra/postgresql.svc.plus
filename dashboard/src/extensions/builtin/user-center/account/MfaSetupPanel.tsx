@@ -242,13 +242,13 @@ export default function MfaSetupPanel() {
       const nextAccount = typeof data?.account === 'string' ? data.account.trim() : ''
 
       const resolvedAccountLabel = (() => {
-        const username = typeof user?.username === 'string' ? user.username.trim() : ''
-        if (username) {
-          return username
-        }
         const email = typeof user?.email === 'string' ? user.email.trim() : ''
         if (email) {
           return email
+        }
+        const username = typeof user?.username === 'string' ? user.username.trim() : ''
+        if (username) {
+          return username
         }
         const name = typeof user?.name === 'string' ? user.name.trim() : ''
         if (name) {
