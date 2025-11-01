@@ -48,7 +48,7 @@ const shouldUseStaticExport = process.env.NEXT_SHOULD_EXPORT === 'true'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   ...(shouldUseStaticExport ? { output: 'export' } : {}),
-  trailingSlash: true,
+  trailingSlash: false,
   reactStrictMode: true,
   compress: false, // 压缩交给 Nginx，省 Node CPU
   images: { unoptimized: true }, // 关闭服务端图片处理
