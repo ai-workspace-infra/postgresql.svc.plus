@@ -9,10 +9,9 @@ import {
   deriveMaxAgeFromExpires,
   MFA_COOKIE_NAME,
 } from '@lib/authGateway'
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
 
-const ACCOUNT_SERVICE_URL = getAccountServiceBaseUrl()
-const ACCOUNT_API_BASE = `${ACCOUNT_SERVICE_URL}/api/auth`
+const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 type VerifyPayload = {
   token?: string

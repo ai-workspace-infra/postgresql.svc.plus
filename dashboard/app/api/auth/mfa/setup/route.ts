@@ -2,10 +2,9 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { applyMfaCookie, MFA_COOKIE_NAME, SESSION_COOKIE_NAME } from '@lib/authGateway'
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
 
-const ACCOUNT_SERVICE_URL = getAccountServiceBaseUrl()
-const ACCOUNT_API_BASE = `${ACCOUNT_SERVICE_URL}/api/auth`
+const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 // This Next.js route proxies MFA provisioning requests to the account service.
 // The UI calls /api/auth/mfa/setup, which in turn forwards to the Go backend

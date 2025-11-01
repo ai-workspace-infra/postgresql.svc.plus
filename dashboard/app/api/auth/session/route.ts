@@ -2,10 +2,9 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { SESSION_COOKIE_NAME, clearSessionCookie } from '@lib/authGateway'
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
 
-const ACCOUNT_SERVICE_URL = getAccountServiceBaseUrl()
-const ACCOUNT_API_BASE = `${ACCOUNT_SERVICE_URL}/api/auth`
+const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 type AccountUser = {
   id?: string

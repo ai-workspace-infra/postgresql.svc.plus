@@ -210,6 +210,21 @@ export function getAccountServiceBaseUrl(): string {
   return normalizeBrowserBaseUrl(resolved)
 }
 
+export function getAccountServiceApiBaseUrl(): string {
+  const accountBaseUrl = getAccountServiceBaseUrl()
+  const apiPath = '/api/auth/'
+  try {
+    const url = new URL(apiPath, accountBaseUrl)
+    return normalizeBaseUrl(url.toString())
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Failed to resolve account service API base URL, falling back to concatenation', error)
+    }
+    const normalizedBase = normalizeBaseUrl(accountBaseUrl)
+    return normalizeBaseUrl(`${normalizedBase}${apiPath}`)
+  }
+}
+
 export function getServerServiceBaseUrl(): string {
   const configured = readEnvValue(
     'SERVER_SERVICE_URL',

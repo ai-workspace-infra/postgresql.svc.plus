@@ -4,10 +4,9 @@ import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 
 import { SESSION_COOKIE_NAME } from '@lib/authGateway'
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
 
-const ACCOUNT_SERVICE_BASE = getAccountServiceBaseUrl()
-const ACCOUNT_API_BASE = `${ACCOUNT_SERVICE_BASE}/api/auth`
+const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 export type AccountUserRole = 'guest' | 'user' | 'operator' | 'admin'
 

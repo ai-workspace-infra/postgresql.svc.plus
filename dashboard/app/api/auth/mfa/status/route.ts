@@ -2,10 +2,9 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { MFA_COOKIE_NAME, SESSION_COOKIE_NAME } from '@lib/authGateway'
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
 
-const ACCOUNT_SERVICE_URL = getAccountServiceBaseUrl()
-const ACCOUNT_API_BASE = `${ACCOUNT_SERVICE_URL}/api/auth`
+const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 export async function GET(request: NextRequest) {
   const cookieStore = cookies()

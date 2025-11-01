@@ -2,11 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
 import { getAccountSession, userHasRole } from '@server/account/session'
 import type { AccountUserRole } from '@server/account/session'
 
-const ACCOUNT_API_BASE = `${getAccountServiceBaseUrl()}/api/auth`
+const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 const READ_ROLES: AccountUserRole[] = ['admin', 'operator']
 const WRITE_ROLES: AccountUserRole[] = ['admin']
