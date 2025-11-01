@@ -18,136 +18,15 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { AuthLayout, AuthLayoutSocialButton } from '@components/auth/AuthLayout'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
 
 import { WeChatIcon } from '../../components/icons/WeChatIcon'
 
 type AlertState = { type: 'error' | 'success'; message: string }
 
-function normalizePathname(pathname: string): string {
-  return pathname.replace(/\/+$/, '').toLowerCase()
-}
-
-function ensureHttpsForSameHost(url: string): string {
-  if (typeof window === 'undefined') {
-    return url
-  }
-
-  try {
-    const currentOrigin = window.location.origin
-    const parsed = new URL(url, currentOrigin)
-
-    if (
-      window.location.protocol === 'https:' &&
-      parsed.protocol === 'http:' &&
-      parsed.hostname === window.location.hostname
-    ) {
-      parsed.protocol = 'https:'
-      return parsed.toString()
-    }
-
-    return parsed.toString()
-  } catch (error) {
-    console.warn('Failed to normalize register URL, falling back to provided value', error)
-    return url
-  }
-}
-
-const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
-
-function preferSameOrigin(url: string): string {
-  if (typeof window === 'undefined') {
-    return url
-  }
-
-  try {
-    const currentOrigin = window.location.origin
-    const parsed = new URL(url, currentOrigin)
-
-    const parsedHostname = parsed.hostname.toLowerCase()
-    const browserHostname = window.location.hostname.toLowerCase()
-
-    const parsedIsLocal = LOCAL_HOSTNAMES.has(parsedHostname)
-    const browserIsLocal = LOCAL_HOSTNAMES.has(browserHostname)
-
-    if (!browserIsLocal && parsedIsLocal) {
-      return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/api/auth/register'
-    }
-
-    if (parsed.origin === currentOrigin) {
-      return `${parsed.pathname}${parsed.search}${parsed.hash}` || '/api/auth/register'
-    }
-
-    return parsed.toString()
-  } catch (error) {
-    console.warn('Failed to prefer same-origin register URL, falling back to provided value', error)
-    return url
-  }
-}
-
-function coerceRegisterUrlOverride(rawValue: string | undefined | null, accountServiceBaseUrl: string): string {
-  const fallbackUrl = `${accountServiceBaseUrl}/api/auth/register`
-  if (!rawValue) {
-    return preferSameOrigin(ensureHttpsForSameHost(fallbackUrl))
-  }
-
-  const trimmed = rawValue.trim()
-  if (!trimmed) {
-    return preferSameOrigin(ensureHttpsForSameHost(fallbackUrl))
-  }
-
-  const rewritePathname = (pathname: string) => {
-    const normalized = normalizePathname(pathname)
-    if (normalized === '/register' || normalized === 'register') {
-      return '/api/auth/register'
-    }
-    return undefined
-  }
-
-  try {
-    const parsed = new URL(trimmed)
-    const rewritten = rewritePathname(parsed.pathname)
-    if (rewritten) {
-      parsed.pathname = rewritten
-      return preferSameOrigin(ensureHttpsForSameHost(parsed.toString()))
-    }
-    return preferSameOrigin(ensureHttpsForSameHost(parsed.toString()))
-  } catch (error) {
-    try {
-      const parsed = new URL(trimmed, 'http://localhost')
-      const rewritten = rewritePathname(parsed.pathname)
-      if (rewritten) {
-        return preferSameOrigin(ensureHttpsForSameHost(`${rewritten}${parsed.search}${parsed.hash}`))
-      }
-    } catch (relativeError) {
-      console.warn('Failed to parse register URL override', relativeError)
-    }
-    return preferSameOrigin(ensureHttpsForSameHost(trimmed))
-  }
-}
-
-function deriveSameOriginFallback(url: string): string | undefined {
-  if (typeof window === 'undefined') {
-    return undefined
-  }
-
-  try {
-    const currentOrigin = window.location.origin
-    const parsed = new URL(url, currentOrigin)
-    const preferred = preferSameOrigin(ensureHttpsForSameHost(parsed.toString()))
-
-    if (preferred !== url) {
-      return preferred
-    }
-  } catch (error) {
-    console.warn('Failed to derive same-origin fallback for register URL', error)
-  }
-
-  return undefined
-}
-
 const VERIFICATION_CODE_LENGTH = 6
 const RESEND_COOLDOWN_SECONDS = 60
+const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+const PASSWORD_STRENGTH_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
 
 export default function RegisterContent() {
   const { language } = useLanguage()
@@ -156,10 +35,8 @@ export default function RegisterContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const accountServiceBaseUrl = getAccountServiceBaseUrl()
   const githubAuthUrl = process.env.NEXT_PUBLIC_GITHUB_AUTH_URL || '/api/auth/github'
   const wechatAuthUrl = process.env.NEXT_PUBLIC_WECHAT_AUTH_URL || '/api/auth/wechat'
-  const registerUrl = coerceRegisterUrlOverride(process.env.NEXT_PUBLIC_REGISTER_URL, accountServiceBaseUrl)
   const isSocialAuthVisible = false
 
   const socialButtons = useMemo<AuthLayoutSocialButton[]>(() => {
@@ -180,12 +57,6 @@ export default function RegisterContent() {
       },
     ]
   }, [githubAuthUrl, isSocialAuthVisible, t.social.github, t.social.wechat, wechatAuthUrl])
-
-  const registerUrlRef = useRef(registerUrl)
-
-  useEffect(() => {
-    registerUrlRef.current = registerUrl
-  }, [registerUrl])
 
   useEffect(() => {
     const sensitiveKeys = ['username', 'password', 'confirmPassword', 'email']
@@ -364,31 +235,40 @@ export default function RegisterContent() {
       formRef.current = event.currentTarget
 
       const formData = new FormData(event.currentTarget)
-      const name = String(formData.get('name') ?? '').trim()
-      const email = String(formData.get('email') ?? '').trim()
+      const emailInput = String(formData.get('email') ?? '').trim()
+      const normalizedEmail = emailInput.toLowerCase()
       const password = String(formData.get('password') ?? '')
       const confirmPassword = String(formData.get('confirmPassword') ?? '')
       const agreementAccepted = formData.get('agreement') === 'on'
       const verificationCode = codeDigits.join('')
 
+      const showError = (message: string) => {
+        setAlert({ type: 'error', message })
+      }
+
       if (!hasRequestedCode) {
-        if (!email || !password || !confirmPassword) {
-          setAlert({ type: 'error', message: alerts.missingFields })
+        if (!emailInput || !EMAIL_PATTERN.test(emailInput)) {
+          showError(alerts.invalidEmail)
           return
         }
 
-        if (!agreementAccepted) {
-          setAlert({ type: 'error', message: alerts.agreementRequired ?? alerts.missingFields })
+        if (!password || !confirmPassword) {
+          showError(alerts.missingFields)
+          return
+        }
+
+        if (!PASSWORD_STRENGTH_PATTERN.test(password)) {
+          showError(alerts.weakPassword ?? alerts.genericError)
           return
         }
 
         if (password !== confirmPassword) {
-          setAlert({ type: 'error', message: alerts.passwordMismatch })
+          showError(alerts.passwordMismatch)
           return
         }
 
-        if (password.length < 8) {
-          setAlert({ type: 'error', message: alerts.weakPassword })
+        if (!agreementAccepted) {
+          showError(alerts.agreementRequired ?? alerts.missingFields)
           return
         }
 
@@ -396,60 +276,13 @@ export default function RegisterContent() {
         setAlert(null)
 
         try {
-          if (typeof window !== 'undefined') {
-            const message = alerts.preSubmitHint ?? 'Click submit to receive your verification code.'
-            window.alert(message)
-          }
-
-          const fallbackNameFromEmail = email.includes('@') ? email.split('@')[0] : email
-          const normalizedName = (name || fallbackNameFromEmail || 'svc_user').trim() || 'svc_user'
-
-          const requestPayload = {
+          const response = await fetch('/api/auth/register/send', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              name: normalizedName,
-              email,
-              password,
-            }),
-          } as const
-
-          let response: Response
-          let usedUrl = registerUrlRef.current
-
-          try {
-            response = await fetch(usedUrl, requestPayload)
-          } catch (primaryError) {
-            const sameOriginFallback = deriveSameOriginFallback(usedUrl)
-            if (sameOriginFallback && sameOriginFallback !== usedUrl) {
-              try {
-                response = await fetch(sameOriginFallback, requestPayload)
-                registerUrlRef.current = sameOriginFallback
-                usedUrl = sameOriginFallback
-              } catch (fallbackError) {
-                console.error('Primary register request failed, same-origin fallback also failed', fallbackError)
-                throw fallbackError
-              }
-            } else {
-              const httpsPattern = /^https:/i
-              if (httpsPattern.test(usedUrl)) {
-                const insecureUrl = usedUrl.replace(httpsPattern, 'http:')
-
-                try {
-                  response = await fetch(insecureUrl, requestPayload)
-                  registerUrlRef.current = insecureUrl
-                  usedUrl = insecureUrl
-                } catch (fallbackError) {
-                  console.error('Primary register request failed, insecure fallback also failed', fallbackError)
-                  throw fallbackError
-                }
-              } else {
-                throw primaryError
-              }
-            }
-          }
+            body: JSON.stringify({ email: emailInput }),
+          })
 
           if (!response.ok) {
             let errorCode = 'generic_error'
@@ -459,100 +292,53 @@ export default function RegisterContent() {
                 errorCode = data.error
               }
             } catch (error) {
-              console.error('Failed to parse register response', error)
+              console.error('Failed to parse verification send response', error)
             }
 
             const errorMap: Record<string, string> = {
               invalid_request: alerts.genericError,
-              missing_credentials: alerts.missingFields,
               invalid_email: alerts.invalidEmail,
-              password_too_short: alerts.weakPassword,
+              verification_failed: alerts.verificationFailed ?? alerts.genericError,
               email_already_exists: alerts.userExists,
-              name_already_exists: alerts.usernameExists ?? alerts.userExists,
-              invalid_name: alerts.invalidName ?? alerts.genericError,
-              name_required: alerts.invalidName ?? alerts.genericError,
-              hash_failure: alerts.genericError,
-              user_creation_failed: alerts.genericError,
-              credentials_in_query: alerts.genericError,
-              verification_email_failed: alerts.genericError,
+              account_service_unreachable: alerts.genericError,
             }
 
-            setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
+            showError(errorMap[normalize(errorCode)] ?? alerts.genericError)
             setIsSubmitting(false)
             return
           }
 
-          try {
-            const resendResponse = await fetch('/api/auth/register/send', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ email }),
-            })
-
-            if (!resendResponse.ok) {
-              let resendError = 'generic_error'
-              try {
-                const data = await resendResponse.json()
-                if (typeof data?.error === 'string') {
-                  resendError = data.error
-                }
-              } catch (error) {
-                console.error('Failed to parse resend response after register', error)
-              }
-
-              const resendErrorMap: Record<string, string> = {
-                invalid_request: alerts.genericError,
-                invalid_email: alerts.invalidEmail,
-                verification_failed: alerts.verificationFailed ?? alerts.genericError,
-                already_verified: alerts.verificationFailed ?? alerts.genericError,
-                account_service_unreachable: alerts.genericError,
-              }
-
-              setAlert({
-                type: 'error',
-                message: resendErrorMap[normalize(resendError)] ?? alerts.genericError,
-              })
-              setIsSubmitting(false)
-              return
-            }
-          } catch (error) {
-            console.error('Failed to trigger verification resend after register', error)
-            setAlert({ type: 'error', message: alerts.genericError })
-            setIsSubmitting(false)
-            return
-          }
-
-          setPendingEmail(email)
+          setPendingEmail(normalizedEmail)
           setPendingPassword(password)
           setHasRequestedCode(true)
           setIsVerified(false)
           resetCodeDigits()
           focusCodeInput(0)
           setResendCooldown(RESEND_COOLDOWN_SECONDS)
+
+          const successMessage = alerts.verificationSent ?? alerts.genericError
+          setAlert({ type: 'success', message: successMessage })
           if (typeof window !== 'undefined') {
-            const message = alerts.verificationSent ?? 'Verification code sent. Please check your email.'
-            window.alert(message)
+            window.alert(successMessage)
           }
-          setIsSubmitting(false)
         } catch (error) {
-          console.error('Failed to register user', error)
-          setAlert({ type: 'error', message: alerts.genericError })
+          console.error('Failed to request verification code', error)
+          showError(alerts.genericError)
+        } finally {
           setIsSubmitting(false)
         }
         return
       }
 
-      const emailForVerification = pendingEmail || email
+      const emailForVerification = pendingEmail || normalizedEmail
       if (!emailForVerification) {
-        setAlert({ type: 'error', message: alerts.invalidEmail })
+        showError(alerts.invalidEmail)
         return
       }
 
       if (!isVerified) {
         if (verificationCode.length !== VERIFICATION_CODE_LENGTH) {
-          setAlert({ type: 'error', message: alerts.codeRequired ?? alerts.missingFields })
+          showError(alerts.codeRequired ?? alerts.invalidCode ?? alerts.missingFields)
           return
         }
 
@@ -565,10 +351,7 @@ export default function RegisterContent() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              email: emailForVerification,
-              code: verificationCode,
-            }),
+            body: JSON.stringify({ email: emailForVerification, code: verificationCode }),
           })
 
           if (!response.ok) {
@@ -590,28 +373,33 @@ export default function RegisterContent() {
               account_service_unreachable: alerts.genericError,
             }
 
-            setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
+            showError(errorMap[normalize(errorCode)] ?? alerts.genericError)
             setIsSubmitting(false)
             return
           }
 
           setIsVerified(true)
+          const successMessage = alerts.verificationReady ?? alerts.success
+          setAlert({ type: 'success', message: successMessage })
           if (typeof window !== 'undefined') {
-            const message =
-              alerts.verificationReady ?? 'Code verified. Click complete registration to continue.'
-            window.alert(message)
+            window.alert(successMessage)
           }
-          setIsSubmitting(false)
         } catch (error) {
           console.error('Failed to verify email', error)
-          setAlert({ type: 'error', message: alerts.genericError })
+          showError(alerts.genericError)
+        } finally {
           setIsSubmitting(false)
         }
         return
       }
 
       if (!pendingPassword) {
-        setAlert({ type: 'error', message: alerts.genericError })
+        showError(alerts.genericError)
+        return
+      }
+
+      if (verificationCode.length !== VERIFICATION_CODE_LENGTH) {
+        showError(alerts.codeRequired ?? alerts.invalidCode ?? alerts.genericError)
         return
       }
 
@@ -619,7 +407,52 @@ export default function RegisterContent() {
       setAlert(null)
 
       try {
-        const response = await fetch('/api/auth/login', {
+        const registerResponse = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: emailForVerification,
+            password: pendingPassword,
+            confirmPassword: pendingPassword,
+            code: verificationCode,
+          }),
+        })
+
+        let registerData: { success?: boolean; error?: string } | null = null
+        try {
+          registerData = await registerResponse.json()
+        } catch (error) {
+          registerData = null
+        }
+
+        if (!registerResponse.ok || registerData?.success === false) {
+          const errorCode =
+            typeof registerData?.error === 'string' ? registerData.error : 'registration_failed'
+          const errorMap: Record<string, string> = {
+            invalid_request: alerts.genericError,
+            missing_credentials: alerts.missingFields,
+            invalid_email: alerts.invalidEmail,
+            password_too_short: alerts.weakPassword,
+            email_already_exists: alerts.userExists,
+            name_already_exists: alerts.usernameExists ?? alerts.userExists,
+            invalid_name: alerts.invalidName ?? alerts.genericError,
+            name_required: alerts.invalidName ?? alerts.genericError,
+            hash_failure: alerts.genericError,
+            user_creation_failed: alerts.genericError,
+            credentials_in_query: alerts.genericError,
+            verification_required: alerts.codeRequired ?? alerts.genericError,
+            invalid_code: alerts.invalidCode ?? alerts.genericError,
+            account_service_unreachable: alerts.genericError,
+          }
+
+          showError(errorMap[normalize(errorCode)] ?? alerts.genericError)
+          setIsSubmitting(false)
+          return
+        }
+
+        const loginResponse = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -630,15 +463,17 @@ export default function RegisterContent() {
           }),
         })
 
-        let data: { success?: boolean; needMfa?: boolean; error?: string; redirectTo?: string } | null = null
+        let loginData:
+          | { success?: boolean; needMfa?: boolean; error?: string; redirectTo?: string }
+          | null = null
         try {
-          data = await response.json()
+          loginData = await loginResponse.json()
         } catch (error) {
-          data = null
+          loginData = null
         }
 
-        if (!response.ok || !data?.success) {
-          const errorCode = typeof data?.error === 'string' ? data.error : 'generic_error'
+        if (!loginResponse.ok || !loginData?.success) {
+          const errorCode = typeof loginData?.error === 'string' ? loginData.error : 'generic_error'
           const errorMap: Record<string, string> = {
             invalid_credentials: alerts.genericError,
             missing_credentials: alerts.missingFields,
@@ -646,29 +481,29 @@ export default function RegisterContent() {
             authentication_failed: alerts.genericError,
           }
 
-          if (data?.needMfa) {
+          if (loginData?.needMfa) {
             router.push('/login?needMfa=1')
             router.refresh()
             setIsSubmitting(false)
             return
           }
 
-          setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
+          showError(errorMap[normalize(errorCode)] ?? alerts.genericError)
           setIsSubmitting(false)
           return
         }
 
+        const successMessage = alerts.registrationComplete ?? alerts.success
+        setAlert({ type: 'success', message: successMessage })
         if (typeof window !== 'undefined') {
-          const message =
-            alerts.registrationComplete ?? 'Registration complete. Redirecting to your dashboard.'
-          window.alert(message)
+          window.alert(successMessage)
         }
 
-        router.push(data?.redirectTo || '/')
+        router.push(loginData?.redirectTo || '/')
         router.refresh()
       } catch (error) {
-        console.error('Failed to complete registration login', error)
-        setAlert({ type: 'error', message: alerts.genericError })
+        console.error('Failed to complete registration', error)
+        showError(alerts.genericError)
       } finally {
         setIsSubmitting(false)
       }
@@ -693,14 +528,16 @@ export default function RegisterContent() {
       return
     }
 
-    const emailFromForm =
+    const emailFromFormRaw =
       pendingEmail ||
       (formRef.current ? String(new FormData(formRef.current).get('email') ?? '').trim() : '')
 
-    if (!emailFromForm) {
+    if (!emailFromFormRaw) {
       setAlert({ type: 'error', message: alerts.invalidEmail })
       return
     }
+
+    const emailFromForm = emailFromFormRaw.trim()
 
     setIsResending(true)
 
@@ -730,6 +567,7 @@ export default function RegisterContent() {
           verification_failed: alerts.verificationFailed ?? alerts.genericError,
           already_verified: alerts.verificationFailed ?? alerts.genericError,
           account_service_unreachable: alerts.genericError,
+          email_already_exists: alerts.userExists,
         }
 
         setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
@@ -737,15 +575,15 @@ export default function RegisterContent() {
         return
       }
 
-      setPendingEmail(emailFromForm)
+      setPendingEmail(emailFromForm.toLowerCase())
       setHasRequestedCode(true)
       setIsVerified(false)
       resetCodeDigits()
       focusCodeInput(0)
       setResendCooldown(RESEND_COOLDOWN_SECONDS)
+      const message = alerts.verificationResent ?? alerts.verificationSent ?? 'Verification code resent.'
+      setAlert({ type: 'success', message })
       if (typeof window !== 'undefined') {
-        const message =
-          alerts.verificationResent ?? alerts.verificationSent ?? 'Verification code resent.'
         window.alert(message)
       }
       setIsResending(false)
@@ -780,6 +618,60 @@ export default function RegisterContent() {
       ? `${t.form.verificationCodeResend} (${resendCooldown}s)`
       : t.form.verificationCodeResend
   const verificationDescriptionId = useId()
+  const isSubmitDisabled = useMemo(() => {
+    if (isSubmitting) {
+      return true
+    }
+
+    const formElement = formRef.current
+    if (!formElement) {
+      if (!hasRequestedCode) {
+        return true
+      }
+
+      if (!isVerified) {
+        return codeDigits.some((digit) => !digit)
+      }
+
+      return codeDigits.some((digit) => !digit) || !pendingPassword
+    }
+
+    const formData = new FormData(formElement)
+    const emailValue = String(formData.get('email') ?? '').trim()
+    const passwordValue = String(formData.get('password') ?? '')
+    const confirmValue = String(formData.get('confirmPassword') ?? '')
+    const agreementAccepted = formData.get('agreement') === 'on'
+
+    if (!hasRequestedCode) {
+      if (!emailValue || !EMAIL_PATTERN.test(emailValue)) {
+        return true
+      }
+
+      if (!passwordValue || !confirmValue) {
+        return true
+      }
+
+      if (!PASSWORD_STRENGTH_PATTERN.test(passwordValue)) {
+        return true
+      }
+
+      if (passwordValue !== confirmValue) {
+        return true
+      }
+
+      if (!agreementAccepted) {
+        return true
+      }
+
+      return false
+    }
+
+    if (!isVerified) {
+      return codeDigits.some((digit) => !digit)
+    }
+
+    return codeDigits.some((digit) => !digit) || !pendingPassword
+  }, [codeDigits, hasRequestedCode, isSubmitting, isVerified, pendingPassword])
 
   return (
     <AuthLayout
@@ -892,7 +784,7 @@ export default function RegisterContent() {
                 aria-describedby={
                   t.form.verificationCodeDescription ? verificationDescriptionId : undefined
                 }
-                disabled={isVerified}
+                disabled={!hasRequestedCode || isVerified}
               />
             ))}
           </div>
@@ -914,7 +806,7 @@ export default function RegisterContent() {
         </label>
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitDisabled}
           className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:from-sky-500 hover:to-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {submitLabel}

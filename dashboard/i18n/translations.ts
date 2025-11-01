@@ -654,7 +654,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
         badge: 'Create account',
         title: 'Join CloudNative Suite',
 
-        subtitle: 'Bring open source tools and AI services together to craft your cloud native workspace.',
+        subtitle: 'We’ll email a verification code so you can confirm your address before accessing the workspace.',
 
         highlights: [
           {
@@ -671,7 +671,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
           'Every account receives a globally unique UUID. After registration, sign in to the user center to view and copy it for future integrations.',
         form: {
           title: 'Create your account',
-          subtitle: 'Share a few details or continue with a social login.',
+          subtitle: 'Submit your email and password, request the code, and enter it to activate your account.',
           email: 'Work email',
           emailPlaceholder: 'name@example.com',
           password: 'Password',
@@ -1272,7 +1272,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
       register: {
         badge: '立即注册',
         title: '加入 CloudNative Suite',
-        subtitle: '把开源工具和 AI 服务放到一起，打造属于你的云原生工作台。',
+        subtitle: '我们会先向你的邮箱发送验证码，确认地址后即可进入工作台。',
 
         highlights: [
           {
@@ -1288,7 +1288,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
         uuidNote: '注册完成后，系统会为你分配一个全局唯一的 UUID，可在用户中心查看并复制，用于后续服务对接。',
         form: {
           title: '创建账号',
-          subtitle: '填写基础信息，或选择社交账号直接注册。',
+          subtitle: '先提交邮箱和密码获取验证码，再输入邮箱收到的验证码完成注册。',
           email: '邮箱',
           emailPlaceholder: 'name@example.com',
           password: '密码',

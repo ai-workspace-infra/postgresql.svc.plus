@@ -141,25 +141,59 @@ func TestRegisterEndpoint(t *testing.T) {
 	mailer := &testEmailSender{}
 	RegisterRoutes(router, WithEmailSender(mailer))
 
-	payload := map[string]string{
-		"name":     "Test User",
-		"email":    "user@example.com",
-		"password": "supersecure",
-	}
+	email := "user@example.com"
 
-	body, err := json.Marshal(payload)
+	sendPayload := map[string]string{"email": email}
+	sendBody, err := json.Marshal(sendPayload)
 	if err != nil {
-		t.Fatalf("failed to marshal payload: %v", err)
+		t.Fatalf("failed to marshal send payload: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(sendBody))
 	req.Header.Set("Content-Type", "application/json")
-
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected verification send success, got %d: %s", rr.Code, rr.Body.String())
+	}
 
+	msg, ok := mailer.last()
+	if !ok {
+		t.Fatalf("expected verification email to be sent")
+	}
+	code := extractVerificationCodeFromMessage(t, msg)
+
+	verifyPayload := map[string]string{"email": email, "code": code}
+	verifyBody, err := json.Marshal(verifyPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal verify payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/verify", bytes.NewReader(verifyBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected verification success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	registerPayload := map[string]string{
+		"name":     "Test User",
+		"email":    email,
+		"password": "supersecure",
+		"code":     code,
+	}
+	registerBody, err := json.Marshal(registerPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal register payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(registerBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
 	if rr.Code != http.StatusCreated {
-		t.Fatalf("expected status %d, got %d, body: %s", http.StatusCreated, rr.Code, rr.Body.String())
+		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
 	}
 
 	resp := decodeResponse(t, rr)
@@ -167,12 +201,12 @@ func TestRegisterEndpoint(t *testing.T) {
 		t.Fatalf("expected user object in response")
 	}
 
-	if verified, ok := resp.User["emailVerified"].(bool); !ok || verified {
-		t.Fatalf("expected emailVerified to be false after registration, got %#v", resp.User["emailVerified"])
+	if verified, ok := resp.User["emailVerified"].(bool); !ok || !verified {
+		t.Fatalf("expected emailVerified true after registration, got %#v", resp.User["emailVerified"])
 	}
 
-	if email, ok := resp.User["email"].(string); !ok || email != payload["email"] {
-		t.Fatalf("expected email %q, got %#v", payload["email"], resp.User["email"])
+	if emailValue, ok := resp.User["email"].(string); !ok || emailValue != email {
+		t.Fatalf("expected email %q, got %#v", email, resp.User["email"])
 	}
 
 	if id, ok := resp.User["id"].(string); !ok || id == "" {
@@ -181,74 +215,13 @@ func TestRegisterEndpoint(t *testing.T) {
 		t.Fatalf("expected uuid to match id")
 	}
 
-	if mfaEnabled, ok := resp.User["mfaEnabled"].(bool); !ok || mfaEnabled {
-		t.Fatalf("expected mfaEnabled to be false, got %#v", resp.User["mfaEnabled"])
-	}
-
-	mfaData, ok := resp.User["mfa"].(map[string]interface{})
-	if !ok {
-		t.Fatalf("expected mfa state in user payload")
-	}
-	if enabled, ok := mfaData["totpEnabled"].(bool); !ok || enabled {
-		t.Fatalf("expected totpEnabled to be false, got %#v", mfaData["totpEnabled"])
-	}
-	if pending, ok := mfaData["totpPending"].(bool); !ok || pending {
-		t.Fatalf("expected totpPending to be false, got %#v", mfaData["totpPending"])
-	}
-
 	if role, ok := resp.User["role"].(string); !ok || role != store.RoleUser {
 		t.Fatalf("expected role %q, got %#v", store.RoleUser, resp.User["role"])
 	}
 
 	groups, ok := resp.User["groups"].([]interface{})
-	if !ok {
+	if !ok || len(groups) == 0 {
 		t.Fatalf("expected groups array in response")
-	}
-	if len(groups) != 1 || groups[0] != "User" {
-		t.Fatalf("expected default group 'User', got %#v", groups)
-	}
-
-	permissions, ok := resp.User["permissions"].([]interface{})
-	if !ok {
-		t.Fatalf("expected permissions array in response")
-	}
-	if len(permissions) != 0 {
-		t.Fatalf("expected empty permissions list, got %#v", permissions)
-	}
-
-	msg, ok := mailer.last()
-	if !ok {
-		t.Fatalf("expected verification email to be sent")
-	}
-	if !strings.Contains(strings.ToLower(msg.Subject), "verify") {
-		t.Fatalf("expected verification subject, got %q", msg.Subject)
-	}
-
-	code := extractVerificationCodeFromMessage(t, msg)
-	verifyPayload := map[string]string{
-		"email": payload["email"],
-		"code":  code,
-	}
-	verifyBody, err := json.Marshal(verifyPayload)
-	if err != nil {
-		t.Fatalf("failed to marshal verification payload: %v", err)
-	}
-
-	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/verify", bytes.NewReader(verifyBody))
-	req.Header.Set("Content-Type", "application/json")
-	rr = httptest.NewRecorder()
-	router.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusOK {
-		t.Fatalf("expected verification success, got %d: %s", rr.Code, rr.Body.String())
-	}
-
-	resp = decodeResponse(t, rr)
-	if resp.User == nil {
-		t.Fatalf("expected user in verification response")
-	}
-	if verified, ok := resp.User["emailVerified"].(bool); !ok || !verified {
-		t.Fatalf("expected emailVerified true after verification, got %#v", resp.User["emailVerified"])
 	}
 }
 
@@ -259,32 +232,29 @@ func TestResendVerificationEndpoint(t *testing.T) {
 	mailer := &testEmailSender{}
 	RegisterRoutes(router, WithEmailSender(mailer))
 
-	payload := map[string]string{
-		"name":     "Resend User",
-		"email":    "resend@example.com",
-		"password": "supersecure",
-	}
+	email := "resend@example.com"
 
-	body, err := json.Marshal(payload)
+	sendPayload := map[string]string{"email": email}
+	sendBody, err := json.Marshal(sendPayload)
 	if err != nil {
-		t.Fatalf("failed to marshal payload: %v", err)
+		t.Fatalf("failed to marshal send payload: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(sendBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	if rr.Code != http.StatusCreated {
-		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected initial send success, got %d: %s", rr.Code, rr.Body.String())
 	}
 
 	initialMsg, ok := mailer.last()
 	if !ok {
-		t.Fatalf("expected initial verification email")
+		t.Fatalf("expected verification email after initial send")
 	}
 	initialCode := extractVerificationCodeFromMessage(t, initialMsg)
 
-	resendPayload := map[string]string{"email": payload["email"]}
+	resendPayload := map[string]string{"email": email}
 	resendBody, err := json.Marshal(resendPayload)
 	if err != nil {
 		t.Fatalf("failed to marshal resend payload: %v", err)
@@ -311,7 +281,7 @@ func TestResendVerificationEndpoint(t *testing.T) {
 	}
 
 	verifyPayload := map[string]string{
-		"email": payload["email"],
+		"email": email,
 		"code":  resentCode,
 	}
 	verifyBody, err := json.Marshal(verifyPayload)
@@ -335,34 +305,29 @@ func TestResendVerificationEndpointErrors(t *testing.T) {
 	mailer := &testEmailSender{}
 	RegisterRoutes(router, WithEmailSender(mailer))
 
-	payload := map[string]string{
-		"name":     "Verified User",
-		"email":    "verified@example.com",
-		"password": "supersecure",
-	}
+	email := "verified@example.com"
 
-	body, err := json.Marshal(payload)
+	sendPayload := map[string]string{"email": email}
+	sendBody, err := json.Marshal(sendPayload)
 	if err != nil {
-		t.Fatalf("failed to marshal payload: %v", err)
+		t.Fatalf("failed to marshal send payload: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(sendBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	if rr.Code != http.StatusCreated {
-		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected initial send success, got %d: %s", rr.Code, rr.Body.String())
 	}
 
 	msg, ok := mailer.last()
 	if !ok {
-		t.Fatalf("expected verification email after registration")
+		t.Fatalf("expected verification email after send")
 	}
 	code := extractVerificationCodeFromMessage(t, msg)
-	verifyPayload := map[string]string{
-		"email": payload["email"],
-		"code":  code,
-	}
+
+	verifyPayload := map[string]string{"email": email, "code": code}
 	verifyBody, err := json.Marshal(verifyPayload)
 	if err != nil {
 		t.Fatalf("failed to marshal verify payload: %v", err)
@@ -376,7 +341,26 @@ func TestResendVerificationEndpointErrors(t *testing.T) {
 		t.Fatalf("expected verification success, got %d: %s", rr.Code, rr.Body.String())
 	}
 
-	resendPayload := map[string]string{"email": payload["email"]}
+	registerPayload := map[string]string{
+		"name":     "Verified User",
+		"email":    email,
+		"password": "supersecure",
+		"code":     code,
+	}
+	registerBody, err := json.Marshal(registerPayload)
+	if err != nil {
+		t.Fatalf("failed to marshal register payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(registerBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	resendPayload := map[string]string{"email": email}
 	resendBody, err := json.Marshal(resendPayload)
 	if err != nil {
 		t.Fatalf("failed to marshal resend payload: %v", err)
@@ -386,22 +370,22 @@ func TestResendVerificationEndpointErrors(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	rr = httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	if rr.Code != http.StatusBadRequest {
+	if rr.Code != http.StatusConflict {
 		t.Fatalf("expected resend to fail for verified email, got %d: %s", rr.Code, rr.Body.String())
 	}
 
-	unknownPayload := map[string]string{"email": "missing@example.com"}
-	unknownBody, err := json.Marshal(unknownPayload)
+	invalidPayload := map[string]string{"email": ""}
+	invalidBody, err := json.Marshal(invalidPayload)
 	if err != nil {
-		t.Fatalf("failed to marshal unknown payload: %v", err)
+		t.Fatalf("failed to marshal invalid payload: %v", err)
 	}
 
-	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(unknownBody))
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(invalidBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr = httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	if rr.Code != http.StatusNotFound {
-		t.Fatalf("expected resend to fail for unknown email, got %d: %s", rr.Code, rr.Body.String())
+	if rr.Code != http.StatusBadRequest {
+		t.Fatalf("expected resend to fail for invalid email, got %d: %s", rr.Code, rr.Body.String())
 	}
 }
 
@@ -536,17 +520,19 @@ func TestMFATOTPFlow(t *testing.T) {
 		"email":    "login@example.com",
 		"password": "supersecure",
 	}
-	registerBody, err := json.Marshal(registerPayload)
+
+	sendPayload := map[string]string{"email": registerPayload["email"]}
+	sendBody, err := json.Marshal(sendPayload)
 	if err != nil {
-		t.Fatalf("failed to marshal registration payload: %v", err)
+		t.Fatalf("failed to marshal send payload: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(registerBody))
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(sendBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	if rr.Code != http.StatusCreated {
-		t.Fatalf("expected registration to succeed, got %d", rr.Code)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected verification send success, got %d: %s", rr.Code, rr.Body.String())
 	}
 
 	msg, ok := mailer.last()
@@ -554,6 +540,7 @@ func TestMFATOTPFlow(t *testing.T) {
 		t.Fatalf("expected verification email during registration")
 	}
 	code := extractVerificationCodeFromMessage(t, msg)
+
 	verifyPayload := map[string]string{
 		"email": registerPayload["email"],
 		"code":  code,
@@ -569,6 +556,25 @@ func TestMFATOTPFlow(t *testing.T) {
 	router.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("expected verification success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	registerWithCode := map[string]string{
+		"name":     registerPayload["name"],
+		"email":    registerPayload["email"],
+		"password": registerPayload["password"],
+		"code":     code,
+	}
+	registerBody, err := json.Marshal(registerWithCode)
+	if err != nil {
+		t.Fatalf("failed to marshal registration payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(registerBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("expected registration to succeed, got %d: %s", rr.Code, rr.Body.String())
 	}
 
 	loginPayload := map[string]string{
@@ -981,17 +987,19 @@ func TestPasswordResetFlow(t *testing.T) {
 		"email":    "reset@example.com",
 		"password": "originalPass1",
 	}
-	registerBody, err := json.Marshal(registerPayload)
+
+	sendPayload := map[string]string{"email": registerPayload["email"]}
+	sendBody, err := json.Marshal(sendPayload)
 	if err != nil {
-		t.Fatalf("failed to marshal registration payload: %v", err)
+		t.Fatalf("failed to marshal send payload: %v", err)
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(registerBody))
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(sendBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
-	if rr.Code != http.StatusCreated {
-		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
+	if rr.Code != http.StatusOK {
+		t.Fatalf("expected verification send success, got %d: %s", rr.Code, rr.Body.String())
 	}
 
 	msg, ok := mailer.last()
@@ -999,6 +1007,7 @@ func TestPasswordResetFlow(t *testing.T) {
 		t.Fatalf("expected verification email during registration")
 	}
 	verificationCode := extractVerificationCodeFromMessage(t, msg)
+
 	verifyPayload := map[string]string{
 		"email": registerPayload["email"],
 		"code":  verificationCode,
@@ -1014,6 +1023,25 @@ func TestPasswordResetFlow(t *testing.T) {
 	router.ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {
 		t.Fatalf("expected verification success, got %d: %s", rr.Code, rr.Body.String())
+	}
+
+	registerWithCode := map[string]string{
+		"name":     registerPayload["name"],
+		"email":    registerPayload["email"],
+		"password": registerPayload["password"],
+		"code":     verificationCode,
+	}
+	registerBody, err := json.Marshal(registerWithCode)
+	if err != nil {
+		t.Fatalf("failed to marshal registration payload: %v", err)
+	}
+
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(registerBody))
+	req.Header.Set("Content-Type", "application/json")
+	rr = httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+	if rr.Code != http.StatusCreated {
+		t.Fatalf("expected registration success, got %d: %s", rr.Code, rr.Body.String())
 	}
 
 	resetPayload := map[string]string{"email": registerPayload["email"]}

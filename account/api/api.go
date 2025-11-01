@@ -41,24 +41,26 @@ type session struct {
 }
 
 type handler struct {
-	store                    store.Store
-	sessions                 map[string]session
-	mu                       sync.RWMutex
-	sessionTTL               time.Duration
-	mfaChallenges            map[string]mfaChallenge
-	mfaMu                    sync.RWMutex
-	mfaChallengeTTL          time.Duration
-	totpIssuer               string
-	emailSender              EmailSender
-	emailVerificationEnabled bool
-	verificationTTL          time.Duration
-	verifications            map[string]emailVerification
-	verificationMu           sync.RWMutex
-	resetTTL                 time.Duration
-	passwordResets           map[string]passwordReset
-	resetMu                  sync.RWMutex
-	metricsProvider          service.UserMetricsProvider
-	agentStatusReader        agentStatusReader
+	store                     store.Store
+	sessions                  map[string]session
+	mu                        sync.RWMutex
+	sessionTTL                time.Duration
+	mfaChallenges             map[string]mfaChallenge
+	mfaMu                     sync.RWMutex
+	mfaChallengeTTL           time.Duration
+	totpIssuer                string
+	emailSender               EmailSender
+	emailVerificationEnabled  bool
+	verificationTTL           time.Duration
+	verifications             map[string]emailVerification
+	verificationMu            sync.RWMutex
+	registrationVerifications map[string]registrationVerification
+	registrationMu            sync.RWMutex
+	resetTTL                  time.Duration
+	passwordResets            map[string]passwordReset
+	resetMu                   sync.RWMutex
+	metricsProvider           service.UserMetricsProvider
+	agentStatusReader         agentStatusReader
 }
 
 type mfaChallenge struct {
@@ -83,6 +85,13 @@ type passwordReset struct {
 	userID    string
 	email     string
 	expiresAt time.Time
+}
+
+type registrationVerification struct {
+	email     string
+	code      string
+	expiresAt time.Time
+	verified  bool
 }
 
 // Option configures handler behaviour when registering routes.
@@ -161,18 +170,19 @@ func WithPasswordResetTTL(ttl time.Duration) Option {
 // RegisterRoutes attaches account service endpoints to the router.
 func RegisterRoutes(r *gin.Engine, opts ...Option) {
 	h := &handler{
-		store:                    store.NewMemoryStore(),
-		sessions:                 make(map[string]session),
-		sessionTTL:               defaultSessionTTL,
-		mfaChallenges:            make(map[string]mfaChallenge),
-		mfaChallengeTTL:          defaultMFAChallengeTTL,
-		totpIssuer:               defaultTOTPIssuer,
-		emailSender:              noopEmailSender,
-		emailVerificationEnabled: true,
-		verificationTTL:          defaultEmailVerificationTTL,
-		verifications:            make(map[string]emailVerification),
-		resetTTL:                 defaultPasswordResetTTL,
-		passwordResets:           make(map[string]passwordReset),
+		store:                     store.NewMemoryStore(),
+		sessions:                  make(map[string]session),
+		sessionTTL:                defaultSessionTTL,
+		mfaChallenges:             make(map[string]mfaChallenge),
+		mfaChallengeTTL:           defaultMFAChallengeTTL,
+		totpIssuer:                defaultTOTPIssuer,
+		emailSender:               noopEmailSender,
+		emailVerificationEnabled:  true,
+		verificationTTL:           defaultEmailVerificationTTL,
+		verifications:             make(map[string]emailVerification),
+		registrationVerifications: make(map[string]registrationVerification),
+		resetTTL:                  defaultPasswordResetTTL,
+		passwordResets:            make(map[string]passwordReset),
 	}
 
 	for _, opt := range opts {
@@ -214,6 +224,7 @@ type registerRequest struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Code     string `json:"code"`
 }
 
 type loginRequest struct {
@@ -272,6 +283,7 @@ func (h *handler) register(c *gin.Context) {
 	name := strings.TrimSpace(req.Name)
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 	password := strings.TrimSpace(req.Password)
+	code := strings.TrimSpace(req.Code)
 
 	if name == "" {
 		respondError(c, http.StatusBadRequest, "name_required", "name is required")
@@ -293,6 +305,29 @@ func (h *handler) register(c *gin.Context) {
 		return
 	}
 
+	if h.emailVerificationEnabled {
+		if code == "" {
+			respondError(c, http.StatusBadRequest, "verification_required", "verification code is required")
+			return
+		}
+
+		verification, ok := h.lookupRegistrationVerification(email)
+		if !ok {
+			respondError(c, http.StatusBadRequest, "verification_required", "verification code is required")
+			return
+		}
+
+		if !verification.verified {
+			respondError(c, http.StatusBadRequest, "verification_required", "verification code is required")
+			return
+		}
+
+		if verification.code != code {
+			respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
+			return
+		}
+	}
+
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		respondError(c, http.StatusInternalServerError, "hash_failure", "failed to secure password")
@@ -308,7 +343,7 @@ func (h *handler) register(c *gin.Context) {
 		Groups:       []string{"User"},
 	}
 
-	if !h.emailVerificationEnabled {
+	if !h.emailVerificationEnabled || code != "" {
 		user.EmailVerified = true
 	}
 
@@ -329,15 +364,11 @@ func (h *handler) register(c *gin.Context) {
 		}
 	}
 
-	message := "registration successful"
 	if h.emailVerificationEnabled {
-		if err := h.enqueueEmailVerification(c.Request.Context(), user); err != nil {
-			slog.Error("failed to send verification email", "err", err, "email", user.Email)
-			respondError(c, http.StatusInternalServerError, "verification_email_failed", "failed to send verification email")
-			return
-		}
-		message = "verification email sent"
+		h.removeRegistrationVerification(email)
 	}
+
+	message := "registration successful"
 
 	response := gin.H{
 		"message": message,
@@ -378,55 +409,65 @@ func (h *handler) verifyEmail(c *gin.Context) {
 		}
 	}
 
-	verification, ok := h.lookupEmailVerification(email)
-	if !ok {
-		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
-		return
-	}
+	if verification, ok := h.lookupEmailVerification(email); ok {
+		if verification.code != code {
+			respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
+			return
+		}
 
-	if verification.code != code {
-		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
-		return
-	}
-
-	user, err := h.store.GetUserByID(c.Request.Context(), verification.userID)
-	if err != nil {
-		slog.Error("failed to load user for email verification", "err", err, "userID", verification.userID)
-		respondError(c, http.StatusInternalServerError, "verification_failed", "failed to verify email")
-		return
-	}
-
-	if !strings.EqualFold(strings.TrimSpace(user.Email), verification.email) {
-		h.removeEmailVerification(email)
-		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
-		return
-	}
-
-	if !user.EmailVerified {
-		user.EmailVerified = true
-		if err := h.store.UpdateUser(c.Request.Context(), user); err != nil {
-			slog.Error("failed to update user during email verification", "err", err, "userID", user.ID)
+		user, err := h.store.GetUserByID(c.Request.Context(), verification.userID)
+		if err != nil {
+			slog.Error("failed to load user for email verification", "err", err, "userID", verification.userID)
 			respondError(c, http.StatusInternalServerError, "verification_failed", "failed to verify email")
 			return
 		}
-	}
 
-	h.removeEmailVerification(email)
+		if !strings.EqualFold(strings.TrimSpace(user.Email), verification.email) {
+			h.removeEmailVerification(email)
+			respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
+			return
+		}
 
-	sessionToken, expiresAt, err := h.createSession(user.ID)
-	if err != nil {
-		respondError(c, http.StatusInternalServerError, "session_creation_failed", "failed to create session")
+		if !user.EmailVerified {
+			user.EmailVerified = true
+			if err := h.store.UpdateUser(c.Request.Context(), user); err != nil {
+				slog.Error("failed to update user during email verification", "err", err, "userID", user.ID)
+				respondError(c, http.StatusInternalServerError, "verification_failed", "failed to verify email")
+				return
+			}
+		}
+
+		h.removeEmailVerification(email)
+
+		sessionToken, expiresAt, err := h.createSession(user.ID)
+		if err != nil {
+			respondError(c, http.StatusInternalServerError, "session_creation_failed", "failed to create session")
+			return
+		}
+
+		h.setSessionCookie(c, sessionToken, expiresAt)
+
+		c.JSON(http.StatusOK, gin.H{
+			"message":   "email verified",
+			"token":     sessionToken,
+			"expiresAt": expiresAt.UTC(),
+			"user":      sanitizeUser(user, nil),
+		})
 		return
 	}
 
-	h.setSessionCookie(c, sessionToken, expiresAt)
+	pending, ok := h.lookupRegistrationVerification(email)
+	if !ok || pending.code != code {
+		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":   "email verified",
-		"token":     sessionToken,
-		"expiresAt": expiresAt.UTC(),
-		"user":      sanitizeUser(user, nil),
-	})
+	if !h.markRegistrationVerified(email) {
+		respondError(c, http.StatusBadRequest, "invalid_code", "verification code is invalid or expired")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "verification successful", "verified": true})
 }
 
 func (h *handler) sendEmailVerification(c *gin.Context) {
@@ -448,27 +489,34 @@ func (h *handler) sendEmailVerification(c *gin.Context) {
 	}
 
 	user, err := h.store.GetUserByEmail(c.Request.Context(), email)
-	if err != nil {
-		if errors.Is(err, store.ErrUserNotFound) {
-			respondError(c, http.StatusNotFound, "verification_failed", "verification email could not be sent")
+	if err == nil {
+		if strings.TrimSpace(user.Email) == "" {
+			respondError(c, http.StatusBadRequest, "invalid_email", "email must be a valid address")
 			return
 		}
+
+		if user.EmailVerified {
+			respondError(c, http.StatusConflict, "email_already_exists", "email is already registered")
+			return
+		}
+
+		if err := h.enqueueEmailVerification(c.Request.Context(), user); err != nil {
+			slog.Error("failed to send verification email", "err", err, "email", user.Email)
+			respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "verification email sent"})
+		return
+	}
+
+	if err != nil && !errors.Is(err, store.ErrUserNotFound) {
 		respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
 		return
 	}
 
-	if strings.TrimSpace(user.Email) == "" {
-		respondError(c, http.StatusBadRequest, "invalid_email", "email must be a valid address")
-		return
-	}
-
-	if user.EmailVerified {
-		respondError(c, http.StatusBadRequest, "already_verified", "email is already verified")
-		return
-	}
-
-	if err := h.enqueueEmailVerification(c.Request.Context(), user); err != nil {
-		slog.Error("failed to send verification email", "err", err, "email", user.Email)
+	if _, err := h.issueRegistrationVerification(c.Request.Context(), email); err != nil {
+		slog.Error("failed to issue registration verification", "err", err, "email", email)
 		respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
 		return
 	}
@@ -1100,6 +1148,117 @@ func (h *handler) removeEmailVerification(email string) {
 	h.verificationMu.Lock()
 	delete(h.verifications, strings.ToLower(strings.TrimSpace(email)))
 	h.verificationMu.Unlock()
+}
+
+func (h *handler) issueRegistrationVerification(ctx context.Context, email string) (registrationVerification, error) {
+	normalized := strings.ToLower(strings.TrimSpace(email))
+	if normalized == "" {
+		return registrationVerification{}, errors.New("email is empty")
+	}
+
+	ttl := h.verificationTTL
+	if ttl <= 0 {
+		ttl = defaultEmailVerificationTTL
+	}
+
+	code, err := h.newVerificationCode()
+	if err != nil {
+		return registrationVerification{}, err
+	}
+
+	verification := registrationVerification{
+		email:     normalized,
+		code:      code,
+		expiresAt: time.Now().Add(ttl),
+	}
+
+	h.registrationMu.Lock()
+	h.registrationVerifications[normalized] = verification
+	h.registrationMu.Unlock()
+
+	trimmedEmail := strings.TrimSpace(email)
+	if trimmedEmail == "" {
+		trimmedEmail = normalized
+	}
+
+	subject := "Verify your email for XControl"
+	plainBody := fmt.Sprintf(
+		"Hello,\n\nUse the following verification code to continue creating your XControl account: %s\n\nThis code expires at %s UTC (in %d minutes).\nIf you did not request this email you can ignore it.\n",
+		code,
+		verification.expiresAt.UTC().Format(time.RFC3339),
+		int(ttl.Minutes()),
+	)
+	htmlBody := fmt.Sprintf(
+		"<p>Hello,</p><p>Use the following verification code to continue creating your XControl account:</p><p><strong>%s</strong></p><p>This code expires at %s UTC (in %d minutes).</p><p>If you did not request this email you can ignore it.</p>",
+		html.EscapeString(code),
+		verification.expiresAt.UTC().Format(time.RFC3339),
+		int(ttl.Minutes()),
+	)
+
+	msg := EmailMessage{
+		To:        []string{trimmedEmail},
+		Subject:   subject,
+		PlainBody: plainBody,
+		HTMLBody:  htmlBody,
+	}
+
+	if err := h.emailSender.Send(ctx, msg); err != nil {
+		h.removeRegistrationVerification(normalized)
+		return registrationVerification{}, err
+	}
+
+	return verification, nil
+}
+
+func (h *handler) lookupRegistrationVerification(email string) (registrationVerification, bool) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email == "" {
+		return registrationVerification{}, false
+	}
+
+	h.registrationMu.RLock()
+	verification, ok := h.registrationVerifications[email]
+	h.registrationMu.RUnlock()
+	if !ok {
+		return registrationVerification{}, false
+	}
+
+	if time.Now().After(verification.expiresAt) {
+		h.removeRegistrationVerification(email)
+		return registrationVerification{}, false
+	}
+
+	return verification, true
+}
+
+func (h *handler) markRegistrationVerified(email string) bool {
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email == "" {
+		return false
+	}
+
+	h.registrationMu.Lock()
+	defer h.registrationMu.Unlock()
+
+	verification, ok := h.registrationVerifications[email]
+	if !ok {
+		return false
+	}
+
+	if time.Now().After(verification.expiresAt) {
+		delete(h.registrationVerifications, email)
+		return false
+	}
+
+	verification.verified = true
+	h.registrationVerifications[email] = verification
+	return true
+}
+
+func (h *handler) removeRegistrationVerification(email string) {
+	h.registrationMu.Lock()
+	delete(h.registrationVerifications, strings.ToLower(strings.TrimSpace(email)))
+	h.registrationMu.Unlock()
 }
 
 func (h *handler) enqueuePasswordReset(ctx context.Context, user *store.User) error {

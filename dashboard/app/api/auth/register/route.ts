@@ -10,6 +10,7 @@ type RegistrationPayload = {
   email?: string
   password?: string
   confirmPassword?: string
+  code?: string
 }
 
 function normalizeEmail(value: unknown) {
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
   const confirmPassword =
     typeof payload?.confirmPassword === 'string' ? payload.confirmPassword : payload?.password ?? ''
   const name = normalizeString(payload?.name)
+  const code = normalizeString(payload?.code)
 
   if (!email || !password) {
     return NextResponse.json({ success: false, error: 'missing_credentials', needMfa: false }, { status: 400 })
@@ -43,9 +45,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'password_mismatch', needMfa: false }, { status: 400 })
   }
 
+  if (!code) {
+    return NextResponse.json({ success: false, error: 'verification_required', needMfa: false }, { status: 400 })
+  }
+
   const body = {
     email,
     password,
+    code,
     ...(name ? { name } : {}),
   }
 

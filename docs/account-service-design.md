@@ -38,9 +38,20 @@ Gin Router → API Handler → Store / Session Manager → 数据存储
 - 返回 `{ "status": "ok" }`，供探活或依赖服务检测。
 
 ### 3.2 用户注册
-- `POST /v1/register`
-- 请求体：`{ "name": string, "email": string, "password": string }`
-- 功能：创建新用户，内部对密码执行 `bcrypt` 哈希后写入存储，返回脱敏后的用户信息。
+
+账号服务现在将注册拆分为明确的三个阶段，先验证邮箱可达性，再完成账户写入：
+
+1. `POST /api/auth/register/send`
+   - 请求体：`{ "email": string }`
+   - 功能：检查邮箱是否已被注册或已验证的用户占用。若邮箱可用，则生成 6 位验证码、写入内存映射 `registrationVerifications` 并通过配置的邮件发送器下发验证码。
+2. `POST /api/auth/register/verify`
+   - 请求体：`{ "email": string, "code": string }`
+   - 功能：校验验证码是否匹配且未过期，成功后将对应记录标记为 `verified`，供下一步注册使用。若邮箱已经存在且仍待验证，则沿用旧逻辑，对存量用户执行验证并返回登录会话。
+3. `POST /api/auth/register`
+   - 请求体：`{ "email": string, "password": string, "code": string, "name"?: string }`
+   - 功能：要求验证码已经过第二步确认；通过 `bcrypt` 哈希密码、写入用户信息，并在成功后清理 `registrationVerifications` 中的临时记录。创建完成时直接将 `EmailVerified` 置为 `true`，避免重复发信。
+
+该流程确保前端可以先提示“验证码已发送”，再指引用户输入验证码并解锁“完成注册”按钮，避免旧版“先注册、后发验证码”导致的混淆。服务端新增的 `registrationVerification` 结构体用来管理待注册邮箱的验证码、过期时间与校验状态，并与既有的已注册用户邮箱验证逻辑共存。
 
 ### 3.3 用户登录
 - `POST /v1/login`
@@ -77,6 +88,12 @@ Gin Router → API Handler → Store / Session Manager → 数据存储
 2. 将内存会话迁移到可持久化/分布式缓存，支持水平扩展。
 3. 引入审计日志、登录失败限制等安全机制。
 4. 整合统一的错误码与 API 文档输出，便于前后端协同。
+
+## 7. 自动化测试建议
+
+- **Playwright MCP 录制**：使用 Playwright MCP 录制“提交邮箱和密码 → 请求验证码 → 在临时邮箱读取验证码 → 回填并完成注册”的完整流程，可在桌面浏览器和移动端视口下回放，验证 UI 状态和接口契约是否一致。
+- **语言偏好**：可以选用 Node.js 或 Python 版 Playwright 脚手架生成脚本，结合 MCP 的断言与截图能力对验证码弹窗、按钮禁用态、错误提示进行校验，并在 CI 中复用。
+- **服务端校验**：配合脚本断言账号服务的 `/api/auth/register/send`、`/verify`、`/register` 依次返回 200/200/201，确保验证码会话的生命周期与 TTL 行为符合预期。
 
 ---
 本文档需根据功能演进持续维护，以确保服务的设计意图与实现保持一致。
