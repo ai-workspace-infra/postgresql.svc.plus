@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# install_postfix_sendonly.sh v1.0
+# install_postfix_sendonly.sh v1.1
 # Postfix + OpenDKIM + SPF + DMARC（Send-Only 模式）
 # --------------------------------------------------------
-# ✅ 自动部署轻量级 Postfix 发信服务（仅 587 STARTTLS）
+# ✅ 自动部署轻量级 Postfix 发信服务，仅启用 submission(587) STARTTLS
 # ✅ 集成 DKIM 签名、SPF/DMARC/rDNS/HELO 校验模板
 # ✅ 兼容阿里云 / Cloudflare DNS 输出格式
 # ✅ 适配 Ubuntu / Debian / RHEL 系列系统
@@ -57,16 +57,6 @@ check_send_email(){
   local SMTP_USER="${EMAIL}"
   local SMTP_PASS="${TMP_PASS}"
   local TEST_TO="${1:-${EMAIL}}"
-  local SUBJECT="📨 SMTP Deliverability Test — $(date '+%Y-%m-%d %H:%M:%S')"
-  local BODY="✅ Automated deliverability test from ${SMTP_HOST}
-
-Environment:
-  - HELO: $(hostname -f)
-  - Source IP: $(curl -s ifconfig.me 2>/dev/null || echo 'unknown')
-  - TLS: STARTTLS on ${SMTP_PORT}
-  - Auth: LOGIN (${SMTP_USER})
-
-If you received this message intact, DKIM/DMARC/SPF validation succeeded."
 
   echo "🔍 Testing outbound mail via ${SMTP_HOST}:${SMTP_PORT}"
   echo "-------------------------------------------------------------"
@@ -78,13 +68,13 @@ If you received this message intact, DKIM/DMARC/SPF validation succeeded."
     --from "${SMTP_USER}" \
     --to "${TEST_TO}" \
     --header "From: XControl Mail System <${SMTP_USER}>" \
-    --header "Subject: ${SUBJECT}" \
-    --body "${BODY}" \
-    --timeout 15 --quit-after "."
+    --header "Subject: ✅ Postfix 587-only 测试 $(date '+%F %T')" \
+    --body "测试发信 $(date '+%F %T')" \
+    --timeout 20
   echo "-------------------------------------------------------------"
 }
 
-# ------------------ 依赖 ------------------
+# ------------------ 安装依赖 ------------------
 ensure_packages(){
   log "📦 安装 Postfix + OpenDKIM..."
   export DEBIAN_FRONTEND=noninteractive
@@ -92,7 +82,7 @@ ensure_packages(){
   apt install -y postfix opendkim opendkim-tools mailutils swaks dnsutils openssl curl
 }
 
-# ------------------ SSL ------------------
+# ------------------ 证书 ------------------
 verify_cert(){
   if [[ -f "$CERT" && -f "$KEY" ]]; then
     log "🔐 使用自有 SSL 证书：$CERT"
@@ -147,52 +137,38 @@ EOF
 }
 
 # ------------------ Postfix ------------------
-
-deploy_postfix() {
+deploy_postfix(){
   verify_cert
-  log "🚀 配置 Postfix Send-only (仅启用 587 / STARTTLS)..."
+  log "🚀 配置 Postfix Send-only (587 STARTTLS)..."
 
-  # 确保 postfix 存在
-  command -v postconf >/dev/null 2>&1 || die "Postfix 未安装"
+  postconf -e "myhostname=${HOSTNAME}"
+  postconf -e "myorigin=${DOMAIN}"
+  postconf -e "inet_interfaces=all"
+  postconf -e "inet_protocols=all"
+  postconf -e "mydestination="
+  postconf -e "relayhost="
+  postconf -e "smtpd_banner=${HOSTNAME} ESMTP"
+  postconf -e "mynetworks=127.0.0.0/8 [::1]/128"
+  postconf -e "relay_domains=${DOMAIN}"
+  postconf -e "smtpd_tls_cert_file=${CERT}"
+  postconf -e "smtpd_tls_key_file=${KEY}"
+  postconf -e "smtpd_tls_security_level=encrypt"
+  postconf -e "smtp_tls_security_level=may"
+  postconf -e "smtp_tls_note_starttls_offer=yes"
+  postconf -e "smtpd_tls_auth_only=yes"
+  postconf -e "milter_default_action=accept"
+  postconf -e "milter_protocol=6"
+  postconf -e "smtpd_milters=inet:localhost:8891"
+  postconf -e "non_smtpd_milters=inet:localhost:8891"
 
-  # 主配置（禁用入站、仅发信）
-  postconf -e "myhostname = ${HOSTNAME}"
-  postconf -e "myorigin = ${DOMAIN}"
-  postconf -e "mydestination = "
-  postconf -e "relayhost = "
-  postconf -e "inet_interfaces = all"
-  postconf -e "inet_protocols = all"
-  postconf -e "biff = no"
-  postconf -e "append_dot_mydomain = no"
-  postconf -e "readme_directory = no"
-  postconf -e "smtpd_banner = ${HOSTNAME} ESMTP"
-  postconf -e "compatibility_level = 2"
-  postconf -e "mydomain = ${DOMAIN}"
-  postconf -e "smtp_helo_name = ${HOSTNAME}"
-  postconf -e "alias_maps = hash:/etc/aliases"
-  postconf -e "alias_database = hash:/etc/aliases"
-  postconf -e "mynetworks = 127.0.0.0/8 [::1]/128"
-  postconf -e "relay_domains = ${DOMAIN}"
-
-  # TLS & DKIM
-  postconf -e "smtpd_tls_cert_file = ${CERT}"
-  postconf -e "smtpd_tls_key_file = ${KEY}"
-  postconf -e "smtpd_tls_security_level = may"
-  postconf -e "smtp_tls_security_level = may"
-  postconf -e "smtp_use_tls = yes"
-  postconf -e "smtp_tls_note_starttls_offer = yes"
-  postconf -e "smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt"
-  postconf -e "smtpd_tls_auth_only = yes"
-  postconf -e "milter_default_action = accept"
-  postconf -e "milter_protocol = 6"
-  postconf -e "smtpd_milters = inet:localhost:8891"
-  postconf -e "non_smtpd_milters = inet:localhost:8891"
-
-  # 禁用 25 端口入站，仅启用 587
-  cat >/etc/postfix/master.cf <<EOF
-smtp      inet  n       -       y       -       -       smtpd
-# 关闭 25 端口监听
-smtp      inet  n       -       n       -       -       reject
+  cat >/etc/postfix/master.cf <<'EOF'
+# ==========================================================
+# Postfix master.cf (Send-only, STARTTLS on submission/587)
+# ==========================================================
+pickup    unix  n       -       y       60      1       pickup
+cleanup   unix  n       -       y       -       0       cleanup
+qmgr      unix  n       -       n       300     1       qmgr
+proxymap  unix  -       -       n       -       -       proxymap
 
 submission inet n       -       y       -       -       smtpd
   -o syslog_name=postfix/submission
@@ -206,28 +182,20 @@ EOF
   systemctl restart postfix
   sleep 1
 
-  # 验证监听端口
-  if ss -tlnp | grep -qE ':587\s'; then
-    log "✅ Postfix 已启用并仅监听 587 端口 (STARTTLS Send-Only 模式)"
-  else
-    die "❌ 端口 587 未成功监听，请检查日志：journalctl -xeu postfix"
-  fi
+  ss -tlnp | grep -qE ':587\s' \
+    && log "✅ Postfix 已启用 submission(587) (STARTTLS Send-Only 模式)" \
+    || die "❌ 端口 587 未监听，请执行 journalctl -xeu postfix"
 }
 
 # ------------------ DNS 模板 ------------------
-
 show_dns_record(){
   log "🌐 生成 DNS 模板（SPF / DKIM / DMARC / rDNS / HELO）..."
-
   local DKIM_FILE="${DKIM_KEY_DIR}/${DKIM_SELECTOR}.txt"
   local DKIM_ONE_LINE="<DKIM 公钥未生成>"
 
   if [[ -f "$DKIM_FILE" ]]; then
-    # 读取 DKIM 文件并清理注释、括号、引号和换行
-    DKIM_ONE_LINE=$(grep -v '^;' "$DKIM_FILE" \
-      | tr -d '\n' \
-      | sed -E 's/[()]//g; s/"//g; s/\s+/ /g; s/IN TXT//; s/mail._domainkey.*v=/v=/; s/\s*v=DKIM1/v=DKIM1/' \
-      | sed 's/ *$//')
+    DKIM_ONE_LINE=$(grep -v '^;' "$DKIM_FILE" | tr -d '\n' \
+      | sed -E 's/[()]//g; s/"//g; s/\s+/ /g; s/IN TXT//; s/mail._domainkey.*v=/v=/; s/\s*v=DKIM1/v=DKIM1/')
   fi
 
   echo "----------------------------------------------------------"
@@ -271,35 +239,26 @@ case "${ACTION}" in
     ensure_packages
     deploy_dkim
     deploy_postfix
-    show_dns_record
-    ;;
+    show_dns_record ;;
   upgrade)
     log "⬆️ 更新配置并重启..."
     deploy_dkim
     deploy_postfix
-    show_dns_record
-    ;;
+    show_dns_record ;;
   show)
     case "${2:-}" in
       dns_record) show_dns_record ;;
       app_config) show_app_config ;;
       *) echo "用法: $0 show {dns_record|app_config}" ;;
-    esac
-    ;;
+    esac ;;
   check)
     case "${2:-}" in
       self) check_self ;;
       send_email) check_send_email ;;
       *) echo "用法: $0 check {self|send_email}" ;;
-    esac
-    ;;
+    esac ;;
   uninstall|reset)
-    uninstall_reset
-    ;;
-  help|--help|-h)
-    echo "用法: $0 {deploy|upgrade|show {dns_record|app_config}|check {self|send_email}|uninstall}"
-    ;;
-  *)
-    echo "用法: $0 {deploy|upgrade|show {dns_record|app_config}|check {self|send_email}|uninstall}"
-    ;;
+    uninstall_reset ;;
+  help|--help|-h|*)
+    echo "用法: $0 {deploy|upgrade|show {dns_record|app_config}|check {self|send_email}|uninstall}" ;;
 esac
