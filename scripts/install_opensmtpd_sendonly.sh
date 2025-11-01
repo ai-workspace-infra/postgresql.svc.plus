@@ -30,12 +30,46 @@ log(){ echo -e "\033[1;36m$*\033[0m"; }
 die(){ echo "❌ $*"; exit 1; }
 check_root(){ [ "$EUID" -eq 0 ] || die "请用 root 运行"; }
 
+# ------------------ 应用端配置 ------------------
+show_app_config(){
+  cat <<EOF
+
+📦 应用端 SMTP 配置：
+----------------------------------------------------------
+smtp:
+  host: "${HOSTNAME}"
+  port: 587
+  username: "${EMAIL}"
+  password: "${TMP_PASS}"
+  from: "XControl Account <${EMAIL}>"
+  tls:
+    mode: "auto"
+    insecureSkipVerify: false
+  auth: "login"
+----------------------------------------------------------
+EOF
+  echo "首发密码（仅本次显示）：${TMP_PASS}"
+}
+
+check_send_email(){
+  swaks --server smtp.svc.plus:587 --tls-on-connect \
+    --auth LOGIN \
+    --auth-user "no-reply@svc.plus" \
+    --auth-password "eexfevdapylgbhgd" \
+    --from "no-reply@svc.plus" \
+    --header "From: XControl Account <no-reply@svc.plus>" \
+    --header "Reply-To: no-reply@svc.plus" \
+    --to "no-reply@svc.plus" \
+    --header "Subject: Official Test via Svc.plus SMTP" \
+    --body "✅ Hello from XControl via Svc.plus SMTP (authentic and compliant)."
+}
+
 # ------------------ 安装依赖 ------------------
 ensure_packages(){
   log "📦 安装 OpenSMTPD + OpenDKIM..."
   apt update -qq
   DEBIAN_FRONTEND=noninteractive apt install -y \
-    opensmtpd opendkim opendkim-tools dnsutils curl openssl
+    opensmtpd opendkim opendkim-tools dnsutils curl openssl swaks
 }
 
 # ------------------ SSL 证书检测 ------------------
@@ -207,22 +241,24 @@ case "${ACTION}" in
   show)
     case "${2:-}" in
       dns_record) show_dns_record ;;
-      *) echo "用法: $0 show dns_record" ;;
+      app_config) show_app_config ;;
+      *) echo "用法: $0 show {dns_record|app_config}" ;;
     esac
     ;;
   check)
     case "${2:-}" in
       self) check_self ;;
-      *) echo "用法: $0 check self" ;;
+      send_email) check_send_email ;;
+      *) echo "用法: $0 check {self|send_email}" ;;
     esac
     ;;
   uninstall|reset)
     uninstall_reset
     ;;
   help|--help|-h)
-    echo "用法: $0 {deploy|upgrade|show dns_record|check self|uninstall}"
+    echo "用法: $0 {deploy|upgrade|show {dns_record|app_config}|check {self|send_email}|uninstall}"
     ;;
   *)
-    echo "用法: $0 {deploy|upgrade|show dns_record|check self|uninstall}"
+    echo "用法: $0 {deploy|upgrade|show {dns_record|app_config}|check {self|send_email}|uninstall}"
     ;;
 esac
