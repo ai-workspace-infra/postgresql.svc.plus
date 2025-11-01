@@ -52,6 +52,14 @@ const nextConfig = {
   reactStrictMode: true,
   compress: false, // 压缩交给 Nginx，省 Node CPU
   images: { unoptimized: true }, // 关闭服务端图片处理
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*/',
+        destination: '/api/:path*',
+      },
+    ]
+  },
   webpack(config) {
     config.module.rules.push({
       test: /\.ya?ml$/i,
