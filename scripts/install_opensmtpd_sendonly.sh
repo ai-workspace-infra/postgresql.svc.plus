@@ -51,17 +51,48 @@ EOF
   echo "首发密码（仅本次显示）：${TMP_PASS}"
 }
 
-check_send_email(){
-  swaks --server smtp.svc.plus:587 --tls-on-connect \
+check_send_email() {
+  local SMTP_HOST="${HOSTNAME:-smtp.svc.plus}"
+  local SMTP_PORT=587
+  local SMTP_USER="${EMAIL:-no-reply@svc.plus}"
+  local SMTP_PASS="${TMP_PASS:-$(grep -m1 "${EMAIL:-no-reply@svc.plus}" /etc/smtpd/auth 2>/dev/null | awk -F: '{print $2}' || echo '')}"
+  local TEST_TO="${1:-${EMAIL:-no-reply@svc.plus}}"
+  local SUBJECT="📨 SMTP Deliverability Test — $(date '+%Y-%m-%d %H:%M:%S')"
+  local BODY="✅ Automated deliverability test from ${SMTP_HOST}
+
+Environment:
+  - HELO: $(hostname -f)
+  - Source IP: $(curl -s ifconfig.me 2>/dev/null || echo 'unknown')
+  - TLS: STARTTLS on ${SMTP_PORT}
+  - Auth: LOGIN (${SMTP_USER})
+
+If you received this message intact, DKIM/DMARC/SPF validation succeeded."
+
+  echo
+  echo "🔍 Testing outbound mail via ${SMTP_HOST}:${SMTP_PORT}"
+  echo "-------------------------------------------------------------"
+
+  # 检测 swaks 是否支持 --hide-password
+  local SWAKS_HIDE=""
+  if swaks --help 2>&1 | grep -q -- '--hide-password'; then
+    SWAKS_HIDE="--hide-password"
+  fi
+
+  swaks --server "${SMTP_HOST}:${SMTP_PORT}" \
+    --tls --protocol ESMTP \
     --auth LOGIN \
-    --auth-user "no-reply@svc.plus" \
-    --auth-password "eexfevdapylgbhgd" \
-    --from "no-reply@svc.plus" \
-    --header "From: XControl Account <no-reply@svc.plus>" \
-    --header "Reply-To: no-reply@svc.plus" \
-    --to "no-reply@svc.plus" \
-    --header "Subject: Official Test via Svc.plus SMTP" \
-    --body "✅ Hello from XControl via Svc.plus SMTP (authentic and compliant)."
+    --auth-user "${SMTP_USER}" \
+    --auth-password "${SMTP_PASS}" \
+    --from "${SMTP_USER}" \
+    --to "${TEST_TO}" \
+    --header "From: XControl Mail System <${SMTP_USER}>" \
+    --header "Reply-To: ${SMTP_USER}" \
+    --header "Subject: ${SUBJECT}" \
+    --body "${BODY}" \
+    --timeout 15 ${SWAKS_HIDE} --quit-after "."
+
+  echo "-------------------------------------------------------------"
+  echo "✅ Check inbox (${TEST_TO}) for DKIM/SPF validation results."
 }
 
 # ------------------ 安装依赖 ------------------
