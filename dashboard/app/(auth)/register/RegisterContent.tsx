@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Github } from 'lucide-react'
 import {
+  ChangeEvent,
   ClipboardEvent,
   FormEvent,
   KeyboardEvent,
@@ -124,12 +125,23 @@ export default function RegisterContent() {
   const [isResending, setIsResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [isVerified, setIsVerified] = useState(false)
+  const [formValues, setFormValues] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    agreement: false,
+  })
+  const [isFormReady, setIsFormReady] = useState(false)
   const formRef = useRef<HTMLFormElement | null>(null)
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
     setAlert(initialAlert)
   }, [initialAlert])
+
+  useEffect(() => {
+    setIsFormReady(true)
+  }, [])
 
   useEffect(() => {
     if (resendCooldown <= 0) {
@@ -153,6 +165,19 @@ export default function RegisterContent() {
 
   const resetCodeDigits = useCallback(() => {
     setCodeDigits(Array(VERIFICATION_CODE_LENGTH).fill(''))
+  }, [])
+
+  const handleInputChange = useCallback(
+    (field: 'email' | 'password' | 'confirmPassword') =>
+      (event: ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target
+        setFormValues((previous) => ({ ...previous, [field]: value }))
+      },
+    [],
+  )
+
+  const handleAgreementChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    setFormValues((previous) => ({ ...previous, agreement: event.target.checked }))
   }, [])
 
   const handleCodeChange = useCallback(
@@ -241,6 +266,14 @@ export default function RegisterContent() {
       const confirmPassword = String(formData.get('confirmPassword') ?? '')
       const agreementAccepted = formData.get('agreement') === 'on'
       const verificationCode = codeDigits.join('')
+
+      setFormValues((previous) => ({
+        ...previous,
+        email: emailInput,
+        password,
+        confirmPassword,
+        agreement: agreementAccepted,
+      }))
 
       const showError = (message: string) => {
         setAlert({ type: 'error', message })
@@ -618,60 +651,124 @@ export default function RegisterContent() {
       ? `${t.form.verificationCodeResend} (${resendCooldown}s)`
       : t.form.verificationCodeResend
   const verificationDescriptionId = useId()
-  const isSubmitDisabled = useMemo(() => {
+  const validationHints = t.form.validation
+  const validationState = useMemo(() => {
+    const messages: string[] = []
+
+    if (!isFormReady && validationHints?.initializing) {
+      return { disabled: true, messages: [validationHints.initializing] }
+    }
+
     if (isSubmitting) {
-      return true
-    }
-
-    const formElement = formRef.current
-    if (!formElement) {
-      if (!hasRequestedCode) {
-        return true
+      if (isVerified) {
+        messages.push(
+          validationHints?.completing ??
+            t.form.completing ??
+            t.form.completeSubmit ??
+            t.form.submit,
+        )
+      } else if (isVerificationStep) {
+        messages.push(
+          validationHints?.verifying ??
+            t.form.verifying ??
+            t.form.verifySubmit ??
+            t.form.submit,
+        )
+      } else {
+        messages.push(validationHints?.submitting ?? t.form.submitting ?? t.form.submit)
       }
 
-      if (!isVerified) {
-        return codeDigits.some((digit) => !digit)
-      }
-
-      return codeDigits.some((digit) => !digit) || !pendingPassword
+      return { disabled: true, messages }
     }
-
-    const formData = new FormData(formElement)
-    const emailValue = String(formData.get('email') ?? '').trim()
-    const passwordValue = String(formData.get('password') ?? '')
-    const confirmValue = String(formData.get('confirmPassword') ?? '')
-    const agreementAccepted = formData.get('agreement') === 'on'
 
     if (!hasRequestedCode) {
-      if (!emailValue || !EMAIL_PATTERN.test(emailValue)) {
-        return true
+      const emailValue = formValues.email.trim()
+
+      if (!emailValue) {
+        messages.push(validationHints?.emailMissing ?? alerts.invalidEmail)
+      } else if (!EMAIL_PATTERN.test(emailValue)) {
+        messages.push(validationHints?.emailInvalid ?? alerts.invalidEmail)
       }
 
-      if (!passwordValue || !confirmValue) {
-        return true
+      if (!formValues.password) {
+        messages.push(validationHints?.passwordMissing ?? alerts.missingFields)
       }
 
-      if (!PASSWORD_STRENGTH_PATTERN.test(passwordValue)) {
-        return true
+      if (!formValues.confirmPassword) {
+        messages.push(validationHints?.confirmPasswordMissing ?? alerts.missingFields)
       }
 
-      if (passwordValue !== confirmValue) {
-        return true
+      if (formValues.password && !PASSWORD_STRENGTH_PATTERN.test(formValues.password)) {
+        messages.push(validationHints?.passwordWeak ?? alerts.weakPassword ?? alerts.genericError)
       }
 
-      if (!agreementAccepted) {
-        return true
+      if (
+        formValues.password &&
+        formValues.confirmPassword &&
+        formValues.password !== formValues.confirmPassword
+      ) {
+        messages.push(validationHints?.passwordMismatch ?? alerts.passwordMismatch)
       }
 
-      return false
+      if (!formValues.agreement) {
+        messages.push(
+          validationHints?.agreementRequired ?? alerts.agreementRequired ?? alerts.missingFields,
+        )
+      }
+
+      const uniqueMessages = Array.from(new Set(messages.filter(Boolean)))
+      return { disabled: uniqueMessages.length > 0, messages: uniqueMessages }
     }
 
     if (!isVerified) {
-      return codeDigits.some((digit) => !digit)
+      if (codeDigits.some((digit) => !digit)) {
+        messages.push(
+          validationHints?.codeIncomplete ??
+            alerts.codeRequired ??
+            alerts.invalidCode ??
+            alerts.missingFields,
+        )
+      }
+
+      const uniqueMessages = Array.from(new Set(messages.filter(Boolean)))
+      return { disabled: uniqueMessages.length > 0, messages: uniqueMessages }
     }
 
-    return codeDigits.some((digit) => !digit) || !pendingPassword
-  }, [codeDigits, hasRequestedCode, isSubmitting, isVerified, pendingPassword])
+    if (codeDigits.some((digit) => !digit)) {
+      messages.push(
+        validationHints?.codeIncomplete ??
+          alerts.codeRequired ??
+          alerts.invalidCode ??
+          alerts.missingFields,
+      )
+    }
+
+    if (!pendingPassword) {
+      messages.push(validationHints?.passwordUnavailable ?? alerts.genericError)
+    }
+
+    const uniqueMessages = Array.from(new Set(messages.filter(Boolean)))
+    return { disabled: uniqueMessages.length > 0, messages: uniqueMessages }
+  }, [
+    alerts,
+    codeDigits,
+    formValues,
+    hasRequestedCode,
+    isFormReady,
+    isSubmitting,
+    isVerificationStep,
+    isVerified,
+    pendingPassword,
+    t.form.completeSubmit,
+    t.form.completing,
+    t.form.submit,
+    t.form.submitting,
+    t.form.verifySubmit,
+    t.form.verifying,
+    validationHints,
+  ])
+  const isSubmitDisabled = validationState.disabled
+  const validationMessages = validationState.messages
 
   return (
     <AuthLayout
@@ -706,6 +803,8 @@ export default function RegisterContent() {
             className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
             required
             disabled={isVerificationStep}
+            value={formValues.email}
+            onChange={handleInputChange('email')}
           />
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -722,6 +821,8 @@ export default function RegisterContent() {
               className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
               required={!isVerificationStep}
               disabled={isVerificationStep}
+              value={formValues.password}
+              onChange={handleInputChange('password')}
             />
           </div>
           <div className="space-y-2">
@@ -737,6 +838,8 @@ export default function RegisterContent() {
               className="w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
               required={!isVerificationStep}
               disabled={isVerificationStep}
+              value={formValues.confirmPassword}
+              onChange={handleInputChange('confirmPassword')}
             />
           </div>
         </div>
@@ -796,6 +899,8 @@ export default function RegisterContent() {
             required={!isVerificationStep}
             disabled={isVerificationStep}
             className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+            checked={formValues.agreement}
+            onChange={handleAgreementChange}
           />
           <span>
             {t.form.agreement}{' '}
@@ -804,6 +909,19 @@ export default function RegisterContent() {
             </Link>
           </span>
         </label>
+        {validationMessages.length > 0 ? (
+          <div
+            className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-600"
+            role="status"
+            aria-live="polite"
+          >
+            <ul className="list-disc space-y-1 pl-5">
+              {validationMessages.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <button
           type="submit"
           disabled={isSubmitDisabled}

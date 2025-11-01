@@ -230,6 +230,21 @@ type AuthRegisterTranslation = {
     verificationCodeDescription?: string
     verificationCodeResend: string
     verificationCodeResending?: string
+    validation?: {
+      initializing?: string
+      submitting?: string
+      verifying?: string
+      completing?: string
+      emailMissing?: string
+      emailInvalid?: string
+      passwordMissing?: string
+      confirmPasswordMissing?: string
+      passwordWeak?: string
+      passwordMismatch?: string
+      agreementRequired?: string
+      codeIncomplete?: string
+      passwordUnavailable?: string
+    }
   }
   social: {
     title: string
@@ -690,6 +705,21 @@ export const translations: Record<'en' | 'zh', Translation> = {
           verificationCodeDescription: 'Enter the 6-digit code sent to your email. It expires in 10 minutes.',
           verificationCodeResend: 'Resend',
           verificationCodeResending: 'Resending…',
+          validation: {
+            initializing: 'Loading the registration form…',
+            submitting: 'Submitting your registration…',
+            verifying: 'Verifying the code you entered…',
+            completing: 'Finalizing your registration…',
+            emailMissing: 'Enter your work email to continue.',
+            emailInvalid: 'The email format looks incorrect.',
+            passwordMissing: 'Enter and confirm your password to continue.',
+            confirmPasswordMissing: 'Re-enter your password in the confirmation field.',
+            passwordWeak: 'Use at least 8 characters that include both letters and numbers.',
+            passwordMismatch: 'The two password entries must match exactly.',
+            agreementRequired: 'You must accept the terms to continue.',
+            codeIncomplete: 'Enter the complete 6-digit verification code sent to your email.',
+            passwordUnavailable: 'Your password is missing. Restart the registration flow.',
+          },
         },
         social: {
           title: 'Or continue with',
@@ -1307,6 +1337,21 @@ export const translations: Record<'en' | 'zh', Translation> = {
           verificationCodeDescription: '请输入发送到注册邮箱的 6 位数字验证码，10 分钟内有效。',
           verificationCodeResend: '重发',
           verificationCodeResending: '重发中…',
+          validation: {
+            initializing: '正在载入注册表单…',
+            submitting: '正在提交注册请求…',
+            verifying: '正在校验验证码…',
+            completing: '正在完成注册…',
+            emailMissing: '请输入邮箱地址以继续。',
+            emailInvalid: '邮箱格式看起来不正确。',
+            passwordMissing: '请输入密码并再次确认后继续。',
+            confirmPasswordMissing: '请在确认密码栏中再次输入密码。',
+            passwordWeak: '密码至少 8 位，并同时包含字母和数字。',
+            passwordMismatch: '两次输入的密码必须完全一致。',
+            agreementRequired: '请先勾选同意条款后再继续。',
+            codeIncomplete: '请输入邮箱收到的完整 6 位验证码。',
+            passwordUnavailable: '密码信息缺失，请重新开始注册流程。',
+          },
         },
         social: {
           title: '或选择以下方式',
