@@ -249,8 +249,10 @@ export default function RegisterContent() {
   const [codeDigits, setCodeDigits] = useState<string[]>(() => Array(VERIFICATION_CODE_LENGTH).fill(''))
   const [hasRequestedCode, setHasRequestedCode] = useState(false)
   const [pendingEmail, setPendingEmail] = useState('')
+  const [pendingPassword, setPendingPassword] = useState('')
   const [isResending, setIsResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [isVerified, setIsVerified] = useState(false)
   const formRef = useRef<HTMLFormElement | null>(null)
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
@@ -394,6 +396,11 @@ export default function RegisterContent() {
         setAlert(null)
 
         try {
+          if (typeof window !== 'undefined') {
+            const message = alerts.preSubmitHint ?? 'Click submit to receive your verification code.'
+            window.alert(message)
+          }
+
           const fallbackNameFromEmail = email.includes('@') ? email.split('@')[0] : email
           const normalizedName = (name || fallbackNameFromEmail || 'svc_user').trim() || 'svc_user'
 
@@ -475,12 +482,59 @@ export default function RegisterContent() {
             return
           }
 
+          try {
+            const resendResponse = await fetch('/api/auth/register/resend', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email }),
+            })
+
+            if (!resendResponse.ok) {
+              let resendError = 'generic_error'
+              try {
+                const data = await resendResponse.json()
+                if (typeof data?.error === 'string') {
+                  resendError = data.error
+                }
+              } catch (error) {
+                console.error('Failed to parse resend response after register', error)
+              }
+
+              const resendErrorMap: Record<string, string> = {
+                invalid_request: alerts.genericError,
+                invalid_email: alerts.invalidEmail,
+                verification_failed: alerts.verificationFailed ?? alerts.genericError,
+                already_verified: alerts.verificationFailed ?? alerts.genericError,
+                account_service_unreachable: alerts.genericError,
+              }
+
+              setAlert({
+                type: 'error',
+                message: resendErrorMap[normalize(resendError)] ?? alerts.genericError,
+              })
+              setIsSubmitting(false)
+              return
+            }
+          } catch (error) {
+            console.error('Failed to trigger verification resend after register', error)
+            setAlert({ type: 'error', message: alerts.genericError })
+            setIsSubmitting(false)
+            return
+          }
+
           setPendingEmail(email)
+          setPendingPassword(password)
           setHasRequestedCode(true)
+          setIsVerified(false)
           resetCodeDigits()
           focusCodeInput(0)
           setResendCooldown(RESEND_COOLDOWN_SECONDS)
-          setAlert({ type: 'success', message: alerts.verificationSent ?? alerts.success })
+          if (typeof window !== 'undefined') {
+            const message = alerts.verificationSent ?? 'Verification code sent. Please check your email.'
+            window.alert(message)
+          }
           setIsSubmitting(false)
         } catch (error) {
           console.error('Failed to register user', error)
@@ -496,8 +550,68 @@ export default function RegisterContent() {
         return
       }
 
-      if (verificationCode.length !== VERIFICATION_CODE_LENGTH) {
-        setAlert({ type: 'error', message: alerts.codeRequired ?? alerts.missingFields })
+      if (!isVerified) {
+        if (verificationCode.length !== VERIFICATION_CODE_LENGTH) {
+          setAlert({ type: 'error', message: alerts.codeRequired ?? alerts.missingFields })
+          return
+        }
+
+        setIsSubmitting(true)
+        setAlert(null)
+
+        try {
+          const response = await fetch('/api/auth/register/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: emailForVerification,
+              code: verificationCode,
+            }),
+          })
+
+          if (!response.ok) {
+            let errorCode = 'generic_error'
+            try {
+              const data = await response.json()
+              if (typeof data?.error === 'string') {
+                errorCode = data.error
+              }
+            } catch (error) {
+              console.error('Failed to parse verification response', error)
+            }
+
+            const errorMap: Record<string, string> = {
+              invalid_request: alerts.genericError,
+              missing_verification: alerts.codeRequired ?? alerts.missingFields,
+              invalid_code: alerts.invalidCode ?? alerts.genericError,
+              verification_failed: alerts.verificationFailed ?? alerts.genericError,
+              account_service_unreachable: alerts.genericError,
+            }
+
+            setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
+            setIsSubmitting(false)
+            return
+          }
+
+          setIsVerified(true)
+          if (typeof window !== 'undefined') {
+            const message =
+              alerts.verificationReady ?? 'Code verified. Click complete registration to continue.'
+            window.alert(message)
+          }
+          setIsSubmitting(false)
+        } catch (error) {
+          console.error('Failed to verify email', error)
+          setAlert({ type: 'error', message: alerts.genericError })
+          setIsSubmitting(false)
+        }
+        return
+      }
+
+      if (!pendingPassword) {
+        setAlert({ type: 'error', message: alerts.genericError })
         return
       }
 
@@ -505,34 +619,38 @@ export default function RegisterContent() {
       setAlert(null)
 
       try {
-        const response = await fetch('/api/auth/verify-email', {
+        const response = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             email: emailForVerification,
-            code: verificationCode,
+            password: pendingPassword,
           }),
         })
 
-        if (!response.ok) {
-          let errorCode = 'generic_error'
-          try {
-            const data = await response.json()
-            if (typeof data?.error === 'string') {
-              errorCode = data.error
-            }
-          } catch (error) {
-            console.error('Failed to parse verification response', error)
+        let data: { success?: boolean; needMfa?: boolean; error?: string; redirectTo?: string } | null = null
+        try {
+          data = await response.json()
+        } catch (error) {
+          data = null
+        }
+
+        if (!response.ok || !data?.success) {
+          const errorCode = typeof data?.error === 'string' ? data.error : 'generic_error'
+          const errorMap: Record<string, string> = {
+            invalid_credentials: alerts.genericError,
+            missing_credentials: alerts.missingFields,
+            account_service_unreachable: alerts.genericError,
+            authentication_failed: alerts.genericError,
           }
 
-          const errorMap: Record<string, string> = {
-            invalid_request: alerts.genericError,
-            missing_verification: alerts.codeRequired ?? alerts.missingFields,
-            invalid_code: alerts.invalidCode ?? alerts.genericError,
-            verification_failed: alerts.verificationFailed ?? alerts.genericError,
-            account_service_unreachable: alerts.genericError,
+          if (data?.needMfa) {
+            router.push('/login?needMfa=1')
+            router.refresh()
+            setIsSubmitting(false)
+            return
           }
 
           setAlert({ type: 'error', message: errorMap[normalize(errorCode)] ?? alerts.genericError })
@@ -540,12 +658,18 @@ export default function RegisterContent() {
           return
         }
 
-        setAlert({ type: 'success', message: alerts.success })
-        setIsSubmitting(false)
-        router.push('/login?registered=1&setupMfa=1')
+        if (typeof window !== 'undefined') {
+          const message =
+            alerts.registrationComplete ?? 'Registration complete. Redirecting to your dashboard.'
+          window.alert(message)
+        }
+
+        router.push(data?.redirectTo || '/')
+        router.refresh()
       } catch (error) {
-        console.error('Failed to verify email', error)
+        console.error('Failed to complete registration login', error)
         setAlert({ type: 'error', message: alerts.genericError })
+      } finally {
         setIsSubmitting(false)
       }
     },
@@ -555,15 +679,17 @@ export default function RegisterContent() {
       focusCodeInput,
       hasRequestedCode,
       isSubmitting,
+      isVerified,
       normalize,
       pendingEmail,
+      pendingPassword,
       resetCodeDigits,
       router,
     ],
   )
 
   const handleResend = useCallback(async () => {
-    if (isResending || resendCooldown > 0) {
+    if (isResending || resendCooldown > 0 || isVerified) {
       return
     }
 
@@ -579,7 +705,7 @@ export default function RegisterContent() {
     setIsResending(true)
 
     try {
-      const response = await fetch('/api/auth/verify-email/resend', {
+      const response = await fetch('/api/auth/register/resend', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -613,17 +739,22 @@ export default function RegisterContent() {
 
       setPendingEmail(emailFromForm)
       setHasRequestedCode(true)
+      setIsVerified(false)
       resetCodeDigits()
       focusCodeInput(0)
       setResendCooldown(RESEND_COOLDOWN_SECONDS)
-      setAlert({ type: 'success', message: alerts.verificationSent ?? alerts.success })
+      if (typeof window !== 'undefined') {
+        const message =
+          alerts.verificationResent ?? alerts.verificationSent ?? 'Verification code resent.'
+        window.alert(message)
+      }
       setIsResending(false)
     } catch (error) {
       console.error('Failed to resend verification code', error)
       setAlert({ type: 'error', message: alerts.genericError })
       setIsResending(false)
     }
-  }, [alerts, focusCodeInput, isResending, normalize, pendingEmail, resetCodeDigits, resendCooldown])
+  }, [alerts, focusCodeInput, isResending, isVerified, normalize, pendingEmail, resetCodeDigits, resendCooldown])
 
   const aboveForm = t.uuidNote ? (
     <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
@@ -631,14 +762,18 @@ export default function RegisterContent() {
     </div>
   ) : null
 
-  const isVerificationStep = hasRequestedCode
-  const submitLabel = isVerificationStep
+  const isVerificationStep = hasRequestedCode && !isVerified
+  const submitLabel = isVerified
     ? isSubmitting
-      ? t.form.verifying ?? t.form.verifySubmit ?? t.form.submit
-      : t.form.verifySubmit ?? t.form.submit
-    : isSubmitting
-      ? t.form.submitting ?? t.form.submit
-      : t.form.submit
+      ? t.form.completing ?? t.form.completeSubmit ?? t.form.submit
+      : t.form.completeSubmit ?? t.form.submit
+    : isVerificationStep
+      ? isSubmitting
+        ? t.form.verifying ?? t.form.verifySubmit ?? t.form.submit
+        : t.form.verifySubmit ?? t.form.submit
+      : isSubmitting
+        ? t.form.submitting ?? t.form.submit
+        : t.form.submit
   const resendLabel = isResending
     ? t.form.verificationCodeResending ?? t.form.verificationCodeResend
     : resendCooldown > 0
@@ -718,14 +853,14 @@ export default function RegisterContent() {
             <label className="text-sm font-medium text-slate-600" htmlFor="verification-code-0">
               {t.form.verificationCodeLabel}
             </label>
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={isResending || resendCooldown > 0}
-              className="rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {resendLabel}
-            </button>
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={isResending || resendCooldown > 0 || isVerified}
+            className="rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {resendLabel}
+          </button>
           </div>
           {t.form.verificationCodeDescription ? (
             <p
@@ -757,6 +892,7 @@ export default function RegisterContent() {
                 aria-describedby={
                   t.form.verificationCodeDescription ? verificationDescriptionId : undefined
                 }
+                disabled={isVerified}
               />
             ))}
           </div>
