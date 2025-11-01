@@ -4,7 +4,7 @@ This document describes the HTTP endpoints provided by the XControl platform. Ea
 
 ## Authentication Gateway (Next.js)
 
-The XControl web frontend exposes authentication APIs under `dashboard/app/api/auth`. These endpoints act as a secure gateway that proxies requests to the shared Account Service (`/api/auth/register`, `/api/auth/register/verify`, `/api/auth/login`, `/api/auth/mfa/setup`, `/api/auth/mfa/verify`). Responses always include `{ "success": boolean, "error": string | null, "needMfa": boolean }` so that multiple frontends can share the same Account Service behaviour.
+The XControl web frontend exposes authentication APIs under `dashboard/app/api/auth`. These endpoints act as a secure gateway that proxies requests to the shared Account Service (`/api/auth/register`, `/api/auth/register/send`, `/api/auth/register/verify`, `/api/auth/login`, `/api/auth/mfa/setup`, `/api/auth/mfa/verify`). Responses always include `{ "success": boolean, "error": string | null, "needMfa": boolean }` so that multiple frontends can share the same Account Service behaviour.
 
 Gateway-managed session cookies (`xc_session`) and MFA challenge cookies (`xc_mfa_challenge`) are issued with `HttpOnly`, `Secure`, and `SameSite=Strict` attributes. Cookies are HTTPS-only and never expose raw secrets to JavaScript.
 
@@ -20,6 +20,18 @@ Gateway-managed session cookies (`xc_session`) and MFA challenge cookies (`xc_mf
   curl -X POST http://localhost:3000/api/auth/register \
     -H "Content-Type: application/json" \
     -d '{"name":"demo","email":"demo@example.com","password":"Secret123","confirmPassword":"Secret123"}'
+  ```
+
+### POST /api/auth/register/send
+- **Description:** Trigger a verification email for an existing pending registration. This endpoint may be used to send the initial code when the frontend wants to separate registration from verification, or to resend a code if the user did not receive the previous email.
+- **Body Parameters (JSON):**
+  - `email` – The pending account email address.
+- **Response:** `{ "success": true, "error": null, "needMfa": false }` on success. On failure `error` contains the Account Service error code.
+- **Test:**
+  ```bash
+  curl -X POST http://localhost:3000/api/auth/register/send \
+    -H "Content-Type: application/json" \
+    -d '{"email":"demo@example.com"}'
   ```
 
 ### POST /api/auth/verify-email

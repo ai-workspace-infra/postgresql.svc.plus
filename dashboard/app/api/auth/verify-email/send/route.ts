@@ -5,7 +5,7 @@ import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
 const ACCOUNT_SERVICE_URL = getAccountServiceBaseUrl()
 const ACCOUNT_API_BASE = `${ACCOUNT_SERVICE_URL}/api/auth`
 
-type ResendPayload = {
+type SendPayload = {
   email?: string
 }
 
@@ -14,11 +14,11 @@ function normalizeEmail(value: unknown) {
 }
 
 export async function POST(request: NextRequest) {
-  let payload: ResendPayload
+  let payload: SendPayload
   try {
-    payload = (await request.json()) as ResendPayload
+    payload = (await request.json()) as SendPayload
   } catch (error) {
-    console.error('Failed to decode verification resend payload', error)
+    console.error('Failed to decode verification send payload', error)
     return NextResponse.json({ success: false, error: 'invalid_request', needMfa: false }, { status: 400 })
   }
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const response = await fetch(`${ACCOUNT_API_BASE}/register/resend`, {
+    const response = await fetch(`${ACCOUNT_API_BASE}/register/send`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, error: null, needMfa: false })
   } catch (error) {
-    console.error('Account service verification resend proxy failed', error)
+    console.error('Account service verification send proxy failed', error)
     return NextResponse.json(
       { success: false, error: 'account_service_unreachable', needMfa: false },
       { status: 502 },

@@ -187,7 +187,7 @@ func RegisterRoutes(r *gin.Engine, opts ...Option) {
 
 	auth.POST("/register", h.register)
 	auth.POST("/register/verify", h.verifyEmail)
-	auth.POST("/register/resend", h.resendEmailVerification)
+	auth.POST("/register/send", h.sendEmailVerification)
 
 	auth.POST("/login", h.login)
 
@@ -229,7 +229,7 @@ type verificationCodeRequest struct {
 	Code  string `json:"code"`
 }
 
-type verificationResendRequest struct {
+type verificationSendRequest struct {
 	Email string `json:"email"`
 }
 
@@ -429,13 +429,13 @@ func (h *handler) verifyEmail(c *gin.Context) {
 	})
 }
 
-func (h *handler) resendEmailVerification(c *gin.Context) {
+func (h *handler) sendEmailVerification(c *gin.Context) {
 	if hasQueryParameter(c, "email") {
 		respondError(c, http.StatusBadRequest, "email_in_query", "email must be sent in the request body")
 		return
 	}
 
-	var req verificationResendRequest
+	var req verificationSendRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		respondError(c, http.StatusBadRequest, "invalid_request", "invalid request payload")
 		return
@@ -468,12 +468,12 @@ func (h *handler) resendEmailVerification(c *gin.Context) {
 	}
 
 	if err := h.enqueueEmailVerification(c.Request.Context(), user); err != nil {
-		slog.Error("failed to resend verification email", "err", err, "email", user.Email)
+		slog.Error("failed to send verification email", "err", err, "email", user.Email)
 		respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "verification email resent"})
+	c.JSON(http.StatusOK, gin.H{"message": "verification email sent"})
 }
 
 func (h *handler) requestPasswordReset(c *gin.Context) {

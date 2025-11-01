@@ -290,7 +290,7 @@ func TestResendVerificationEndpoint(t *testing.T) {
 		t.Fatalf("failed to marshal resend payload: %v", err)
 	}
 
-	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/resend", bytes.NewReader(resendBody))
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(resendBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr = httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -382,7 +382,7 @@ func TestResendVerificationEndpointErrors(t *testing.T) {
 		t.Fatalf("failed to marshal resend payload: %v", err)
 	}
 
-	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/resend", bytes.NewReader(resendBody))
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(resendBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr = httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -396,7 +396,7 @@ func TestResendVerificationEndpointErrors(t *testing.T) {
 		t.Fatalf("failed to marshal unknown payload: %v", err)
 	}
 
-	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/resend", bytes.NewReader(unknownBody))
+	req = httptest.NewRequest(http.MethodPost, "/api/auth/register/send", bytes.NewReader(unknownBody))
 	req.Header.Set("Content-Type", "application/json")
 	rr = httptest.NewRecorder()
 	router.ServeHTTP(rr, req)

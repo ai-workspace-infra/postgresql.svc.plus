@@ -483,7 +483,7 @@ export default function RegisterContent() {
           }
 
           try {
-            const resendResponse = await fetch('/api/auth/register/resend', {
+            const resendResponse = await fetch('/api/auth/register/send', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -705,7 +705,7 @@ export default function RegisterContent() {
     setIsResending(true)
 
     try {
-      const response = await fetch('/api/auth/register/resend', {
+      const response = await fetch('/api/auth/register/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
