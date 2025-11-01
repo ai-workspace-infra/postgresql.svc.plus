@@ -215,27 +215,26 @@ EOF
 }
 
 # ------------------ DNS 模板 ------------------
+
 show_dns_record(){
   log "🌐 生成 DNS 模板（SPF / DKIM / DMARC / rDNS / HELO）..."
-  local DKIM_TXT DKIM_PUB LINE LEN=255
-  if [[ -f "${DKIM_KEY_DIR}/${DKIM_SELECTOR}.txt" ]]; then
-    DKIM_TXT=$(tr -d '\n' < "${DKIM_KEY_DIR}/${DKIM_SELECTOR}.txt" | sed 's/"//g')
-    DKIM_PUB=$(echo "${DKIM_TXT}" | sed -n 's/.*p=\(.*\)$/\1/p' | tr -d ' ')
-  else
-    DKIM_PUB="<DKIM 公钥未生成>"
+
+  local DKIM_FILE="${DKIM_KEY_DIR}/${DKIM_SELECTOR}.txt"
+  local DKIM_ONE_LINE="<DKIM 公钥未生成>"
+
+  if [[ -f "$DKIM_FILE" ]]; then
+    # 读取 DKIM 文件并清理注释、括号、引号和换行
+    DKIM_ONE_LINE=$(grep -v '^;' "$DKIM_FILE" \
+      | tr -d '\n' \
+      | sed -E 's/[()]//g; s/"//g; s/\s+/ /g; s/IN TXT//; s/mail._domainkey.*v=/v=/; s/\s*v=DKIM1/v=DKIM1/' \
+      | sed 's/ *$//')
   fi
 
   echo "----------------------------------------------------------"
   echo "A     smtp.${DOMAIN}      ${SERVER_IP}"
   echo "MX    ${DOMAIN}           smtp.${DOMAIN}."
   echo "SPF   @                   \"v=spf1 a:smtp.${DOMAIN} -all\""
-  echo -n "DKIM  ${DKIM_SELECTOR}._domainkey   "
-  echo "\"v=DKIM1; k=rsa; p="
-  while [[ -n "$DKIM_PUB" ]]; do
-    LINE=${DKIM_PUB:0:$LEN}
-    DKIM_PUB=${DKIM_PUB:$LEN}
-    echo "\"${LINE}\""
-  done
+  echo "DKIM  ${DKIM_SELECTOR}._domainkey   \"${DKIM_ONE_LINE}\""
   echo "DMARC _dmarc              \"v=DMARC1; p=none; rua=mailto:postmaster@${DOMAIN}\""
   echo "rDNS  (请让 ${SERVER_IP} 反查为 ${HOSTNAME})"
   echo "HELO  (EHLO 输出应为 ${HOSTNAME})"
