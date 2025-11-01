@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# install_opensmtpd_sendonly.sh v1.2
-# OpenSMTPD + OpenDKIM + TLS（Send-Only 模式）
+# install_postfix_sendonly.sh v1.0
+# Postfix + OpenDKIM + SPF + DMARC（Send-Only 模式）
 # --------------------------------------------------------
-# ✅ 自动部署轻量级 MTA，监听 25/587 端口（免认证）
+# ✅ 自动部署轻量级 Postfix 发信服务（仅 587 STARTTLS）
 # ✅ 集成 DKIM 签名、SPF/DMARC/rDNS/HELO 校验模板
 # ✅ 兼容阿里云 / Cloudflare DNS 输出格式
-# ✅ 适配 OpenSMTPD ≥ 6.8（Ubuntu 22.04+）
+# ✅ 适配 Ubuntu / Debian / RHEL 系列系统
 # --------------------------------------------------------
 # Author: Pan Haitao @ svc.plus
 #
@@ -51,12 +51,12 @@ EOF
   echo "首发密码（仅本次显示）：${TMP_PASS}"
 }
 
-check_send_email() {
-  local SMTP_HOST="${HOSTNAME:-smtp.svc.plus}"
+check_send_email(){
+  local SMTP_HOST="${HOSTNAME}"
   local SMTP_PORT=587
-  local SMTP_USER="${EMAIL:-no-reply@svc.plus}"
-  local SMTP_PASS="${TMP_PASS:-$(grep -m1 "${EMAIL:-no-reply@svc.plus}" /etc/smtpd/auth 2>/dev/null | awk -F: '{print $2}' || echo '')}"
-  local TEST_TO="${1:-${EMAIL:-no-reply@svc.plus}}"
+  local SMTP_USER="${EMAIL}"
+  local SMTP_PASS="${TMP_PASS}"
+  local TEST_TO="${1:-${EMAIL}}"
   local SUBJECT="📨 SMTP Deliverability Test — $(date '+%Y-%m-%d %H:%M:%S')"
   local BODY="✅ Automated deliverability test from ${SMTP_HOST}
 
@@ -68,16 +68,8 @@ Environment:
 
 If you received this message intact, DKIM/DMARC/SPF validation succeeded."
 
-  echo
   echo "🔍 Testing outbound mail via ${SMTP_HOST}:${SMTP_PORT}"
   echo "-------------------------------------------------------------"
-
-  # 检测 swaks 是否支持 --hide-password
-  local SWAKS_HIDE=""
-  if swaks --help 2>&1 | grep -q -- '--hide-password'; then
-    SWAKS_HIDE="--hide-password"
-  fi
-
   swaks --server "${SMTP_HOST}:${SMTP_PORT}" \
     --tls --protocol ESMTP \
     --auth LOGIN \
@@ -86,24 +78,21 @@ If you received this message intact, DKIM/DMARC/SPF validation succeeded."
     --from "${SMTP_USER}" \
     --to "${TEST_TO}" \
     --header "From: XControl Mail System <${SMTP_USER}>" \
-    --header "Reply-To: ${SMTP_USER}" \
     --header "Subject: ${SUBJECT}" \
     --body "${BODY}" \
-    --timeout 15 ${SWAKS_HIDE} --quit-after "."
-
+    --timeout 15 --quit-after "."
   echo "-------------------------------------------------------------"
-  echo "✅ Check inbox (${TEST_TO}) for DKIM/SPF validation results."
 }
 
-# ------------------ 安装依赖 ------------------
+# ------------------ 依赖 ------------------
 ensure_packages(){
-  log "📦 安装 OpenSMTPD + OpenDKIM..."
+  log "📦 安装 Postfix + OpenDKIM..."
+  export DEBIAN_FRONTEND=noninteractive
   apt update -qq
-  DEBIAN_FRONTEND=noninteractive apt install -y \
-    opensmtpd opendkim opendkim-tools dnsutils curl openssl swaks
+  apt install -y postfix opendkim opendkim-tools mailutils swaks dnsutils openssl curl
 }
 
-# ------------------ SSL 证书检测 ------------------
+# ------------------ SSL ------------------
 verify_cert(){
   if [[ -f "$CERT" && -f "$KEY" ]]; then
     log "🔐 使用自有 SSL 证书：$CERT"
@@ -157,59 +146,71 @@ EOF
   systemctl enable --now opendkim
 }
 
-# ------------------ OpenSMTPD ------------------
+# ------------------ Postfix ------------------
 
-deploy_smtpd() {
+deploy_postfix() {
   verify_cert
-  log "🚀 写入 OpenSMTPD 配置 (仅启用 587 / STARTTLS)..."
-  mkdir -p /etc/smtpd
+  log "🚀 配置 Postfix Send-only (仅启用 587 / STARTTLS)..."
 
-  cat >/etc/smtpd/smtpd.conf <<EOF
-pki ${HOSTNAME} cert "${CERT}"
-pki ${HOSTNAME} key  "${KEY}"
+  # 确保 postfix 存在
+  command -v postconf >/dev/null 2>&1 || die "Postfix 未安装"
 
-listen on 0.0.0.0 port 587
-listen on ::0 port 587
+  # 主配置（禁用入站、仅发信）
+  postconf -e "myhostname = ${HOSTNAME}"
+  postconf -e "myorigin = ${DOMAIN}"
+  postconf -e "mydestination = "
+  postconf -e "relayhost = "
+  postconf -e "inet_interfaces = all"
+  postconf -e "inet_protocols = all"
+  postconf -e "biff = no"
+  postconf -e "append_dot_mydomain = no"
+  postconf -e "readme_directory = no"
+  postconf -e "smtpd_banner = ${HOSTNAME} ESMTP"
+  postconf -e "compatibility_level = 2"
+  postconf -e "mydomain = ${DOMAIN}"
+  postconf -e "smtp_helo_name = ${HOSTNAME}"
+  postconf -e "alias_maps = hash:/etc/aliases"
+  postconf -e "alias_database = hash:/etc/aliases"
+  postconf -e "mynetworks = 127.0.0.0/8 [::1]/128"
+  postconf -e "relay_domains = ${DOMAIN}"
 
-# 启用 TLS 支持（STARTTLS）
-tls enable
-pki ${HOSTNAME}
+  # TLS & DKIM
+  postconf -e "smtpd_tls_cert_file = ${CERT}"
+  postconf -e "smtpd_tls_key_file = ${KEY}"
+  postconf -e "smtpd_tls_security_level = may"
+  postconf -e "smtp_tls_security_level = may"
+  postconf -e "smtp_use_tls = yes"
+  postconf -e "smtp_tls_note_starttls_offer = yes"
+  postconf -e "smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt"
+  postconf -e "smtpd_tls_auth_only = yes"
+  postconf -e "milter_default_action = accept"
+  postconf -e "milter_protocol = 6"
+  postconf -e "smtpd_milters = inet:localhost:8891"
+  postconf -e "non_smtpd_milters = inet:localhost:8891"
 
-# 允许本机及 svc.plus 域发信
-accept from local for any relay
-accept from any for domain "${DOMAIN}" relay
+  # 禁用 25 端口入站，仅启用 587
+  cat >/etc/postfix/master.cf <<EOF
+smtp      inet  n       -       y       -       -       smtpd
+# 关闭 25 端口监听
+smtp      inet  n       -       n       -       -       reject
+
+submission inet n       -       y       -       -       smtpd
+  -o syslog_name=postfix/submission
+  -o smtpd_tls_security_level=encrypt
+  -o smtpd_sasl_auth_enable=no
+  -o smtpd_relay_restrictions=permit_mynetworks,reject_unauth_destination
+  -o milter_macro_daemon_name=ORIGINATING
 EOF
 
-  # 若系统自带默认配置，先禁用
-  if [ -f /etc/smtpd.conf ]; then
-    log "⚙️ 检测到系统默认 /etc/smtpd.conf，自动禁用..."
-    mv /etc/smtpd.conf /etc/smtpd.conf.disabled 2>/dev/null || true
-  fi
-  ln -sf /etc/smtpd/smtpd.conf /etc/smtpd.conf
-
-  # 语法校验
-  if ! smtpd -n -f /etc/smtpd/smtpd.conf > /tmp/smtpd_check.log 2>&1; then
-    log "⚠️ 配置语法检测失败："
-    cat /tmp/smtpd_check.log
-    die "配置无效，已终止启动。"
-  fi
-
-  # 启动并启用服务
-  systemctl enable --now opensmtpd || die "❌ 启动 opensmtpd 失败"
+  systemctl enable --now postfix
+  systemctl restart postfix
   sleep 1
 
-  # 若仍监听 25 端口则强制关闭
-  if ss -tlnp | grep -qE ':25\s'; then
-    log "🚫 检测到 25 端口仍在监听，强制关闭..."
-    fuser -k 25/tcp 2>/dev/null || true
-    systemctl restart opensmtpd
-  fi
-
-  # 再次确认状态
+  # 验证监听端口
   if ss -tlnp | grep -qE ':587\s'; then
-    log "✅ OpenSMTPD 6.8 已启用并监听 587 端口（STARTTLS Send-Only 模式）"
+    log "✅ Postfix 已启用并仅监听 587 端口 (STARTTLS Send-Only 模式)"
   else
-    die "❌ 端口 587 未成功监听，请检查日志：journalctl -xeu opensmtpd.service"
+    die "❌ 端口 587 未成功监听，请检查日志：journalctl -xeu postfix"
   fi
 }
 
@@ -256,11 +257,11 @@ check_self(){
 # ------------------ 卸载 ------------------
 uninstall_reset(){
   log "🧹 停止并清理..."
-  systemctl stop opensmtpd || true
+  systemctl stop postfix || true
   systemctl stop opendkim || true
-  apt purge -y opensmtpd opendkim opendkim-tools || true
+  apt purge -y postfix opendkim opendkim-tools || true
   apt autoremove -y || true
-  rm -rf /etc/smtpd /etc/opendkim /var/log/mail*
+  rm -rf /etc/postfix /etc/opendkim /var/log/mail*
   log "✅ 已清理完成（证书未动）。"
 }
 
@@ -270,13 +271,13 @@ case "${ACTION}" in
   deploy)
     ensure_packages
     deploy_dkim
-    deploy_smtpd
+    deploy_postfix
     show_dns_record
     ;;
   upgrade)
     log "⬆️ 更新配置并重启..."
     deploy_dkim
-    deploy_smtpd
+    deploy_postfix
     show_dns_record
     ;;
   show)
