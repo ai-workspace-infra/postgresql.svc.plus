@@ -51,7 +51,24 @@ const nextConfig = {
   trailingSlash: false,
   reactStrictMode: true,
   compress: false, // 压缩交给 Nginx，省 Node CPU
+  poweredByHeader: false,
   images: { unoptimized: true }, // 关闭服务端图片处理
+  httpAgentOptions: {
+    keepAlive: true,
+  },
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store',
+          },
+        ],
+      },
+    ]
+  },
   async rewrites() {
     return [
       {
