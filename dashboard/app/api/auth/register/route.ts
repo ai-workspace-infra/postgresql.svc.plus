@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@server/serviceConfig'
 
 const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 

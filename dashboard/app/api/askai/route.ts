@@ -1,4 +1,4 @@
-import { getInternalServerServiceBaseUrl } from '@lib/serviceConfig'
+import { getInternalServerServiceBaseUrl } from '@server/serviceConfig'
 
 const FORWARDED_HEADERS = ['authorization', 'cookie', 'x-account-session'] as const
 

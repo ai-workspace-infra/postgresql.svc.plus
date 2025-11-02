@@ -1,4 +1,6 @@
-import { loadRuntimeConfig } from '../config'
+import 'server-only'
+
+import { loadRuntimeConfig } from './runtime-loader'
 
 const FALLBACK_ACCOUNT_SERVICE_URL = 'https://accounts.svc.plus'
 const FALLBACK_SERVER_SERVICE_URL = 'https://api.svc.plus'

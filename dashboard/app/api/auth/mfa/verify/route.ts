@@ -9,7 +9,7 @@ import {
   deriveMaxAgeFromExpires,
   MFA_COOKIE_NAME,
 } from '@lib/authGateway'
-import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@server/serviceConfig'
 
 const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 

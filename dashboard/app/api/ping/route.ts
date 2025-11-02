@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { loadRuntimeConfig } from '../../../config'
+import { loadRuntimeConfig } from '@server/runtime-loader'
 
 export async function GET(request: Request) {
   const hostnameHeader = request.headers.get('host') ?? undefined

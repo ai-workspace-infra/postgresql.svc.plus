@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 
 import { SESSION_COOKIE_NAME } from '@lib/authGateway'
-import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@server/serviceConfig'
 
 const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
