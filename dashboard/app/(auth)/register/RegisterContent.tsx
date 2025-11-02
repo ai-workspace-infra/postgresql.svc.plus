@@ -22,7 +22,7 @@ import { translations } from '@i18n/translations'
 
 import { WeChatIcon } from '../../components/icons/WeChatIcon'
 
-type AlertState = { type: 'error' | 'success'; message: string }
+type AlertState = { type: 'error' | 'success' | 'info'; message: string }
 
 const VERIFICATION_CODE_LENGTH = 6
 const RESEND_COOLDOWN_SECONDS = 60
@@ -279,6 +279,10 @@ export default function RegisterContent() {
         setAlert({ type: 'error', message })
       }
 
+      const showStatus = (message: string) => {
+        setAlert({ type: 'info', message })
+      }
+
       if (!hasRequestedCode) {
         if (!emailInput || !EMAIL_PATTERN.test(emailInput)) {
           showError(alerts.invalidEmail)
@@ -306,7 +310,11 @@ export default function RegisterContent() {
         }
 
         setIsSubmitting(true)
-        setAlert(null)
+        showStatus(
+          t.form.validation?.submitting ??
+            t.form.submitting ??
+            'Submitting registration request…',
+        )
 
         try {
           const response = await fetch('/api/auth/register/send', {
@@ -351,9 +359,6 @@ export default function RegisterContent() {
 
           const successMessage = alerts.verificationSent ?? alerts.genericError
           setAlert({ type: 'success', message: successMessage })
-          if (typeof window !== 'undefined') {
-            window.alert(successMessage)
-          }
         } catch (error) {
           console.error('Failed to request verification code', error)
           showError(alerts.genericError)
@@ -376,7 +381,12 @@ export default function RegisterContent() {
         }
 
         setIsSubmitting(true)
-        setAlert(null)
+        showStatus(
+          t.form.validation?.verifying ??
+            t.form.verifying ??
+            t.form.verifySubmit ??
+            t.form.submit,
+        )
 
         try {
           const response = await fetch('/api/auth/register/verify', {
@@ -401,7 +411,8 @@ export default function RegisterContent() {
             const errorMap: Record<string, string> = {
               invalid_request: alerts.genericError,
               missing_verification: alerts.codeRequired ?? alerts.missingFields,
-              invalid_code: alerts.invalidCode ?? alerts.genericError,
+              invalid_code:
+                alerts.verificationFailed ?? alerts.invalidCode ?? alerts.genericError,
               verification_failed: alerts.verificationFailed ?? alerts.genericError,
               account_service_unreachable: alerts.genericError,
             }
@@ -414,9 +425,6 @@ export default function RegisterContent() {
           setIsVerified(true)
           const successMessage = alerts.verificationReady ?? alerts.success
           setAlert({ type: 'success', message: successMessage })
-          if (typeof window !== 'undefined') {
-            window.alert(successMessage)
-          }
         } catch (error) {
           console.error('Failed to verify email', error)
           showError(alerts.genericError)
@@ -437,7 +445,12 @@ export default function RegisterContent() {
       }
 
       setIsSubmitting(true)
-      setAlert(null)
+      showStatus(
+        t.form.validation?.completing ??
+          t.form.completing ??
+          t.form.completeSubmit ??
+          t.form.submit,
+      )
 
       try {
         const registerResponse = await fetch('/api/auth/register', {
@@ -476,7 +489,8 @@ export default function RegisterContent() {
             user_creation_failed: alerts.genericError,
             credentials_in_query: alerts.genericError,
             verification_required: alerts.codeRequired ?? alerts.genericError,
-            invalid_code: alerts.invalidCode ?? alerts.genericError,
+            invalid_code:
+              alerts.verificationFailed ?? alerts.invalidCode ?? alerts.genericError,
             account_service_unreachable: alerts.genericError,
           }
 
@@ -528,9 +542,6 @@ export default function RegisterContent() {
 
         const successMessage = alerts.registrationComplete ?? alerts.success
         setAlert({ type: 'success', message: successMessage })
-        if (typeof window !== 'undefined') {
-          window.alert(successMessage)
-        }
 
         router.push(loginData?.redirectTo || '/')
         router.refresh()
@@ -553,6 +564,7 @@ export default function RegisterContent() {
       pendingPassword,
       resetCodeDigits,
       router,
+      t.form,
     ],
   )
 
@@ -573,6 +585,10 @@ export default function RegisterContent() {
     const emailFromForm = emailFromFormRaw.trim()
 
     setIsResending(true)
+    const resendStatusMessage =
+      t.form.verificationCodeResending ??
+      (t.form.verificationCodeResend ? `${t.form.verificationCodeResend}…` : 'Resending verification code…')
+    setAlert({ type: 'info', message: resendStatusMessage })
 
     try {
       const response = await fetch('/api/auth/register/send', {
@@ -616,16 +632,24 @@ export default function RegisterContent() {
       setResendCooldown(RESEND_COOLDOWN_SECONDS)
       const message = alerts.verificationResent ?? alerts.verificationSent ?? 'Verification code resent.'
       setAlert({ type: 'success', message })
-      if (typeof window !== 'undefined') {
-        window.alert(message)
-      }
       setIsResending(false)
     } catch (error) {
       console.error('Failed to resend verification code', error)
       setAlert({ type: 'error', message: alerts.genericError })
       setIsResending(false)
     }
-  }, [alerts, focusCodeInput, isResending, isVerified, normalize, pendingEmail, resetCodeDigits, resendCooldown])
+  }, [
+    alerts,
+    focusCodeInput,
+    isResending,
+    isVerified,
+    normalize,
+    pendingEmail,
+    resetCodeDigits,
+    resendCooldown,
+    t.form.verificationCodeResend,
+    t.form.verificationCodeResending,
+  ])
 
   const aboveForm = t.uuidNote ? (
     <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">

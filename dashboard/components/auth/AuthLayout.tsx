@@ -18,12 +18,14 @@ export type AuthLayoutSocialButton = {
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void
 }
 
+type AlertType = 'error' | 'success' | 'info'
+
 type AuthLayoutProps = {
   mode: 'login' | 'register'
   badge?: string
   title: string
   description?: string
-  alert?: { type: 'error' | 'success'; message: string } | null
+  alert?: { type: AlertType; message: string } | null
   socialHeading?: string
   socialButtons?: AuthLayoutSocialButton[]
   aboveForm?: ReactNode
@@ -134,8 +136,12 @@ export function AuthLayout({
                     'rounded-2xl border px-4 py-3 text-sm font-medium',
                     alert.type === 'error'
                       ? 'border-red-200 bg-red-50 text-red-700'
-                      : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+                      : alert.type === 'success'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-sky-200 bg-sky-50 text-sky-700',
                   )}
+                  role="status"
+                  aria-live="polite"
                 >
                   {alert.message}
                 </div>
