@@ -887,7 +887,6 @@ export default function RegisterContent() {
                 aria-describedby={
                   t.form.verificationCodeDescription ? verificationDescriptionId : undefined
                 }
-                disabled={!hasRequestedCode || isVerified}
               />
             ))}
           </div>
