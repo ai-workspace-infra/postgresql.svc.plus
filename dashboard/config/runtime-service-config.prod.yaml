@@ -6,6 +6,6 @@ regions:
     authUrl: https://cn-accounts.svc.plus
     dashboardUrl: https://cn-console.svc.plus
   global:
-    apiBaseUrl: https://api.svc.plus
-    authUrl: https://accounts.svc.plus
-    dashboardUrl: https://console.svc.plus
+    apiBaseUrl: https://global-api.svc.plus
+    authUrl: https://global-accounts.svc.plus
+    dashboardUrl: https://global-console.svc.plus
