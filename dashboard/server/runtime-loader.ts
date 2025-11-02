@@ -263,6 +263,11 @@ export function readRuntimeEnvSettings(): RuntimeEnvSettings {
   })
 
   candidates.push({
+    path: path.resolve(process.cwd(), 'config', RUNTIME_ENV_CONFIG_BASENAME),
+    detectedBy: `file:config/${RUNTIME_ENV_CONFIG_BASENAME}`,
+  })
+
+  candidates.push({
     path: path.resolve(process.cwd(), RUNTIME_ENV_CONFIG_BASENAME),
     detectedBy: `file:${RUNTIME_ENV_CONFIG_BASENAME}`,
   })
