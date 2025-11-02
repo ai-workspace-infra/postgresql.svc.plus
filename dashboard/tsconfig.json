@@ -33,6 +33,7 @@
   },
   "include": [
     "app",
+    "config",
     "cms",
     "components",
     "i18n",

@@ -1,5 +1,0 @@
-defaults:
-  accountService:
-    baseUrl: https://accounts.svc.plus
-  serverService:
-    baseUrl: https://api.svc.plus
