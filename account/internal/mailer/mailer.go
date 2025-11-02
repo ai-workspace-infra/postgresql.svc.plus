@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -140,6 +141,17 @@ func New(cfg Config) (Sender, error) {
 }
 
 func (s *smtpSender) Send(ctx context.Context, msg Message) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if s.timeout > 0 {
+		if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, s.timeout)
+			defer cancel()
+		}
+	}
+
 	recipients, headerTo, err := s.parseRecipients(msg.To)
 	if err != nil {
 		return err
@@ -153,22 +165,35 @@ func (s *smtpSender) Send(ctx context.Context, msg Message) error {
 		return err
 	}
 
-	addr := net.JoinHostPort(s.host, fmt.Sprintf("%d", s.port))
+	addr := net.JoinHostPort(s.host, strconv.Itoa(s.port))
 	dialer := &net.Dialer{Timeout: s.timeout}
 	if deadline, ok := ctx.Deadline(); ok {
 		dialer.Deadline = deadline
 	}
 
-	var conn net.Conn
-	if s.tlsMode == TLSModeImplicit {
-		tlsCfg := s.tlsConfig()
-		conn, err = tls.DialWithDialer(dialer, "tcp", addr, tlsCfg)
-	} else {
-		conn, err = dialer.DialContext(ctx, "tcp", addr)
-	}
+	rawConn, err := dialer.DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return err
 	}
+	conn := net.Conn(rawConn)
+
+	if deadline, ok := ctx.Deadline(); ok {
+		_ = conn.SetDeadline(deadline)
+	}
+
+	if s.tlsMode == TLSModeImplicit {
+		tlsCfg := s.tlsConfig()
+		tlsConn := tls.Client(rawConn, tlsCfg)
+		if err := tlsConn.HandshakeContext(ctx); err != nil {
+			conn.Close()
+			return err
+		}
+		conn = tlsConn
+		if deadline, ok := ctx.Deadline(); ok {
+			_ = conn.SetDeadline(deadline)
+		}
+	}
+
 	defer conn.Close()
 
 	client, err := smtp.NewClient(conn, s.host)
@@ -176,6 +201,16 @@ func (s *smtpSender) Send(ctx context.Context, msg Message) error {
 		return err
 	}
 	defer client.Close()
+
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			client.Close()
+		case <-done:
+		}
+	}()
+	defer close(done)
 
 	switch s.tlsMode {
 	case TLSModeStartTLS:
