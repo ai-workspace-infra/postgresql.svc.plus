@@ -202,6 +202,16 @@ type AuthLoginAlerts = {
   }
 }
 
+type AuthEmailVerificationAlerts = {
+  missingEmail: string
+  codeRequired: string
+  verificationSent: string
+  verificationResent?: string
+  verificationFailed: string
+  verificationReady?: string
+  genericError: string
+}
+
 type AuthRegisterTranslation = {
   badge: string
   title: string
@@ -295,9 +305,35 @@ type AuthLoginTranslation = {
   alerts: AuthLoginAlerts
 }
 
+type AuthEmailVerificationTranslation = {
+  badge?: string
+  title: string
+  description: string
+  emailFallback?: string
+  form: {
+    codeLabel: string
+    codePlaceholder?: string
+    helper?: string
+    submit: string
+    submitting?: string
+  }
+  resend: {
+    label: string
+    resending?: string
+  }
+  alerts: AuthEmailVerificationAlerts
+  switchAction: {
+    text: string
+    link: string
+  }
+  footnote?: string
+  bottomNote?: string
+}
+
 type AuthTranslation = {
   register: AuthRegisterTranslation
   login: AuthLoginTranslation
+  emailVerification: AuthEmailVerificationTranslation
 }
 
 type UserCenterOverviewTranslation = {
@@ -814,6 +850,38 @@ export const translations: Record<'en' | 'zh', Translation> = {
             challengeFailed: 'We could not prepare the multi-factor challenge. Try again later.',
           },
         },
+      },
+      emailVerification: {
+        badge: 'Verify email',
+        title: 'Check your inbox',
+        description: 'Enter the 6-digit verification code we sent to {{email}}.',
+        emailFallback: 'your email address',
+        form: {
+          codeLabel: 'Verification code',
+          codePlaceholder: '123456',
+          helper: 'The code expires in 10 minutes.',
+          submit: 'Continue',
+          submitting: 'Verifying…',
+        },
+        resend: {
+          label: 'Resend email',
+          resending: 'Resending…',
+        },
+        alerts: {
+          missingEmail: 'Return to the sign-up form and enter your email address again.',
+          codeRequired: 'Enter the 6-digit verification code to continue.',
+          verificationSent: 'We emailed a 6-digit code to your address.',
+          verificationResent: 'A new verification code has been sent. Check your inbox.',
+          verificationFailed: 'The verification code was invalid or expired. Try again.',
+          verificationReady: 'Email verified. Redirecting to sign in…',
+          genericError: 'We could not verify your email. Please try again.',
+        },
+        switchAction: {
+          text: 'Already verified?',
+          link: 'Sign in',
+        },
+        footnote: 'Didn’t receive the email? Check your spam folder or contact support@svc.plus.',
+        bottomNote: 'Need to start over? Return to the registration form to request a new code.',
       },
     },
     userCenter: {
@@ -1433,6 +1501,38 @@ export const translations: Record<'en' | 'zh', Translation> = {
             challengeFailed: '暂时无法发起多因素验证，请稍后再试。',
           },
         },
+      },
+      emailVerification: {
+        badge: '邮箱验证',
+        title: '检查您的收件箱',
+        description: '请输入发送到 {{email}} 的 6 位验证码，10 分钟内有效。',
+        emailFallback: '注册邮箱',
+        form: {
+          codeLabel: '验证码',
+          codePlaceholder: '请输入 6 位数字',
+          helper: '验证码仅在 10 分钟内有效，请尽快完成验证。',
+          submit: '继续',
+          submitting: '验证中…',
+        },
+        resend: {
+          label: '重新发送电子邮件',
+          resending: '重发中…',
+        },
+        alerts: {
+          missingEmail: '请返回注册页面重新填写邮箱后再试。',
+          codeRequired: '请输入邮箱收到的 6 位验证码。',
+          verificationSent: '验证码已发送，请检查邮箱收件箱。',
+          verificationResent: '新的验证码已发送，请注意查收。',
+          verificationFailed: '验证码无效或已过期，请重试。',
+          verificationReady: '邮箱验证成功，即将跳转至登录页面…',
+          genericError: '暂时无法完成验证，请稍后再试。',
+        },
+        switchAction: {
+          text: '已经完成验证？',
+          link: '前往登录',
+        },
+        footnote: '没有收到邮件？请检查垃圾邮箱，或联系 support@svc.plus。',
+        bottomNote: '需要重新开始？请回到注册页面重新获取验证码。',
       },
     },
     userCenter: {
