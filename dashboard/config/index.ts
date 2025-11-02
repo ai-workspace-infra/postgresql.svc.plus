@@ -1,6 +1,8 @@
-import { loadRuntimeConfig } from './runtime-loader'
+import 'server-only'
 
-export type { RuntimeConfig, RuntimeEnvironment, RuntimeRegion } from './runtime-loader'
+import { loadRuntimeConfig } from '../server/runtime-loader'
+
+export type { RuntimeConfig, RuntimeEnvironment, RuntimeRegion } from '../server/runtime-loader'
 
 export { loadRuntimeConfig }
 

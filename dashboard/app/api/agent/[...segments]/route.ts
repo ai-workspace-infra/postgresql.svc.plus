@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import type { NextRequest } from 'next/server'
 
 import { createUpstreamProxyHandler } from '@lib/apiProxy'
-import { getInternalServerServiceBaseUrl } from '@lib/serviceConfig'
+import { getInternalServerServiceBaseUrl } from '@server/serviceConfig'
 
 const AGENT_PREFIX = '/api/agent'
 

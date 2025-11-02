@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@server/serviceConfig'
 import { getAccountSession, userHasRole } from '@server/account/session'
 import type { AccountUserRole } from '@server/account/session'
 

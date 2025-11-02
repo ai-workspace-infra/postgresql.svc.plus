@@ -2,7 +2,7 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { applyMfaCookie, applySessionCookie, clearMfaCookie, clearSessionCookie, deriveMaxAgeFromExpires, MFA_COOKIE_NAME } from '@lib/authGateway'
-import { getAccountServiceApiBaseUrl } from '@lib/serviceConfig'
+import { getAccountServiceApiBaseUrl } from '@server/serviceConfig'
 
 const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 

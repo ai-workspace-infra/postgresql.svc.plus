@@ -8,15 +8,15 @@ import { Github } from 'lucide-react'
 import { AuthLayout, AuthLayoutSocialButton } from '@components/auth/AuthLayout'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import { getAccountServiceBaseUrl } from '@lib/serviceConfig'
 
 import { WeChatIcon } from '../../components/icons/WeChatIcon'
 
 type LoginContentProps = {
+  accountServiceBaseUrl: string
   children?: ReactNode
 }
 
-export default function LoginContent({ children }: LoginContentProps) {
+export default function LoginContent({ accountServiceBaseUrl, children }: LoginContentProps) {
   const { language } = useLanguage()
   const t = translations[language].auth.login
   const alerts = t.alerts
@@ -52,7 +52,6 @@ export default function LoginContent({ children }: LoginContentProps) {
     [],
   )
 
-  const accountServiceBaseUrl = getAccountServiceBaseUrl()
   const githubAuthUrl = process.env.NEXT_PUBLIC_GITHUB_AUTH_URL || '/api/auth/github'
   const wechatAuthUrl = process.env.NEXT_PUBLIC_WECHAT_AUTH_URL || '/api/auth/wechat'
   const loginUrl = process.env.NEXT_PUBLIC_LOGIN_URL || `${accountServiceBaseUrl}/api/auth/login`
@@ -251,7 +250,7 @@ export default function LoginContent({ children }: LoginContentProps) {
         setIsSubmitting(false)
       }
     },
-    [alerts, isSubmitting, normalize, router],
+    [alerts, deriveSameOriginLoginFallback, isSubmitting, normalize, router],
   )
 
   const socialButtons = useMemo<AuthLayoutSocialButton[]>(() => {
