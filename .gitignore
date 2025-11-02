@@ -32,3 +32,4 @@ server/xcontrol-server
 server/xcontrol-server.log
 ui/dashboard/.yarn/
 dashboard/.yarn/
+dashboard/config/.runtime-env-config.yaml

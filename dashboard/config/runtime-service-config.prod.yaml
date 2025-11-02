@@ -1,2 +1,11 @@
 # Overrides for the production environment.
 logLevel: warn
+regions:
+  cn:
+    apiBaseUrl: https://cn-api.svc.plus
+    authUrl: https://cn-accounts.svc.plus
+    dashboardUrl: https://cn-console.svc.plus
+  global:
+    apiBaseUrl: https://api.svc.plus
+    authUrl: https://accounts.svc.plus
+    dashboardUrl: https://console.svc.plus

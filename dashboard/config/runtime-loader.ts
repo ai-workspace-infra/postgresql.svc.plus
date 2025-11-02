@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import yaml from 'js-yaml'
 
 import baseSource from './runtime-service-config.base.yaml'
@@ -23,6 +26,19 @@ export type RuntimeConfig = {
   hostname?: string
   detectedBy: string
 }
+
+type RuntimeEnvSettings = {
+  environment: RuntimeEnvironment
+  region: RuntimeRegion
+  detectedBy: string
+}
+
+type RuntimeEnvGlobal = {
+  environment?: unknown
+  region?: unknown
+}
+
+const RUNTIME_ENV_CONFIG_BASENAME = '.runtime-env-config.yaml'
 
 const YAML_SOURCES: Record<RuntimeSourceKey, string | undefined> = {
   base: baseSource,
@@ -178,8 +194,8 @@ function detectHostname(hostnameOverride?: string): { hostname?: string; detecte
   return { hostname: undefined, detectedBy: 'default' }
 }
 
-function normalizeEnvironmentKey(value?: string): RuntimeEnvironment | undefined {
-  if (!value) {
+function normalizeEnvironmentValue(value: unknown): RuntimeEnvironment | undefined {
+  if (typeof value !== 'string') {
     return undefined
   }
 
@@ -209,124 +225,159 @@ function normalizeEnvironmentKey(value?: string): RuntimeEnvironment | undefined
   return mapping[normalized]
 }
 
-function detectEnvironmentFromEnvVars(): { environment: RuntimeEnvironment; matchedRule: string } | undefined {
-  const envCandidates: Array<{ source: string; value?: string; allowProd?: boolean }> = [
-    { source: 'RUNTIME_ENV', value: process.env.RUNTIME_ENV },
-    { source: 'NEXT_RUNTIME_ENV', value: process.env.NEXT_RUNTIME_ENV },
-    { source: 'APP_ENV', value: process.env.APP_ENV },
-    { source: 'ENVIRONMENT', value: process.env.ENVIRONMENT },
-    { source: 'STAGE', value: process.env.STAGE },
-    { source: 'NODE_ENV', value: process.env.NODE_ENV, allowProd: false },
-  ]
+function normalizeRegionValue(value: unknown): RuntimeRegion | undefined {
+  if (typeof value !== 'string') {
+    return undefined
+  }
 
-  for (const candidate of envCandidates) {
-    const normalized = normalizeEnvironmentKey(candidate.value)
-    if (!normalized) {
-      continue
-    }
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) {
+    return undefined
+  }
 
-    if (!candidate.allowProd && normalized === 'prod') {
-      continue
-    }
+  if (normalized === 'cn' || normalized === 'china') {
+    return 'cn'
+  }
 
-    return { environment: normalized, matchedRule: `env:${candidate.source}` }
+  if (normalized === 'global') {
+    return 'global'
+  }
+
+  if (normalized === 'default') {
+    return 'default'
   }
 
   return undefined
 }
 
-function detectEnvironmentFromHostnamePattern(hostname: string):
-  | { environment: RuntimeEnvironment; matchedRule: string }
-  | undefined {
-  const normalized = hostname.toLowerCase()
+let runtimeEnvSettingsCache: RuntimeEnvSettings | undefined
 
-  if (normalized.startsWith('dev.') || normalized.startsWith('dev-') || normalized.includes('.dev.')) {
-    return { environment: 'sit', matchedRule: 'dev-subdomain' }
+function readRuntimeEnvSettings(): RuntimeEnvSettings {
+  if (runtimeEnvSettingsCache) {
+    return runtimeEnvSettingsCache
   }
 
-  return undefined
-}
+  if (typeof window !== 'undefined') {
+    const globalCandidate = (window as unknown as { __XCONTROL_RUNTIME_ENV__?: RuntimeEnvGlobal })
+      .__XCONTROL_RUNTIME_ENV__
+    const environmentFromGlobal = normalizeEnvironmentValue(globalCandidate?.environment)
+    const regionFromGlobal = normalizeRegionValue(globalCandidate?.region)
 
-function detectEnvironmentFromUrlHints(): { environment: RuntimeEnvironment; matchedRule: string } | undefined {
-  const urlCandidates = [
-    { source: 'RUNTIME_HOSTNAME', value: process.env.RUNTIME_HOSTNAME },
-    { source: 'NEXT_RUNTIME_HOSTNAME', value: process.env.NEXT_RUNTIME_HOSTNAME },
-    { source: 'RUNTIME_DASHBOARD_URL', value: process.env.RUNTIME_DASHBOARD_URL },
-    { source: 'NEXT_PUBLIC_DASHBOARD_URL', value: process.env.NEXT_PUBLIC_DASHBOARD_URL },
-    { source: 'DASHBOARD_URL', value: process.env.DASHBOARD_URL },
-    { source: 'ACCOUNT_SERVICE_URL', value: process.env.ACCOUNT_SERVICE_URL },
-    { source: 'NEXT_PUBLIC_ACCOUNT_SERVICE_URL', value: process.env.NEXT_PUBLIC_ACCOUNT_SERVICE_URL },
-    { source: 'SERVER_SERVICE_URL', value: process.env.SERVER_SERVICE_URL },
-    { source: 'NEXT_PUBLIC_SERVER_SERVICE_URL', value: process.env.NEXT_PUBLIC_SERVER_SERVICE_URL },
-    { source: 'NEXT_PUBLIC_API_BASE_URL', value: process.env.NEXT_PUBLIC_API_BASE_URL },
-    { source: 'API_BASE_URL', value: process.env.API_BASE_URL },
-    { source: 'AUTH_URL', value: process.env.AUTH_URL },
-    { source: 'NEXT_PUBLIC_AUTH_URL', value: process.env.NEXT_PUBLIC_AUTH_URL },
-  ]
+    if (environmentFromGlobal) {
+      runtimeEnvSettingsCache = {
+        environment: environmentFromGlobal,
+        region: regionFromGlobal ?? 'default',
+        detectedBy: 'window.__XCONTROL_RUNTIME_ENV__',
+      }
+      return runtimeEnvSettingsCache
+    }
 
-  for (const candidate of urlCandidates) {
-    const hostname = sanitizeHostname(candidate.value)
-    if (!hostname) {
+    const environmentFromEnv = normalizeEnvironmentValue(process.env.NEXT_PUBLIC_RUNTIME_ENVIRONMENT)
+    const regionFromEnv = normalizeRegionValue(process.env.NEXT_PUBLIC_RUNTIME_REGION)
+
+    runtimeEnvSettingsCache = {
+      environment: environmentFromEnv ?? 'prod',
+      region: regionFromEnv ?? 'default',
+      detectedBy: environmentFromEnv ? 'client-env' : 'client-default',
+    }
+    return runtimeEnvSettingsCache
+  }
+
+  const candidates: Array<{ path: string; detectedBy: string }> = []
+
+  const explicitPath = process.env.RUNTIME_ENV_CONFIG_PATH
+  if (explicitPath) {
+    const resolved = path.isAbsolute(explicitPath)
+      ? explicitPath
+      : path.resolve(process.cwd(), explicitPath)
+    candidates.push({ path: resolved, detectedBy: 'env:RUNTIME_ENV_CONFIG_PATH' })
+  }
+
+  candidates.push({
+    path: path.resolve(process.cwd(), 'dashboard/config', RUNTIME_ENV_CONFIG_BASENAME),
+    detectedBy: `file:dashboard/config/${RUNTIME_ENV_CONFIG_BASENAME}`,
+  })
+
+  candidates.push({
+    path: path.resolve(process.cwd(), RUNTIME_ENV_CONFIG_BASENAME),
+    detectedBy: `file:${RUNTIME_ENV_CONFIG_BASENAME}`,
+  })
+
+  for (const candidate of candidates) {
+    if (!fs.existsSync(candidate.path)) {
       continue
     }
 
-    const detected = detectEnvironmentFromHostnamePattern(hostname)
-    if (detected) {
-      return { ...detected, matchedRule: `env-url:${candidate.source}` }
+    try {
+      const content = fs.readFileSync(candidate.path, 'utf8')
+      const parsed = yaml.load(content)
+      if (!isPlainRecord(parsed)) {
+        continue
+      }
+
+      const environment = normalizeEnvironmentValue(parsed.environment)
+      const region = normalizeRegionValue(parsed.region)
+
+      if (environment) {
+        runtimeEnvSettingsCache = {
+          environment,
+          region: region ?? 'default',
+          detectedBy: candidate.detectedBy,
+        }
+        return runtimeEnvSettingsCache
+      }
+    } catch (error) {
+      console.warn(`[runtime-config] Failed to read runtime env config at ${candidate.path}`, error)
     }
   }
 
-  return undefined
+  runtimeEnvSettingsCache = {
+    environment: 'prod',
+    region: 'default',
+    detectedBy: 'default',
+  }
+  return runtimeEnvSettingsCache
 }
 
-function detectEnvironment(hostname?: string): { environment: RuntimeEnvironment; region: RuntimeRegion; matchedRule: string } {
-  const normalized = hostname?.toLowerCase() ?? ''
+function splitEnvironmentOverrides(
+  environment: RuntimeEnvironment,
+  region: RuntimeRegion,
+): { environmentOverrides: Record<string, unknown>; regionOverrides?: Record<string, unknown> } {
+  const envConfig = parseYamlSource(environment)
+  const environmentOverrides = mergeConfigs({}, envConfig)
+  let regionOverrides: Record<string, unknown> | undefined
 
-  let environment: RuntimeEnvironment = 'prod'
-  let matchedRule = 'default'
+  const maybeRegions = environmentOverrides['regions']
+  if (isPlainRecord(maybeRegions)) {
+    const normalizedRegion = region.toLowerCase()
+    for (const [regionKey, regionValue] of Object.entries(maybeRegions)) {
+      if (!isPlainRecord(regionValue)) {
+        continue
+      }
 
-  const envOverride = detectEnvironmentFromEnvVars()
-  if (envOverride) {
-    environment = envOverride.environment
-    matchedRule = envOverride.matchedRule
-  } else {
-    const hostnameMatch = normalized ? detectEnvironmentFromHostnamePattern(normalized) : undefined
-    if (hostnameMatch) {
-      environment = hostnameMatch.environment
-      matchedRule = hostnameMatch.matchedRule
-    } else {
-      const hintMatch = detectEnvironmentFromUrlHints()
-      if (hintMatch) {
-        environment = hintMatch.environment
-        matchedRule = hintMatch.matchedRule
+      if (regionKey.trim().toLowerCase() === normalizedRegion) {
+        regionOverrides = mergeConfigs({}, regionValue)
+        break
       }
     }
   }
 
-  let region: RuntimeRegion = 'default'
-  if (normalized.startsWith('cn-')) {
-    region = 'cn'
-    if (matchedRule === 'default') {
-      matchedRule = 'cn-subdomain'
-    }
-  } else if (normalized.startsWith('global-')) {
-    region = 'global'
-    if (matchedRule === 'default') {
-      matchedRule = 'global-subdomain'
-    }
-  }
+  delete environmentOverrides['regions']
 
-  return { environment, region, matchedRule }
+  return { environmentOverrides, regionOverrides }
 }
 
-function buildCacheKey(hostname?: string, environment?: RuntimeEnvironment, region?: RuntimeRegion): string {
-  const keyParts = [hostname || '<unknown>', environment || '<env>', region || '<region>']
-  return keyParts.join('|')
+function buildCacheKey(
+  hostname?: string,
+  environment?: RuntimeEnvironment,
+  region?: RuntimeRegion,
+): string {
+  return [hostname || '<unknown>', environment || '<env>', region || '<region>'].join('|')
 }
 
 export function loadRuntimeConfig(options?: { hostname?: string }): RuntimeConfig {
-  const { hostname, detectedBy } = detectHostname(options?.hostname)
-  const { environment, region, matchedRule } = detectEnvironment(hostname)
+  const { hostname, detectedBy: hostnameDetectedBy } = detectHostname(options?.hostname)
+  const { environment, region, detectedBy: envDetectedBy } = readRuntimeEnvSettings()
 
   const cacheKey = buildCacheKey(hostname, environment, region)
   const cached = runtimeConfigCache.get(cacheKey)
@@ -335,23 +386,28 @@ export function loadRuntimeConfig(options?: { hostname?: string }): RuntimeConfi
   }
 
   const baseConfig = parseYamlSource('base')
-  const envConfig = parseYamlSource(environment)
-  const merged = mergeConfigs(baseConfig, envConfig)
+  const { environmentOverrides, regionOverrides } = splitEnvironmentOverrides(environment, region)
+  const merged = mergeConfigs(baseConfig, environmentOverrides)
+  const finalConfig = regionOverrides ? mergeConfigs(merged, regionOverrides) : merged
+
+  const detectionLabel = hostname
+    ? `${envDetectedBy}|hostname:${hostnameDetectedBy}`
+    : envDetectedBy
 
   const result: RuntimeConfig = {
-    ...(merged as RuntimeConfig),
+    ...(finalConfig as RuntimeConfig),
     environment,
     region,
     source: environment,
     hostname,
-    detectedBy: hostname ? `${detectedBy}:${matchedRule}` : detectedBy,
+    detectedBy: detectionLabel,
   }
 
   runtimeConfigCache.set(cacheKey, result)
 
   const regionLabel = region === 'default' ? '' : `/${region.toUpperCase()} region`
   const hostLabel = hostname ? ` @ ${hostname}` : ''
-  console.info(`[runtime-config] Detected env: ${environment.toUpperCase()}${regionLabel}${hostLabel}`)
+  console.info(`[runtime-config] Loaded env: ${environment.toUpperCase()}${regionLabel}${hostLabel}`)
 
   return result
 }
