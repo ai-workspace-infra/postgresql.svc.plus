@@ -121,6 +121,9 @@ func New(cfg Config) (Sender, error) {
 	}
 
 	mode := normalizeTLSMode(cfg.TLSMode)
+	if mode == TLSModeAuto && cfg.Port == 465 {
+		mode = TLSModeImplicit
+	}
 
 	sender := &smtpSender{
 		host:               host,

@@ -28,3 +28,22 @@ func TestParseTLSMode(t *testing.T) {
 		}
 	}
 }
+
+func TestNewImplicitModeAutodetect(t *testing.T) {
+	sender, err := New(Config{
+		Host: "smtp.example.com",
+		Port: 465,
+		From: "Example <no-reply@example.com>",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error creating sender: %v", err)
+	}
+
+	s, ok := sender.(*smtpSender)
+	if !ok {
+		t.Fatalf("expected smtpSender, got %T", sender)
+	}
+	if s.tlsMode != TLSModeImplicit {
+		t.Fatalf("expected tlsMode %q, got %q", TLSModeImplicit, s.tlsMode)
+	}
+}
