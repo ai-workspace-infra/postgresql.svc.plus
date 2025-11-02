@@ -868,19 +868,9 @@ export default function RegisterContent() {
           </div>
         </div>
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-slate-600" htmlFor="verification-code-0">
-              {t.form.verificationCodeLabel}
-            </label>
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={isResending || resendCooldown > 0 || isVerified}
-            className="rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {resendLabel}
-          </button>
-          </div>
+          <label className="text-sm font-medium text-slate-600" htmlFor="verification-code-0">
+            {t.form.verificationCodeLabel}
+          </label>
           {t.form.verificationCodeDescription ? (
             <p
               id={verificationDescriptionId}
@@ -889,31 +879,14 @@ export default function RegisterContent() {
               {t.form.verificationCodeDescription}
             </p>
           ) : null}
-          <div className="flex gap-2">
-            {codeDigits.map((digit, index) => (
-              <input
-                key={index}
-                id={`verification-code-${index}`}
-                ref={(element) => {
-                  codeInputRefs.current[index] = element
-                }}
-                type="text"
-                inputMode="numeric"
-                autoComplete={index === 0 ? 'one-time-code' : undefined}
-                pattern="[0-9]*"
-                maxLength={1}
-                value={digit}
-                onChange={(event) => handleCodeChange(index, event.target.value)}
-                onKeyDown={(event) => handleCodeKeyDown(index, event)}
-                onPaste={(event) => handleCodePaste(index, event)}
-                className="h-12 w-12 rounded-2xl border border-slate-200 bg-white/90 text-center text-lg font-semibold text-slate-900 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                aria-label={`${t.form.verificationCodeLabel} ${index + 1}`}
-                aria-describedby={
-                  t.form.verificationCodeDescription ? verificationDescriptionId : undefined
-                }
-              />
-            ))}
-          </div>
+          {hasRequestedCode && !isVerified ? (
+            <div className="rounded-2xl border border-dashed border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
+              我们已向你的邮箱发送一封验证邮件，点击邮件中的链接即可完成注册。
+              验证链接有效期 <strong>10 分钟</strong>。
+              <br />
+              若未收到邮件，请检查垃圾箱或稍后重试。
+            </div>
+          ) : null}
         </div>
         <label className="flex items-start gap-3 text-sm text-slate-600">
           <input
