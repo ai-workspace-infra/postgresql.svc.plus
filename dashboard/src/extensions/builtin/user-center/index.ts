@@ -1,4 +1,4 @@
-import { Code, CreditCard, Home, Palette, Server, Settings, Shield, User } from 'lucide-react'
+import { Code, CreditCard, Home, Mail, Palette, Server, Settings, Shield, User } from 'lucide-react'
 
 import type { DashboardExtension } from '../../types'
 
@@ -33,6 +33,17 @@ export const userCenterExtension: DashboardExtension = {
       redirect: { unauthenticated: '/login' },
       sidebar: { section: '权限设置', order: 0 },
     },
+
+    {
+      path: '/panel/mail',
+      label: 'Mail',
+      description: '租户邮件与 AI 助理',
+      icon: Mail,
+      loader: () => import('./routes/mail'),
+      guard: { requireLogin: true },
+      redirect: { unauthenticated: '/login' },
+      sidebar: { section: '功能特性', order: 0 },
+    },
     {
       path: '/panel/appearance',
       label: 'Appearance',
@@ -51,7 +62,7 @@ export const userCenterExtension: DashboardExtension = {
       loader: () => import('./routes/agent'),
       guard: { requireLogin: true },
       redirect: { unauthenticated: '/login' },
-      sidebar: { section: '功能特性', order: 0 },
+      sidebar: { section: '功能特性', order: 1 },
       featureFlag: {
         id: 'user-center.agent',
         title: 'Agent 管理',
@@ -68,7 +79,7 @@ export const userCenterExtension: DashboardExtension = {
       loader: () => import('./routes/api'),
       guard: { requireLogin: true },
       redirect: { unauthenticated: '/login' },
-      sidebar: { section: '功能特性', order: 1 },
+      sidebar: { section: '功能特性', order: 2 },
       featureFlag: {
         id: 'user-center.api',
         title: 'API 监控',
@@ -85,7 +96,7 @@ export const userCenterExtension: DashboardExtension = {
       loader: () => import('./routes/subscription'),
       guard: { requireLogin: true },
       redirect: { unauthenticated: '/login' },
-      sidebar: { section: '功能特性', order: 2 },
+      sidebar: { section: '功能特性', order: 3 },
       featureFlag: {
         id: 'user-center.subscription',
         title: '订阅与计费',
