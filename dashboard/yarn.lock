@@ -2184,6 +2184,7 @@ __metadata:
     eslint: "npm:8.57.0"
     eslint-config-next: "npm:^15.5.3"
     gray-matter: "npm:^4.0.3"
+    js-yaml: "npm:^4.1.0"
     jsdom: "npm:^24.0.0"
     lucide-react: "npm:^0.319.0"
     marked: "npm:^16.1.2"

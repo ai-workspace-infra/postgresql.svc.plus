@@ -1,0 +1,6 @@
+# Base runtime configuration shared by all environments.
+apiBaseUrl: https://api.svc.plus
+authUrl: https://accounts.svc.plus
+dashboardUrl: https://console.svc.plus
+internalApiBaseUrl: http://127.0.0.1:8090
+logLevel: info

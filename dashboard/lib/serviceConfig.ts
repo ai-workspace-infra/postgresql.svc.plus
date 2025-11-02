@@ -1,78 +1,4 @@
-import runtimeServiceConfigSource from '../config/runtime-service-config.yaml'
-
-type ServiceRuntimeConfig = {
-  baseUrl?: string
-}
-
-type EnvironmentRuntimeConfig = {
-  accountService?: ServiceRuntimeConfig
-  serverService?: ServiceRuntimeConfig
-}
-
-type RuntimeServiceConfig = {
-  defaultEnvironment?: string
-  defaults?: EnvironmentRuntimeConfig
-  environments?: Record<string, EnvironmentRuntimeConfig>
-}
-
-type StackEntry = {
-  indent: number
-  value: Record<string, unknown>
-}
-
-function parseSimpleYaml(source: string): RuntimeServiceConfig {
-  const lines = source
-    .split(/\r?\n/)
-    .map((line) => line.replace(/#.*$/, ''))
-    .map((line) => line.replace(/\s+$/, ''))
-    .filter((line) => line.trim().length > 0)
-
-  const root: Record<string, unknown> = {}
-  const stack: StackEntry[] = [{ indent: -1, value: root }]
-
-  for (const line of lines) {
-    const indent = line.match(/^\s*/)![0].length
-    const trimmed = line.trim()
-
-    const separatorIndex = trimmed.indexOf(':')
-    if (separatorIndex === -1) {
-      continue
-    }
-
-    const key = trimmed.slice(0, separatorIndex).trim()
-    const rawValue = trimmed.slice(separatorIndex + 1).trim()
-
-    while (stack.length > 1 && indent <= stack[stack.length - 1].indent) {
-      stack.pop()
-    }
-
-    const parent = stack[stack.length - 1].value
-
-    if (rawValue.length === 0) {
-      const child: Record<string, unknown> = {}
-      parent[key] = child
-      stack.push({ indent, value: child })
-    } else {
-      parent[key] = rawValue
-    }
-  }
-
-  return root as RuntimeServiceConfig
-}
-
-const runtimeServiceConfig = parseSimpleYaml(runtimeServiceConfigSource)
-
-const runtimeEnvironments: Record<string, EnvironmentRuntimeConfig> =
-  runtimeServiceConfig.environments ?? {}
-
-type RuntimeEnvironmentName = keyof typeof runtimeEnvironments
-
-const runtimeEnvironmentNames = Object.keys(
-  runtimeEnvironments,
-) as RuntimeEnvironmentName[]
-const hasRuntimeEnvironments = runtimeEnvironmentNames.length > 0
-
-type ServiceKey = keyof EnvironmentRuntimeConfig
+import { loadRuntimeConfig } from '../config'
 
 const FALLBACK_ACCOUNT_SERVICE_URL = 'https://accounts.svc.plus'
 const FALLBACK_SERVER_SERVICE_URL = 'https://api.svc.plus'
@@ -80,78 +6,23 @@ const FALLBACK_SERVER_SERVICE_INTERNAL_URL = 'http://127.0.0.1:8090'
 
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
 
-function getRuntimeServiceBaseUrl(serviceKey: ServiceKey): string | undefined {
-  const runtimeDefaults = runtimeServiceConfig.defaults?.[serviceKey]?.baseUrl
-
-  if (!hasRuntimeEnvironments) {
-    return runtimeDefaults
-  }
-
-  const environmentName = resolveRuntimeEnvironment()
-  const environmentValue = environmentName
-    ? runtimeEnvironments[environmentName]?.[serviceKey]?.baseUrl
-    : undefined
-
-  return environmentValue ?? runtimeDefaults
+function getRuntimeDefaultAccountServiceUrl(): string {
+  const runtime = loadRuntimeConfig()
+  const candidate = typeof runtime.authUrl === 'string' ? runtime.authUrl : undefined
+  return candidate ?? FALLBACK_ACCOUNT_SERVICE_URL
 }
 
-const DEFAULT_ACCOUNT_SERVICE_URL =
-  getRuntimeServiceBaseUrl('accountService') ?? FALLBACK_ACCOUNT_SERVICE_URL
-const DEFAULT_SERVER_SERVICE_URL =
-  getRuntimeServiceBaseUrl('serverService') ?? FALLBACK_SERVER_SERVICE_URL
-
-function normalizeEnvKey(value?: string | null): string | undefined {
-  if (!value) return undefined
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
+function getRuntimeDefaultServerServiceUrl(): string {
+  const runtime = loadRuntimeConfig()
+  const candidate = typeof runtime.apiBaseUrl === 'string' ? runtime.apiBaseUrl : undefined
+  return candidate ?? FALLBACK_SERVER_SERVICE_URL
 }
 
-function resolveRuntimeEnvironment(): RuntimeEnvironmentName | undefined {
-  if (!hasRuntimeEnvironments) {
-    return undefined
-  }
-
-  const envCandidates = [
-    process.env.NEXT_PUBLIC_RUNTIME_ENV,
-    process.env.NEXT_RUNTIME_ENV,
-    process.env.RUNTIME_ENV,
-    process.env.APP_ENV,
-    process.env.NODE_ENV,
-    runtimeServiceConfig.defaultEnvironment,
-  ]
-
-  for (const candidate of envCandidates) {
-    const normalizedCandidate = normalizeEnvKey(candidate)
-    if (!normalizedCandidate) continue
-
-    const matchedEntry = runtimeEnvironmentNames.find(
-      (key) => normalizeEnvKey(key) === normalizedCandidate,
-    )
-
-    if (matchedEntry) {
-      return matchedEntry
-    }
-  }
-
-  return undefined
-}
-
-function getRuntimeAccountServiceBaseUrl(): string | undefined {
-  const environmentName = resolveRuntimeEnvironment()
-  const runtimeDefaults = runtimeServiceConfig.defaults?.accountService?.baseUrl
-
-  if (!hasRuntimeEnvironments) {
-    return runtimeDefaults
-  }
-
-  const environmentValue = environmentName
-    ? runtimeEnvironments[environmentName]?.accountService?.baseUrl
-    : undefined
-
-  return runtimeDefaults ?? environmentValue
+function getRuntimeDefaultInternalServerServiceUrl(): string {
+  const runtime = loadRuntimeConfig()
+  const candidate =
+    typeof runtime.internalApiBaseUrl === 'string' ? runtime.internalApiBaseUrl : undefined
+  return candidate ?? FALLBACK_SERVER_SERVICE_INTERNAL_URL
 }
 
 function readEnvValue(...keys: string[]): string | undefined {
@@ -206,7 +77,7 @@ function normalizeBrowserBaseUrl(baseUrl: string): string {
 
 export function getAccountServiceBaseUrl(): string {
   const configured = readEnvValue('ACCOUNT_SERVICE_URL', 'NEXT_PUBLIC_ACCOUNT_SERVICE_URL')
-  const resolved = configured ?? DEFAULT_ACCOUNT_SERVICE_URL
+  const resolved = configured ?? getRuntimeDefaultAccountServiceUrl()
   return normalizeBrowserBaseUrl(resolved)
 }
 
@@ -231,7 +102,8 @@ export function getServerServiceBaseUrl(): string {
     'NEXT_PUBLIC_SERVER_SERVICE_URL',
     'NEXT_PUBLIC_API_BASE_URL',
   )
-  return normalizeBaseUrl(configured ?? DEFAULT_SERVER_SERVICE_URL)
+  const fallback = getRuntimeDefaultServerServiceUrl()
+  return normalizeBaseUrl(configured ?? fallback)
 }
 
 const SERVER_INTERNAL_URL_ENV_KEYS = [
@@ -247,6 +119,7 @@ export function getInternalServerServiceBaseUrl(): string {
   }
 
   const external = getServerServiceBaseUrl()
+  const runtimeInternalDefault = normalizeBaseUrl(getRuntimeDefaultInternalServerServiceUrl())
 
   try {
     const parsed = new URL(external)
@@ -265,7 +138,7 @@ export function getInternalServerServiceBaseUrl(): string {
     // Ignore parsing errors and fall back to the internal default below.
   }
 
-  return normalizeBaseUrl(FALLBACK_SERVER_SERVICE_INTERNAL_URL)
+  return runtimeInternalDefault
 }
 
 export const serviceConfig = {

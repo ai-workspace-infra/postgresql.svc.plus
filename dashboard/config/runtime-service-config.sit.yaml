@@ -1,0 +1,5 @@
+# Base runtime configuration shared by all environments.
+apiBaseUrl: https://dev-api.svc.plus
+authUrl: https://dev-accounts.svc.plus
+dashboardUrl: https://dev-console.svc.plus
+logLevel: debug

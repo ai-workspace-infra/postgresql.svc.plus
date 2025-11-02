@@ -20,6 +20,7 @@
   "dependencies": {
     "dompurify": "^3.2.6",
     "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
     "lucide-react": "^0.319.0",
     "marked": "^16.1.2",
     "next": "14.2.32",
