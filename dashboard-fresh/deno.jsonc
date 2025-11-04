@@ -73,6 +73,7 @@
 
     // UI & Icons
     "lucide-preact": "https://esm.sh/lucide-preact@0.319.0",
+    "clsx": "https://esm.sh/clsx@2.1.0",
 
     // Security
     "dompurify": "https://esm.sh/dompurify@3.0.9",

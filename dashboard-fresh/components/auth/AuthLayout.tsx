@@ -1,8 +1,13 @@
-'use client'
+/** @jsxImportSource preact */
+/**
+ * AuthLayout Component - Fresh + Preact
+ *
+ * Layout wrapper for authentication pages (login/register)
+ * Migrated from Next.js to preserve original design
+ */
 
-import clsx from 'clsx'
-import Link from 'next/link'
-import type { MouseEvent, ReactNode } from 'react'
+import { ComponentChildren } from 'preact'
+import { clsx } from 'clsx'
 
 type SwitchAction = {
   text: string
@@ -13,9 +18,9 @@ type SwitchAction = {
 export type AuthLayoutSocialButton = {
   label: string
   href: string
-  icon: ReactNode
+  icon: ComponentChildren
   disabled?: boolean
-  onClick?: (event: MouseEvent<HTMLAnchorElement>) => void
+  onClick?: (event: MouseEvent) => void
 }
 
 type AlertType = 'error' | 'success' | 'info'
@@ -28,32 +33,40 @@ type AuthLayoutProps = {
   alert?: { type: AlertType; message: string } | null
   socialHeading?: string
   socialButtons?: AuthLayoutSocialButton[]
-  aboveForm?: ReactNode
-  children: ReactNode
-  footnote?: ReactNode
+  aboveForm?: ComponentChildren
+  children: ComponentChildren
+  footnote?: ComponentChildren
   bottomNote?: string
   switchAction: SwitchAction
 }
 
-function AuthLayoutTab({ href, active, children }: { href: string; active: boolean; children: ReactNode }) {
+function AuthLayoutTab({
+  href,
+  active,
+  children,
+}: {
+  href: string
+  active: boolean
+  children: ComponentChildren
+}) {
   return (
-    <Link
+    <a
       href={href}
-      className={clsx(
+      class={clsx(
         'flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition',
         active
           ? 'bg-white text-slate-900 shadow-sm shadow-slate-900/5'
-          : 'text-slate-500 hover:text-slate-700 focus-visible:text-slate-700',
+          : 'text-slate-500 hover:text-slate-700 focus-visible:text-slate-700'
       )}
       aria-current={active ? 'page' : undefined}
     >
       {children}
-    </Link>
+    </a>
   )
 }
 
 function AuthSocialButton({ label, href, icon, disabled, onClick }: AuthLayoutSocialButton) {
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+  const handleClick = (event: MouseEvent) => {
     if (disabled) {
       event.preventDefault()
       event.stopPropagation()
@@ -65,11 +78,11 @@ function AuthSocialButton({ label, href, icon, disabled, onClick }: AuthLayoutSo
     <a
       href={href}
       onClick={handleClick}
-      className={clsx(
+      class={clsx(
         'flex items-center justify-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
         disabled
           ? 'cursor-not-allowed bg-slate-100 text-slate-400 focus-visible:outline-slate-200'
-          : 'bg-slate-900 text-white shadow-lg shadow-slate-900/10 hover:bg-slate-800 focus-visible:outline-slate-900',
+          : 'bg-slate-900 text-white shadow-lg shadow-slate-900/10 hover:bg-slate-800 focus-visible:outline-slate-900'
       )}
       aria-disabled={disabled}
       tabIndex={disabled ? -1 : undefined}
@@ -95,24 +108,24 @@ export function AuthLayout({
   switchAction,
 }: AuthLayoutProps) {
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-50">
+    <div class="relative flex min-h-screen flex-col overflow-hidden bg-slate-50">
       <div
-        className="pointer-events-none absolute inset-x-0 -top-1/3 h-1/2 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-100 via-transparent to-transparent"
-        aria-hidden
+        class="pointer-events-none absolute inset-x-0 -top-1/3 h-1/2 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-100 via-transparent to-transparent"
+        aria-hidden="true"
       />
       <main
-        className="relative flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8"
+        class="relative flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8"
         data-testid="auth-layout"
       >
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <Link href="/" className="text-3xl font-semibold tracking-tight text-slate-900">
-              Svc.Plus
-            </Link>
-            <p className="mt-1 text-sm text-slate-500">Cloud-Neutral · 自由中立</p>
+        <div class="w-full max-w-md">
+          <div class="mb-8 text-center">
+            <a href="/" class="text-3xl font-semibold tracking-tight text-slate-900">
+              CloudNative Suite
+            </a>
+            <p class="mt-1 text-sm text-slate-500">云原生套件 · Cloud-Neutral</p>
           </div>
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-900/5 backdrop-blur">
-            <div className="grid grid-cols-2 gap-2 rounded-full bg-slate-100 p-1">
+          <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-900/5 backdrop-blur">
+            <div class="grid grid-cols-2 gap-2 rounded-full bg-slate-100 p-1">
               <AuthLayoutTab href="/login" active={mode === 'login'}>
                 Sign In
               </AuthLayoutTab>
@@ -120,58 +133,58 @@ export function AuthLayout({
                 Sign Up
               </AuthLayoutTab>
             </div>
-            <div className="mt-6 space-y-6">
-              {badge ? (
-                <span className="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
+            <div class="mt-6 space-y-6">
+              {badge && (
+                <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
                   {badge}
                 </span>
-              ) : null}
-              <div className="space-y-2">
-                <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{title}</h1>
-                {description ? <p className="text-sm text-slate-600">{description}</p> : null}
+              )}
+              <div class="space-y-2">
+                <h1 class="text-2xl font-semibold text-slate-900 sm:text-3xl">{title}</h1>
+                {description && <p class="text-sm text-slate-600">{description}</p>}
               </div>
-              {alert ? (
+              {alert && (
                 <div
-                  className={clsx(
+                  class={clsx(
                     'rounded-2xl border px-4 py-3 text-sm font-medium',
                     alert.type === 'error'
                       ? 'border-red-200 bg-red-50 text-red-700'
                       : alert.type === 'success'
                         ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                        : 'border-sky-200 bg-sky-50 text-sky-700',
+                        : 'border-sky-200 bg-sky-50 text-sky-700'
                   )}
                   role="status"
                   aria-live="polite"
                 >
                   {alert.message}
                 </div>
-              ) : null}
+              )}
               {aboveForm}
-              <div className="space-y-5">{children}</div>
-              {socialButtons.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-slate-400">
-                    <span className="h-px flex-1 bg-slate-200" aria-hidden />
+              <div class="space-y-5">{children}</div>
+              {socialButtons.length > 0 && (
+                <div class="space-y-4">
+                  <div class="flex items-center gap-4 text-xs uppercase tracking-[0.2em] text-slate-400">
+                    <span class="h-px flex-1 bg-slate-200" aria-hidden="true" />
                     {socialHeading ?? 'Or continue with'}
-                    <span className="h-px flex-1 bg-slate-200" aria-hidden />
+                    <span class="h-px flex-1 bg-slate-200" aria-hidden="true" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {socialButtons.map(button => (
+                  <div class="grid grid-cols-2 gap-3">
+                    {socialButtons.map((button) => (
                       <AuthSocialButton key={button.label} {...button} />
                     ))}
                   </div>
                 </div>
-              ) : null}
-              <p className="text-sm text-slate-600">
+              )}
+              <p class="text-sm text-slate-600">
                 {switchAction.text}{' '}
-                <Link href={switchAction.href} className="font-semibold text-sky-600 hover:text-sky-500">
+                <a href={switchAction.href} class="font-semibold text-sky-600 hover:text-sky-500">
                   {switchAction.linkLabel}
-                </Link>
+                </a>
               </p>
-              {footnote ? <div className="text-xs text-slate-400">{footnote}</div> : null}
+              {footnote && <div class="text-xs text-slate-400">{footnote}</div>}
             </div>
           </div>
-          {bottomNote ? <p className="mt-6 text-center text-xs text-slate-500">{bottomNote}</p> : null}
+          {bottomNote && <p class="mt-6 text-center text-xs text-slate-500">{bottomNote}</p>}
         </div>
       </main>
     </div>
