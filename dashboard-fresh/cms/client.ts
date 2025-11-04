@@ -1,0 +1,1 @@
+export { collectExtensionProviders } from './extensionRuntime'

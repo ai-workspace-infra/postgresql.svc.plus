@@ -1,0 +1,52 @@
+# Fresh build output
+_fresh/
+
+# Build artifacts
+static/_build/
+
+# Dependencies (if any npm packages used)
+node_modules/
+
+# Deno cache (optional, usually global)
+.deno/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Lock files (Deno doesn't need them, but just in case)
+deno.lock

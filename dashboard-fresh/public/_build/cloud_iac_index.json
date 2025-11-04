@@ -1,0 +1,322 @@
+{
+  "providers": [
+    {
+      "key": "aws",
+      "label": "AWS"
+    },
+    {
+      "key": "gcp",
+      "label": "GCP"
+    },
+    {
+      "key": "azure",
+      "label": "Azure"
+    },
+    {
+      "key": "aliyun",
+      "label": "阿里云"
+    }
+  ],
+  "services": [
+    {
+      "provider": "aliyun",
+      "service": "ack",
+      "category": "container"
+    },
+    {
+      "provider": "aliyun",
+      "service": "aliyun-emr",
+      "category": "data_service"
+    },
+    {
+      "provider": "aliyun",
+      "service": "aliyun-iot",
+      "category": "edge_iot"
+    },
+    {
+      "provider": "aliyun",
+      "service": "apigateway-dataworks",
+      "category": "api_integration"
+    },
+    {
+      "provider": "aliyun",
+      "service": "apsaradb-rds",
+      "category": "database"
+    },
+    {
+      "provider": "aliyun",
+      "service": "apsaradb-redis",
+      "category": "cache"
+    },
+    {
+      "provider": "aliyun",
+      "service": "cloudmonitor-eventbridge",
+      "category": "observability"
+    },
+    {
+      "provider": "aliyun",
+      "service": "dns-acceleration",
+      "category": "dns_cdn"
+    },
+    {
+      "provider": "aliyun",
+      "service": "ecs",
+      "category": "compute"
+    },
+    {
+      "provider": "aliyun",
+      "service": "mns",
+      "category": "queue"
+    },
+    {
+      "provider": "aliyun",
+      "service": "oss",
+      "category": "storage"
+    },
+    {
+      "provider": "aliyun",
+      "service": "ram",
+      "category": "iam"
+    },
+    {
+      "provider": "aliyun",
+      "service": "security-group",
+      "category": "security"
+    },
+    {
+      "provider": "aliyun",
+      "service": "slb",
+      "category": "load_balancer"
+    },
+    {
+      "provider": "aliyun",
+      "service": "vpc",
+      "category": "network"
+    },
+    {
+      "provider": "aws",
+      "service": "alb",
+      "category": "load_balancer"
+    },
+    {
+      "provider": "aws",
+      "service": "api-gateway-appflow",
+      "category": "api_integration"
+    },
+    {
+      "provider": "aws",
+      "service": "aws-iot",
+      "category": "edge_iot"
+    },
+    {
+      "provider": "aws",
+      "service": "cloudwatch-eventbridge",
+      "category": "observability"
+    },
+    {
+      "provider": "aws",
+      "service": "ec2",
+      "category": "compute"
+    },
+    {
+      "provider": "aws",
+      "service": "eks",
+      "category": "container"
+    },
+    {
+      "provider": "aws",
+      "service": "elasticache",
+      "category": "cache"
+    },
+    {
+      "provider": "aws",
+      "service": "emr",
+      "category": "data_service"
+    },
+    {
+      "provider": "aws",
+      "service": "iam",
+      "category": "iam"
+    },
+    {
+      "provider": "aws",
+      "service": "rds",
+      "category": "database"
+    },
+    {
+      "provider": "aws",
+      "service": "route53-cloudfront",
+      "category": "dns_cdn"
+    },
+    {
+      "provider": "aws",
+      "service": "s3",
+      "category": "storage"
+    },
+    {
+      "provider": "aws",
+      "service": "security-group",
+      "category": "security"
+    },
+    {
+      "provider": "aws",
+      "service": "sqs",
+      "category": "queue"
+    },
+    {
+      "provider": "aws",
+      "service": "vpc",
+      "category": "network"
+    },
+    {
+      "provider": "azure",
+      "service": "aks",
+      "category": "container"
+    },
+    {
+      "provider": "azure",
+      "service": "apim-data-factory",
+      "category": "api_integration"
+    },
+    {
+      "provider": "azure",
+      "service": "azure-ad",
+      "category": "iam"
+    },
+    {
+      "provider": "azure",
+      "service": "azure-database",
+      "category": "database"
+    },
+    {
+      "provider": "azure",
+      "service": "azure-dns-front-door",
+      "category": "dns_cdn"
+    },
+    {
+      "provider": "azure",
+      "service": "azure-iot",
+      "category": "edge_iot"
+    },
+    {
+      "provider": "azure",
+      "service": "azure-load-balancer",
+      "category": "load_balancer"
+    },
+    {
+      "provider": "azure",
+      "service": "blob-storage",
+      "category": "storage"
+    },
+    {
+      "provider": "azure",
+      "service": "monitor-event-grid",
+      "category": "observability"
+    },
+    {
+      "provider": "azure",
+      "service": "network-security-group",
+      "category": "security"
+    },
+    {
+      "provider": "azure",
+      "service": "redis-cache",
+      "category": "cache"
+    },
+    {
+      "provider": "azure",
+      "service": "service-bus",
+      "category": "queue"
+    },
+    {
+      "provider": "azure",
+      "service": "synapse",
+      "category": "data_service"
+    },
+    {
+      "provider": "azure",
+      "service": "virtual-machines",
+      "category": "compute"
+    },
+    {
+      "provider": "azure",
+      "service": "virtual-network",
+      "category": "network"
+    },
+    {
+      "provider": "gcp",
+      "service": "apigateway-integration",
+      "category": "api_integration"
+    },
+    {
+      "provider": "gcp",
+      "service": "cloud-dns-cdn",
+      "category": "dns_cdn"
+    },
+    {
+      "provider": "gcp",
+      "service": "cloud-iam",
+      "category": "iam"
+    },
+    {
+      "provider": "gcp",
+      "service": "cloud-load-balancing",
+      "category": "load_balancer"
+    },
+    {
+      "provider": "gcp",
+      "service": "cloud-sql",
+      "category": "database"
+    },
+    {
+      "provider": "gcp",
+      "service": "cloud-storage",
+      "category": "storage"
+    },
+    {
+      "provider": "gcp",
+      "service": "compute-engine",
+      "category": "compute"
+    },
+    {
+      "provider": "gcp",
+      "service": "dataproc",
+      "category": "data_service"
+    },
+    {
+      "provider": "gcp",
+      "service": "gcp-iot",
+      "category": "edge_iot"
+    },
+    {
+      "provider": "gcp",
+      "service": "gke",
+      "category": "container"
+    },
+    {
+      "provider": "gcp",
+      "service": "memorystore",
+      "category": "cache"
+    },
+    {
+      "provider": "gcp",
+      "service": "operations-eventarc",
+      "category": "observability"
+    },
+    {
+      "provider": "gcp",
+      "service": "pubsub",
+      "category": "queue"
+    },
+    {
+      "provider": "gcp",
+      "service": "vpc",
+      "category": "network"
+    },
+    {
+      "provider": "gcp",
+      "service": "vpc-firewall",
+      "category": "security"
+    }
+  ]
+}

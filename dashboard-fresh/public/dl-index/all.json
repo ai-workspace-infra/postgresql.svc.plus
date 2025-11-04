@@ -1,0 +1,652 @@
+[
+  {
+    "path": "",
+    "entries": [
+      {
+        "name": "deb/",
+        "href": "/deb/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:39Z"
+      },
+      {
+        "name": "docs/",
+        "href": "/docs/",
+        "type": "dir",
+        "lastModified": "2025-09-15T12:13:17Z"
+      },
+      {
+        "name": "offline-package/",
+        "href": "/offline-package/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:44Z"
+      },
+      {
+        "name": "otel/",
+        "href": "/otel/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:46Z"
+      },
+      {
+        "name": "rpm/",
+        "href": "/rpm/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:47Z"
+      },
+      {
+        "name": "xray-core/",
+        "href": "/xray-core/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:51Z"
+      },
+      {
+        "name": "xstream/",
+        "href": "/xstream/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:03Z"
+      }
+    ]
+  },
+  {
+    "path": "deb/",
+    "entries": [
+      {
+        "name": "example.deb",
+        "href": "/deb/example.deb",
+        "type": "file",
+        "size": 0,
+        "lastModified": "2025-07-29T05:17:40Z"
+      }
+    ]
+  },
+  {
+    "path": "docs/",
+    "entries": []
+  },
+  {
+    "path": "offline-package/",
+    "entries": [
+      {
+        "name": "apisix-gateway/",
+        "href": "/offline-package/apisix-gateway/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:40Z"
+      },
+      {
+        "name": "k3s/",
+        "href": "/offline-package/k3s/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:41Z"
+      },
+      {
+        "name": "kong-gateway/",
+        "href": "/offline-package/kong-gateway/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:42Z"
+      },
+      {
+        "name": "nginx-ingress/",
+        "href": "/offline-package/nginx-ingress/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:43Z"
+      },
+      {
+        "name": "sealos/",
+        "href": "/offline-package/sealos/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:44Z"
+      }
+    ]
+  },
+  {
+    "path": "offline-package/apisix-gateway/",
+    "entries": [
+      {
+        "name": "SHA256SUMS",
+        "href": "/offline-package/apisix-gateway/SHA256SUMS",
+        "type": "file",
+        "size": 216,
+        "lastModified": "2025-09-14T12:49:17Z",
+        "sha256": "/offline-package/apisix-gateway/SHA256SUMS"
+      },
+      {
+        "name": "offline-setup-apisix-gateway-amd64.tar.gz",
+        "href": "/offline-package/apisix-gateway/offline-setup-apisix-gateway-amd64.tar.gz",
+        "type": "file",
+        "size": 194146012,
+        "lastModified": "2025-09-14T12:43:32Z",
+        "sha256": "/offline-package/apisix-gateway/SHA256SUMS"
+      },
+      {
+        "name": "offline-setup-apisix-gateway-arm64.tar.gz",
+        "href": "/offline-package/apisix-gateway/offline-setup-apisix-gateway-arm64.tar.gz",
+        "type": "file",
+        "size": 194144032,
+        "lastModified": "2025-09-14T12:43:33Z",
+        "sha256": "/offline-package/apisix-gateway/SHA256SUMS"
+      }
+    ]
+  },
+  {
+    "path": "offline-package/k3s/",
+    "entries": [
+      {
+        "name": "offline-package-k3s-installer-amd64.tar.gz",
+        "href": "/offline-package/k3s/offline-package-k3s-installer-amd64.tar.gz",
+        "type": "file",
+        "size": 223183297,
+        "lastModified": "2025-09-14T09:51:55Z",
+        "sha256": "/offline-package/k3s/offline-package-k3s-installer-amd64.tar.gz.sha256sum"
+      },
+      {
+        "name": "offline-package-k3s-installer-amd64.tar.gz.sha256sum",
+        "href": "/offline-package/k3s/offline-package-k3s-installer-amd64.tar.gz.sha256sum",
+        "type": "file",
+        "size": 109,
+        "lastModified": "2025-09-14T10:13:38Z"
+      },
+      {
+        "name": "offline-package-k3s-installer-arm64.tar.gz",
+        "href": "/offline-package/k3s/offline-package-k3s-installer-arm64.tar.gz",
+        "type": "file",
+        "size": 204874562,
+        "lastModified": "2025-09-14T09:51:54Z",
+        "sha256": "/offline-package/k3s/offline-package-k3s-installer-arm64.tar.gz.sha256sum"
+      },
+      {
+        "name": "offline-package-k3s-installer-arm64.tar.gz.sha256sum",
+        "href": "/offline-package/k3s/offline-package-k3s-installer-arm64.tar.gz.sha256sum",
+        "type": "file",
+        "size": 109,
+        "lastModified": "2025-09-14T10:12:39Z"
+      }
+    ]
+  },
+  {
+    "path": "offline-package/kong-gateway/",
+    "entries": [
+      {
+        "name": "SHA256SUMS",
+        "href": "/offline-package/kong-gateway/SHA256SUMS",
+        "type": "file",
+        "size": 212,
+        "lastModified": "2025-09-14T12:17:41Z",
+        "sha256": "/offline-package/kong-gateway/SHA256SUMS"
+      },
+      {
+        "name": "offline-setup-kong-gateway-amd64.tar.gz",
+        "href": "/offline-package/kong-gateway/offline-setup-kong-gateway-amd64.tar.gz",
+        "type": "file",
+        "size": 260781308,
+        "lastModified": "2025-09-14T12:10:37Z",
+        "sha256": "/offline-package/kong-gateway/SHA256SUMS"
+      },
+      {
+        "name": "offline-setup-kong-gateway-arm64.tar.gz",
+        "href": "/offline-package/kong-gateway/offline-setup-kong-gateway-arm64.tar.gz",
+        "type": "file",
+        "size": 259941381,
+        "lastModified": "2025-09-14T12:10:38Z",
+        "sha256": "/offline-package/kong-gateway/SHA256SUMS"
+      }
+    ]
+  },
+  {
+    "path": "offline-package/nginx-ingress/",
+    "entries": [
+      {
+        "name": "SHA256SUMS",
+        "href": "/offline-package/nginx-ingress/SHA256SUMS",
+        "type": "file",
+        "size": 214,
+        "lastModified": "2025-09-14T11:18:37Z",
+        "sha256": "/offline-package/nginx-ingress/SHA256SUMS"
+      },
+      {
+        "name": "offline-setup-nginx-ingress-amd64.tar.gz",
+        "href": "/offline-package/nginx-ingress/offline-setup-nginx-ingress-amd64.tar.gz",
+        "type": "file",
+        "size": 156094656,
+        "lastModified": "2025-09-14T11:05:40Z",
+        "sha256": "/offline-package/nginx-ingress/SHA256SUMS"
+      },
+      {
+        "name": "offline-setup-nginx-ingress-arm64.tar.gz",
+        "href": "/offline-package/nginx-ingress/offline-setup-nginx-ingress-arm64.tar.gz",
+        "type": "file",
+        "size": 155252914,
+        "lastModified": "2025-09-14T11:05:40Z",
+        "sha256": "/offline-package/nginx-ingress/SHA256SUMS"
+      }
+    ]
+  },
+  {
+    "path": "offline-package/sealos/",
+    "entries": [
+      {
+        "name": "SHA256SUMS",
+        "href": "/offline-package/sealos/SHA256SUMS",
+        "type": "file",
+        "size": 204,
+        "lastModified": "2025-09-14T11:03:05Z",
+        "sha256": "/offline-package/sealos/SHA256SUMS"
+      },
+      {
+        "name": "sealos-offline-package-amd64.tar.gz",
+        "href": "/offline-package/sealos/sealos-offline-package-amd64.tar.gz",
+        "type": "file",
+        "size": 890301186,
+        "lastModified": "2025-09-14T10:37:31Z",
+        "sha256": "/offline-package/sealos/SHA256SUMS"
+      },
+      {
+        "name": "sealos-offline-package-arm64.tar.gz",
+        "href": "/offline-package/sealos/sealos-offline-package-arm64.tar.gz",
+        "type": "file",
+        "size": 834350941,
+        "lastModified": "2025-09-14T10:45:39Z",
+        "sha256": "/offline-package/sealos/SHA256SUMS"
+      }
+    ]
+  },
+  {
+    "path": "otel/",
+    "entries": [
+      {
+        "name": "OpenTelemetry/",
+        "href": "/otel/OpenTelemetry/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:46Z"
+      }
+    ]
+  },
+  {
+    "path": "otel/OpenTelemetry/",
+    "entries": [
+      {
+        "name": "v0.133.0/",
+        "href": "/otel/OpenTelemetry/v0.133.0/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:46Z"
+      }
+    ]
+  },
+  {
+    "path": "otel/OpenTelemetry/v0.133.0/",
+    "entries": [
+      {
+        "name": "opampsupervisor_0.133.0_linux_amd64",
+        "href": "/otel/OpenTelemetry/v0.133.0/opampsupervisor_0.133.0_linux_amd64",
+        "type": "file",
+        "size": 22896824,
+        "lastModified": "2025-09-03T08:18:29Z"
+      },
+      {
+        "name": "opampsupervisor_0.133.0_linux_arm64",
+        "href": "/otel/OpenTelemetry/v0.133.0/opampsupervisor_0.133.0_linux_arm64",
+        "type": "file",
+        "size": 21758136,
+        "lastModified": "2025-09-03T08:18:35Z"
+      },
+      {
+        "name": "otelcol-contrib_0.133.0_linux_amd64.tar.gz",
+        "href": "/otel/OpenTelemetry/v0.133.0/otelcol-contrib_0.133.0_linux_amd64.tar.gz",
+        "type": "file",
+        "size": 90264630,
+        "lastModified": "2025-09-03T08:18:36Z"
+      },
+      {
+        "name": "otelcol-contrib_0.133.0_linux_arm64.tar.gz",
+        "href": "/otel/OpenTelemetry/v0.133.0/otelcol-contrib_0.133.0_linux_arm64.tar.gz",
+        "type": "file",
+        "size": 82333025,
+        "lastModified": "2025-09-03T08:18:35Z"
+      }
+    ]
+  },
+  {
+    "path": "rpm/",
+    "entries": []
+  },
+  {
+    "path": "xray-core/",
+    "entries": [
+      {
+        "name": "v25.8.29/",
+        "href": "/xray-core/v25.8.29/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:49Z"
+      },
+      {
+        "name": "v25.8.3/",
+        "href": "/xray-core/v25.8.3/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:49Z"
+      },
+      {
+        "name": "v25.8.31/",
+        "href": "/xray-core/v25.8.31/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:51Z"
+      }
+    ]
+  },
+  {
+    "path": "xray-core/v25.8.29/",
+    "entries": [
+      {
+        "name": "Xray-linux-64.zip",
+        "href": "/xray-core/v25.8.29/Xray-linux-64.zip",
+        "type": "file",
+        "size": 20188542,
+        "lastModified": "2025-08-30T02:27:13Z"
+      },
+      {
+        "name": "Xray-macos-64.zip",
+        "href": "/xray-core/v25.8.29/Xray-macos-64.zip",
+        "type": "file",
+        "size": 19866304,
+        "lastModified": "2025-08-30T02:27:14Z"
+      },
+      {
+        "name": "Xray-windows-64.zip",
+        "href": "/xray-core/v25.8.29/Xray-windows-64.zip",
+        "type": "file",
+        "size": 19762272,
+        "lastModified": "2025-08-30T02:27:18Z"
+      }
+    ]
+  },
+  {
+    "path": "xray-core/v25.8.3/",
+    "entries": [
+      {
+        "name": "Xray-linux-64.zip",
+        "href": "/xray-core/v25.8.3/Xray-linux-64.zip",
+        "type": "file",
+        "size": 18431780,
+        "lastModified": "2025-08-15T05:26:49Z"
+      },
+      {
+        "name": "Xray-macos-64.zip",
+        "href": "/xray-core/v25.8.3/Xray-macos-64.zip",
+        "type": "file",
+        "size": 18191431,
+        "lastModified": "2025-08-15T05:26:49Z"
+      },
+      {
+        "name": "Xray-windows-64.zip",
+        "href": "/xray-core/v25.8.3/Xray-windows-64.zip",
+        "type": "file",
+        "size": 18071359,
+        "lastModified": "2025-08-15T05:26:51Z"
+      }
+    ]
+  },
+  {
+    "path": "xray-core/v25.8.31/",
+    "entries": [
+      {
+        "name": "Xray-linux-64.zip",
+        "href": "/xray-core/v25.8.31/Xray-linux-64.zip",
+        "type": "file",
+        "size": 20200865,
+        "lastModified": "2025-09-01T02:36:57Z"
+      },
+      {
+        "name": "Xray-macos-64.zip",
+        "href": "/xray-core/v25.8.31/Xray-macos-64.zip",
+        "type": "file",
+        "size": 19875652,
+        "lastModified": "2025-09-01T02:36:53Z"
+      },
+      {
+        "name": "Xray-windows-64.zip",
+        "href": "/xray-core/v25.8.31/Xray-windows-64.zip",
+        "type": "file",
+        "size": 19776769,
+        "lastModified": "2025-09-01T02:36:56Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/",
+    "entries": [
+      {
+        "name": "android/",
+        "href": "/xstream/android/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:53Z"
+      },
+      {
+        "name": "ios/",
+        "href": "/xstream/ios/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:55Z"
+      },
+      {
+        "name": "linux/",
+        "href": "/xstream/linux/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:57Z"
+      },
+      {
+        "name": "macos/",
+        "href": "/xstream/macos/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:00Z"
+      },
+      {
+        "name": "windows/",
+        "href": "/xstream/windows/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:03Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/android/",
+    "entries": [
+      {
+        "name": "latest/",
+        "href": "/xstream/android/latest/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:53Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/android/latest/",
+    "entries": [
+      {
+        "name": "xstream-android-latest.apk",
+        "href": "/xstream/android/latest/xstream-android-latest.apk",
+        "type": "file",
+        "size": 23383658,
+        "lastModified": "2025-08-04T06:26:15Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/ios/",
+    "entries": [
+      {
+        "name": "latest/",
+        "href": "/xstream/ios/latest/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:55Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/ios/latest/",
+    "entries": [
+      {
+        "name": "xstream-ios-latest.ipa",
+        "href": "/xstream/ios/latest/xstream-ios-latest.ipa",
+        "type": "file",
+        "size": 26579614,
+        "lastModified": "2025-08-04T06:26:20Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/linux/",
+    "entries": [
+      {
+        "name": "latest/",
+        "href": "/xstream/linux/latest/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:56Z"
+      },
+      {
+        "name": "stable/",
+        "href": "/xstream/linux/stable/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:57Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/linux/latest/",
+    "entries": [
+      {
+        "name": "xstream-linux-latest.zip",
+        "href": "/xstream/linux/latest/xstream-linux-latest.zip",
+        "type": "file",
+        "size": 14247578,
+        "lastModified": "2025-08-04T06:26:14Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/linux/stable/",
+    "entries": [
+      {
+        "name": "xstream-linux-latest.zip",
+        "href": "/xstream/linux/stable/xstream-linux-latest.zip",
+        "type": "file",
+        "size": 14058826,
+        "lastModified": "2025-08-15T06:26:54Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/macos/",
+    "entries": [
+      {
+        "name": "docs/",
+        "href": "/xstream/macos/docs/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:58Z"
+      },
+      {
+        "name": "latest/",
+        "href": "/xstream/macos/latest/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:21:59Z"
+      },
+      {
+        "name": "stable/",
+        "href": "/xstream/macos/stable/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:00Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/macos/docs/",
+    "entries": []
+  },
+  {
+    "path": "xstream/macos/latest/",
+    "entries": [
+      {
+        "name": "xstream-macos-latest.dmg",
+        "href": "/xstream/macos/latest/xstream-macos-latest.dmg",
+        "type": "file",
+        "size": 39446900,
+        "lastModified": "2025-08-04T06:26:18Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/macos/stable/",
+    "entries": [
+      {
+        "name": "xstream-macos-latest.dmg",
+        "href": "/xstream/macos/stable/xstream-macos-latest.dmg",
+        "type": "file",
+        "size": 42458674,
+        "lastModified": "2025-08-15T06:26:57Z"
+      },
+      {
+        "name": "xstream-release-v0.2.0.dmg",
+        "href": "/xstream/macos/stable/xstream-release-v0.2.0.dmg",
+        "type": "file",
+        "size": 43614833,
+        "lastModified": "2025-07-30T01:12:42Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/windows/",
+    "entries": [
+      {
+        "name": "latest/",
+        "href": "/xstream/windows/latest/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:02Z"
+      },
+      {
+        "name": "stable/",
+        "href": "/xstream/windows/stable/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:02Z"
+      },
+      {
+        "name": "win10/",
+        "href": "/xstream/windows/win10/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:03Z"
+      },
+      {
+        "name": "win11/",
+        "href": "/xstream/windows/win11/",
+        "type": "dir",
+        "lastModified": "2025-09-15T10:22:03Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/windows/latest/",
+    "entries": [
+      {
+        "name": "xstream-windows-latest.zip",
+        "href": "/xstream/windows/latest/xstream-windows-latest.zip",
+        "type": "file",
+        "size": 18510460,
+        "lastModified": "2025-08-04T06:26:19Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/windows/stable/",
+    "entries": [
+      {
+        "name": "xstream-windows-latest.zip",
+        "href": "/xstream/windows/stable/xstream-windows-latest.zip",
+        "type": "file",
+        "size": 18312976,
+        "lastModified": "2025-08-15T06:26:59Z"
+      }
+    ]
+  },
+  {
+    "path": "xstream/windows/win10/",
+    "entries": []
+  },
+  {
+    "path": "xstream/windows/win11/",
+    "entries": []
+  }
+]

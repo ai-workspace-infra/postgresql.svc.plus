@@ -1,0 +1,102 @@
+# Makefile for Dashboard Fresh (Deno-based)
+# This Makefile provides convenience commands for CI/CD and local development
+
+.PHONY: help dev build test lint fmt check clean install prebuild
+
+# Default target
+.DEFAULT_GOAL := help
+
+## help: Show this help message
+help:
+	@echo "Dashboard Fresh - Deno-based Makefile"
+	@echo ""
+	@echo "Available targets:"
+	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
+
+## dev: Start development server
+dev:
+	deno task dev
+
+## build: Build the application
+build:
+	deno task build
+
+## prebuild: Run prebuild scripts only
+prebuild:
+	deno task prebuild
+
+## tw-build: Build Tailwind CSS only
+tw-build:
+	deno task tw:build
+
+## test: Run all tests
+test:
+	deno task test
+
+## test-unit: Run unit tests only
+test-unit:
+	deno task test:unit
+
+## test-e2e: Run E2E tests
+test-e2e:
+	deno task test:e2e
+
+## lint: Lint the codebase
+lint:
+	deno task lint
+
+## fmt: Format the codebase
+fmt:
+	deno task fmt
+
+## fmt-check: Check code formatting
+fmt-check:
+	deno task fmt:check
+
+## check: Type check the codebase
+check:
+	deno task check
+
+## clean: Clean build artifacts
+clean:
+	deno task clean
+
+## install: Install dependencies (legacy Node.js support)
+install:
+	@echo "Note: Deno does not require explicit installation of dependencies."
+	@echo "Dependencies will be cached on first use."
+	@echo ""
+	@echo "If you need to install Node.js dependencies for the build process:"
+	@echo "  yarn install"
+
+## ci: Run CI checks (lint, format check, type check, test)
+ci: fmt-check lint check test
+	@echo "✓ All CI checks passed"
+
+## ci-build: Full CI build process
+ci-build: ci build
+	@echo "✓ CI build completed successfully"
+
+## cache: Pre-cache all dependencies
+cache:
+	@echo "Caching Deno dependencies..."
+	deno cache main.ts fresh-build.ts
+	deno cache scripts/export-slugs.ts scripts/scan-md.ts scripts/fetch-dl-index.ts
+	@echo "✓ Dependencies cached"
+
+## info: Show Deno and environment information
+info:
+	@echo "Deno version:"
+	@deno --version
+	@echo ""
+	@echo "Node version (for Next.js build):"
+	@node --version || echo "Node not found"
+	@echo ""
+	@echo "NPM version:"
+	@npm --version || echo "NPM not found"
+
+## upgrade: Upgrade Deno dependencies
+upgrade:
+	@echo "Upgrading Deno dependencies..."
+	deno cache --reload main.ts fresh-build.ts
+	@echo "✓ Dependencies upgraded"

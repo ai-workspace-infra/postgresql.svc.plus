@@ -1,0 +1,75 @@
+/* Note: React Grid Layout CSS removed - not compatible with Fresh + Deno */
+/* TODO: Migrate grid layout to Deno-compatible solution if needed */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-geist-sans: 'Geist', sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
+  --app-shell-nav-offset: 5.5rem;
+
+  /* Light theme defaults */
+  --color-background: #f4f6fb;
+  --color-background-muted: #e7ecf6;
+  --color-surface: #ffffff;
+  --color-surface-elevated: rgba(255, 255, 255, 0.96);
+  --color-surface-translucent: rgba(255, 255, 255, 0.88);
+  --color-surface-muted: #f1f4fb;
+  --color-surface-hover: #f0f4ff;
+  --color-surface-border: #d6e0ff;
+  --color-surface-border-strong: #b4c5ff;
+  --color-text: #1e2e55;
+  --color-heading: #2e3a59;
+  --color-text-muted: #4a5672;
+  --color-text-subtle: #61708c;
+  --color-text-inverse: #f8fbff;
+  --color-primary: #3366ff;
+  --color-primary-hover: #4d7aff;
+  --color-primary-muted: #f0f4ff;
+  --color-primary-border: #d6e0ff;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #254edb;
+  --color-accent-muted: #e3e9ff;
+  --color-accent-foreground: #162a6b;
+  --color-success: #16a34a;
+  --color-success-muted: #dcfce7;
+  --color-success-foreground: #166534;
+  --color-warning: #f59e0b;
+  --color-warning-muted: #fef3c7;
+  --color-warning-foreground: #92400e;
+  --color-danger: #ef4444;
+  --color-danger-muted: #fee2e2;
+  --color-danger-foreground: #7f1d1d;
+  --color-info: #3366ff;
+  --color-info-muted: #f0f4ff;
+  --color-info-foreground: #254edb;
+  --color-overlay: rgba(30, 46, 85, 0.45);
+  --color-ring: #d6e0ff;
+  --color-focus: rgba(51, 102, 255, 0.35);
+  --color-divider: rgba(15, 23, 42, 0.08);
+  --color-badge-surface: #e5e7eb;
+  --color-badge-muted: #f3f4f6;
+  --color-badge-foreground: #1f2937;
+
+  --gradient-app-from: #f5f8ff;
+  --gradient-app-via: #eef3ff;
+  --gradient-app-to: #f4f9ff;
+  --gradient-primary-from: #3366ff;
+  --gradient-primary-to: #254edb;
+
+  --shadow-sm: 0 1px 3px rgba(30, 46, 85, 0.08), 0 1px 2px rgba(30, 46, 85, 0.04);
+  --shadow-md: 0 12px 32px rgba(30, 46, 85, 0.12);
+
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-pill: 999px;
+}
+
+body {
+  font-family: var(--font-geist-sans);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 150ms ease, color 150ms ease;
+}
