@@ -488,7 +488,17 @@ func (h *handler) sendEmailVerification(c *gin.Context) {
 		return
 	}
 
-	user, err := h.store.GetUserByEmail(c.Request.Context(), email)
+	// 与线上 SMTP 配置对齐：统一使用 10s 的超时控制
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	// 基础邮箱校验，避免明显无效地址触发外发
+	if !strings.Contains(email, "@") {
+		respondError(c, http.StatusBadRequest, "invalid_email", "email must be a valid address")
+		return
+	}
+
+	user, err := h.store.GetUserByEmail(ctx, email)
 	if err == nil {
 		if strings.TrimSpace(user.Email) == "" {
 			respondError(c, http.StatusBadRequest, "invalid_email", "email must be a valid address")
@@ -500,9 +510,13 @@ func (h *handler) sendEmailVerification(c *gin.Context) {
 			return
 		}
 
-		if err := h.enqueueEmailVerification(c.Request.Context(), user); err != nil {
+		if err := h.enqueueEmailVerification(ctx, user); err != nil {
 			slog.Error("failed to send verification email", "err", err, "email", user.Email)
-			respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
+			if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+				respondError(c, http.StatusGatewayTimeout, "smtp_timeout", "email sending timed out")
+			} else {
+				respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
+			}
 			return
 		}
 
@@ -515,9 +529,13 @@ func (h *handler) sendEmailVerification(c *gin.Context) {
 		return
 	}
 
-	if _, err := h.issueRegistrationVerification(c.Request.Context(), email); err != nil {
+	if _, err := h.issueRegistrationVerification(ctx, email); err != nil {
 		slog.Error("failed to issue registration verification", "err", err, "email", email)
-		respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+			respondError(c, http.StatusGatewayTimeout, "smtp_timeout", "email sending timed out")
+		} else {
+			respondError(c, http.StatusInternalServerError, "verification_failed", "verification email could not be sent")
+		}
 		return
 	}
 
