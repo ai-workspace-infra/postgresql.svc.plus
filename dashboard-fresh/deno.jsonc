@@ -1,57 +1,36 @@
 {
   "lock": false,
   "nodeModulesDir": "auto",
-
   "tasks": {
-    // Development
     "dev": "deno run -A --watch=static/,routes/ dev.ts",
     "dev:full": "deno task css:watch & deno task dev",
-    "start": "deno run -A main.ts",
-
-    // CSS Build (Tailwind)
+    "start": "deno run -A main.ts --port 3000",
     "css:build": "deno run -A npm:tailwindcss@3.4.3 -i ./app/globals.css -o ./static/styles/globals.css --minify",
     "css:watch": "deno run -A npm:tailwindcss@3.4.3 -i ./app/globals.css -o ./static/styles/globals.css --watch",
-
-    // Build tasks
     "prebuild": "deno run -A scripts/build-manifest.ts && deno run -A scripts/export-slugs.ts && deno run -A scripts/scan-md.ts && deno run -A scripts/fetch-dl-index.ts",
     "build": "deno run -A scripts/build.ts",
-    "preview": "deno run -A main.ts",
-
-    // Fresh utilities
+    "preview": "deno run -A main.ts --port 3000",
     "update": "deno run -A -r https://fresh.deno.dev/update .",
-
-    // Quality checks
     "lint": "deno lint",
     "fmt": "deno fmt",
     "fmt:check": "deno fmt --check",
     "check": "deno check **/*.ts **/*.tsx",
-
-    // Testing
     "test": "deno test --allow-all",
-
-    // Clean
     "clean": "rm -rf _fresh && rm -rf static/_build"
   },
-
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "lib": ["deno.window", "dom", "dom.iterable"]
   },
-
   "imports": {
-    // Fresh framework
-    "$fresh/": "https://deno.land/x/fresh@1.6.8/",
-
-    // Preact (Fresh uses Preact)
-    "preact": "https://esm.sh/preact@10.19.6",
-    "preact/": "https://esm.sh/preact@10.19.6/",
+    "$fresh/": "https://deno.land/x/fresh@1.7.3/",
+    "preact": "https://esm.sh/preact@10.22.0",
+    "preact/": "https://esm.sh/preact@10.22.0/",
     "preact/hooks": "https://esm.sh/preact@10.19.6/hooks",
     "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.3.1",
     "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
     "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
-
-    // Path aliases
     "@/": "./",
     "@cms/": "./cms/",
     "@components/": "./components/",
@@ -60,50 +39,25 @@
     "@types/": "./types/",
     "@server/": "./server/",
     "@routes/": "./routes/",
-
-    // State management - Zustand vanilla for Deno
     "zustand": "https://esm.sh/zustand@4.5.0",
     "zustand/vanilla": "https://esm.sh/zustand@4.5.0/vanilla",
     "zustand/middleware": "https://esm.sh/zustand@4.5.0/middleware",
-
-    // Markdown & content - using esm.sh
     "gray-matter": "https://esm.sh/gray-matter@4.0.3",
     "marked": "https://esm.sh/marked@12.0.0",
     "js-yaml": "https://esm.sh/js-yaml@4.1.0",
-
-    // UI & Icons
     "lucide-preact": "https://esm.sh/lucide-preact@0.319.0",
     "clsx": "https://esm.sh/clsx@2.1.0",
-
-    // Security
     "dompurify": "https://esm.sh/dompurify@3.0.9",
     "sanitize-html": "https://esm.sh/sanitize-html@2.12.1",
-
-    // QR Code
     "qrcode": "https://esm.sh/qrcode@1.5.3",
-
-    // Tailwind (keep npm: for build tools)
     "tailwindcss": "npm:tailwindcss@3.4.3",
     "tailwindcss/": "npm:/tailwindcss@3.4.3/",
     "tailwindcss/plugin": "npm:/tailwindcss@3.4.3/plugin.js",
     "@tailwindcss/typography": "npm:@tailwindcss/typography@0.5.19",
-
-    // Deno standard library
     "$std/": "https://deno.land/std@0.224.0/"
   },
-
-  "exclude": [
-    "_fresh",
-    "static/_build"
-  ],
-
-  "lint": {
-    "rules": {
-      "tags": ["fresh", "recommended"]
-    },
-    "exclude": ["_fresh", "static/_build"]
-  },
-
+  "exclude": ["_fresh", "static/_build", "**/_fresh/*"],
+  "lint": { "rules": { "tags": ["fresh", "recommended"] }, "exclude": ["static/_build"] },
   "fmt": {
     "useTabs": false,
     "lineWidth": 100,
@@ -111,6 +65,6 @@
     "semiColons": false,
     "singleQuote": true,
     "proseWrap": "preserve",
-    "exclude": ["_fresh", "static/_build"]
+    "exclude": ["static/_build"]
   }
 }

@@ -16,6 +16,9 @@ import * as $api_templates from './routes/api/templates.ts'
 import * as $index from './routes/index.tsx'
 import * as $login from './routes/login.tsx'
 import * as $navbar_demo from './routes/navbar-demo.tsx'
+import * as $panel_account from './routes/panel/account.tsx'
+import * as $panel_index from './routes/panel/index.tsx'
+import * as $panel_mail from './routes/panel/mail.tsx'
 import * as $register from './routes/register.tsx'
 import * as $AccountDropdown from './islands/AccountDropdown.tsx'
 import * as $AskAIButton from './islands/AskAIButton.tsx'
@@ -25,7 +28,10 @@ import * as $MobileMenu from './islands/MobileMenu.tsx'
 import * as $Navbar from './islands/Navbar.tsx'
 import * as $RegisterForm from './islands/RegisterForm.tsx'
 import * as $SearchDialog from './islands/SearchDialog.tsx'
-import { type Manifest } from '$fresh/server.ts'
+import * as $panel_Header from './islands/panel/Header.tsx'
+import * as $panel_PanelLayout from './islands/panel/PanelLayout.tsx'
+import * as $panel_Sidebar from './islands/panel/Sidebar.tsx'
+import type { Manifest } from '$fresh/server.ts'
 
 const manifest = {
   routes: {
@@ -43,6 +49,9 @@ const manifest = {
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
     './routes/navbar-demo.tsx': $navbar_demo,
+    './routes/panel/account.tsx': $panel_account,
+    './routes/panel/index.tsx': $panel_index,
+    './routes/panel/mail.tsx': $panel_mail,
     './routes/register.tsx': $register,
   },
   islands: {
@@ -54,6 +63,9 @@ const manifest = {
     './islands/Navbar.tsx': $Navbar,
     './islands/RegisterForm.tsx': $RegisterForm,
     './islands/SearchDialog.tsx': $SearchDialog,
+    './islands/panel/Header.tsx': $panel_Header,
+    './islands/panel/PanelLayout.tsx': $panel_PanelLayout,
+    './islands/panel/Sidebar.tsx': $panel_Sidebar,
   },
   baseUrl: import.meta.url,
 } satisfies Manifest
