@@ -16,12 +16,14 @@ import * as $api_templates from './routes/api/templates.ts'
 import * as $index from './routes/index.tsx'
 import * as $login from './routes/login.tsx'
 import * as $navbar_demo from './routes/navbar-demo.tsx'
+import * as $register from './routes/register.tsx'
 import * as $AccountDropdown from './islands/AccountDropdown.tsx'
 import * as $AskAIButton from './islands/AskAIButton.tsx'
 import * as $Counter from './islands/Counter.tsx'
 import * as $LoginForm from './islands/LoginForm.tsx'
 import * as $MobileMenu from './islands/MobileMenu.tsx'
 import * as $Navbar from './islands/Navbar.tsx'
+import * as $RegisterForm from './islands/RegisterForm.tsx'
 import * as $SearchDialog from './islands/SearchDialog.tsx'
 import { type Manifest } from '$fresh/server.ts'
 
@@ -41,6 +43,7 @@ const manifest = {
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
     './routes/navbar-demo.tsx': $navbar_demo,
+    './routes/register.tsx': $register,
   },
   islands: {
     './islands/AccountDropdown.tsx': $AccountDropdown,
@@ -49,6 +52,7 @@ const manifest = {
     './islands/LoginForm.tsx': $LoginForm,
     './islands/MobileMenu.tsx': $MobileMenu,
     './islands/Navbar.tsx': $Navbar,
+    './islands/RegisterForm.tsx': $RegisterForm,
     './islands/SearchDialog.tsx': $SearchDialog,
   },
   baseUrl: import.meta.url,
