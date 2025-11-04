@@ -9,11 +9,10 @@ import { Handlers, PageProps } from '$fresh/server.ts'
 import { FreshState } from '@/middleware.ts'
 import { isFeatureEnabled } from '@/lib/featureToggles.ts'
 import { renderMarkdownFile } from '@/api/render-markdown.ts'
+import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts'
 
 // Import Islands for client-side interactivity
-import MobileMenu from '@/islands/MobileMenu.tsx'
-import AccountDropdown from '@/islands/AccountDropdown.tsx'
-import SearchDialog from '@/islands/SearchDialog.tsx'
+import Navbar from '@/islands/Navbar.tsx'
 import AskAIButton from '@/islands/AskAIButton.tsx'
 
 // Supported languages
@@ -71,6 +70,10 @@ const SECTION_PATHS: Record<Language, Record<string, string>> = {
 
 const DEFAULT_LANGUAGE: Language = 'zh'
 
+// DOM Node type constants for deno_dom compatibility
+const ELEMENT_NODE = 1
+const TEXT_NODE = 3
+
 async function loadMarkdownSection(path: string, id: string): Promise<MarkdownSection> {
   try {
     const result = await renderMarkdownFile(path)
@@ -91,14 +94,15 @@ async function loadMarkdownSection(path: string, id: string): Promise<MarkdownSe
   }
 }
 
-function parseHtmlDocument(html: string): Document | null {
+function parseHtmlDocument(html: string) {
   if (!html) {
     return null
   }
 
   try {
     const parser = new DOMParser()
-    return parser.parseFromString(html, 'text/html')
+    const doc = parser.parseFromString(html, 'text/html')
+    return doc
   } catch (error) {
     console.warn('Failed to parse HTML content for homepage section', error)
     return null
@@ -144,13 +148,13 @@ function extractProductCards(section: MarkdownSection): ProductCard[] {
       let sibling: ChildNode | null = heading.nextSibling
 
       while (sibling) {
-        if (sibling.nodeType === Node.ELEMENT_NODE && (sibling as Element).tagName === 'H3') {
+        if (sibling.nodeType === ELEMENT_NODE && (sibling as Element).tagName === 'H3') {
           break
         }
 
-        if (sibling.nodeType === Node.ELEMENT_NODE) {
+        if (sibling.nodeType === ELEMENT_NODE) {
           fragments.push((sibling as Element).outerHTML)
-        } else if (sibling.nodeType === Node.TEXT_NODE) {
+        } else if (sibling.nodeType === TEXT_NODE) {
           const textContent = sibling.textContent?.trim()
           if (textContent) {
             fragments.push(textContent)
@@ -220,12 +224,6 @@ export const handler: Handlers<HomePageData, FreshState> = {
 export default function HomePage({ data }: PageProps<HomePageData>) {
   const { sections, language, cmsEnabled, user } = data
 
-  const navItems = [
-    { label: language === 'zh' ? '文档' : 'Docs', href: '/docs' },
-    { label: language === 'zh' ? '下载' : 'Download', href: '/download' },
-    { label: language === 'zh' ? '演示' : 'Demo', href: '/demo' },
-  ]
-
   const heroContent = extractHeroContent(sections.operations)
   const productCards = extractProductCards(sections.productSpotlight)
   const newsHighlights = extractListHighlights(sections.news.html)
@@ -248,63 +246,11 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
         />
       </Head>
 
-      {/* Navbar */}
-      <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-gradient-to-r from-brand-navy via-brand to-brand-navy text-white shadow-lg">
-        <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center gap-8">
-            <a href="/" class="text-lg font-semibold tracking-wide">
-              CloudNative Suite
-            </a>
-            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-white/80">
-              {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  class="transition hover:text-white"
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div class="hidden md:flex items-center gap-4 text-sm">
-            <SearchDialog language={language} />
-            <a
-              href={language === 'zh' ? '/?lang=en' : '/?lang=zh'}
-              class="rounded-full border border-white/30 px-3 py-1 text-white/80 transition hover:border-white hover:text-white"
-            >
-              {language === 'zh' ? 'English' : '中文'}
-            </a>
-            {user ? (
-              <AccountDropdown user={user} language={language} />
-            ) : (
-              <div class="flex items-center gap-3">
-                <a
-                  href="/login"
-                  class="text-white/80 transition hover:text-white"
-                >
-                  {language === 'zh' ? '登录' : 'Login'}
-                </a>
-                <a
-                  href="/register"
-                  class="inline-flex items-center rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
-                >
-                  {language === 'zh' ? '注册' : 'Register'}
-                </a>
-              </div>
-            )}
-          </div>
-
-          <div class="flex items-center gap-2 md:hidden">
-            <SearchDialog language={language} />
-            <MobileMenu language={language} items={navItems} />
-          </div>
-        </div>
-      </nav>
+      {/* Fixed Navbar with translucent background */}
+      <Navbar language={language} user={user} pathname="/" />
 
       {/* Main Content with offset for fixed navbar */}
-      <main class="relative flex flex-col bg-brand-surface text-brand-heading pt-16">
+      <main class="relative flex flex-col bg-brand-surface text-brand-heading pt-24">
         {/* Hero Section - Operations */}
         <header class="relative isolate overflow-hidden py-20 sm:py-24">
           <div class="absolute inset-0 bg-gradient-to-b from-brand via-brand/70 to-transparent" aria-hidden />

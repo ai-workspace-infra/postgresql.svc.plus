@@ -14,10 +14,12 @@ import * as $api_ping from './routes/api/ping.ts'
 import * as $api_render_markdown from './routes/api/render-markdown.ts'
 import * as $api_templates from './routes/api/templates.ts'
 import * as $index from './routes/index.tsx'
+import * as $navbar_demo from './routes/navbar-demo.tsx'
 import * as $AccountDropdown from './islands/AccountDropdown.tsx'
 import * as $AskAIButton from './islands/AskAIButton.tsx'
 import * as $Counter from './islands/Counter.tsx'
 import * as $MobileMenu from './islands/MobileMenu.tsx'
+import * as $Navbar from './islands/Navbar.tsx'
 import * as $SearchDialog from './islands/SearchDialog.tsx'
 import { type Manifest } from '$fresh/server.ts'
 
@@ -35,12 +37,14 @@ const manifest = {
     './routes/api/render-markdown.ts': $api_render_markdown,
     './routes/api/templates.ts': $api_templates,
     './routes/index.tsx': $index,
+    './routes/navbar-demo.tsx': $navbar_demo,
   },
   islands: {
     './islands/AccountDropdown.tsx': $AccountDropdown,
     './islands/AskAIButton.tsx': $AskAIButton,
     './islands/Counter.tsx': $Counter,
     './islands/MobileMenu.tsx': $MobileMenu,
+    './islands/Navbar.tsx': $Navbar,
     './islands/SearchDialog.tsx': $SearchDialog,
   },
   baseUrl: import.meta.url,
