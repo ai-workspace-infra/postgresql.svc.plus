@@ -1,96 +1,109 @@
-# `dashboard` Deno Runtime Migration Plan
+# `dashboard` Fresh + Deno + Zustand Migration Plan
 
 ## 1. 背景与目标
-`dashboard` 目前基于 Next.js 14，在 Node.js 环境中通过 Yarn 和一系列脚本完成构建、导出与运行。【F:dashboard/package.json†L1-L38】【F:dashboard/Makefile†L1-L83】【F:dashboard/start.sh†L1-L16】
+`dashboard` 目前基于 Next.js 14 App Router，并通过 React 组件、CMS 模板与特性开关组合出首页等页面。【F:dashboard/app/page.tsx†L1-L26】【F:dashboard/app/layout.tsx†L1-L31】
+`AppProviders` 又嵌套多层上下文（语言、用户、主题、CMS 扩展），整体运行在 Node.js + React 18 环境。【F:dashboard/app/AppProviders.tsx†L1-L24】
+构建/运行链路依赖 Yarn、Next CLI 与多份脚本，目标版本也在 `package.json` 的 `engines` 字段中锁定为 Node.js。【F:dashboard/package.json†L5-L19】
 
-为支持 Deno runtime（包括 Deno Deploy、本地 `deno run` 以及容器化部署），需要系统性评估并替换现有依赖 Node.js 运行时假设的部分。本规划文件旨在：
+为了统一使用 Deno 生态、引入 Fresh 框架以及在客户端采用 Zustand 管理全局状态，本规划旨在：
 
-- 盘点 `dashboard` 中依赖 Node.js 专有 API / 工具链的功能；
-- 给出分阶段的迁移策略，尽量保持与现有 Next.js 功能对齐；
-- 拆解出可执行的子任务，支撑逐步迁移。
+- 拆解现有 Next.js + Node.js 假设，以及与 Fresh/Deno 的差异；
+- 设计 Fresh 项目结构、渲染路径与数据加载方案，确保 CMS、下载中心等关键能力仍然可用；
+- 在客户端抽取跨页面状态为共享的 Zustand store，减少依赖 React Context；
+- 分阶段完成迁移，期间保持可回退、可验证的交付节奏。
 
-## 2. Node.js 依赖现状分析
+## 2. 现状评估
 
-### 2.1 构建与运行命令
-- `package.json` 中所有脚本均通过 `node` 或 `yarn` 启动 Next CLI / 自定义脚本。【F:dashboard/package.json†L6-L17】
-- 顶层 Makefile / `start.sh` 假设系统已安装 Node.js 与 Yarn，并使用 `npm install` 构建产物。【F:dashboard/Makefile†L1-L83】【F:dashboard/start.sh†L1-L16】
-- Dockerfile 直接以 `node:20` 作为构建镜像并输出静态资源，再以 Nginx 托管。【F:dashboard/Dockerfile†L1-L12】
+### 2.1 App Router、上下文与页面结构
+- 首页、租户空间等页面位于 `app/` 目录，依赖服务器组件和动态模板注入。【F:dashboard/app/page.tsx†L1-L26】
+- 根布局通过 `AppProviders` 包裹语言、用户与主题 Provider，后者继续依赖 Zustand store 维护会话用户数据。【F:dashboard/app/AppProviders.tsx†L1-L24】【F:dashboard/lib/userStore.tsx†L1-L132】
+- 邮件模块已存在独立的 `mail.store.ts`，证明项目内部对 Zustand 的使用模式可复用。【F:dashboard/app/store/mail.store.ts†L1-L46】
 
-### 2.2 配置文件与 CommonJS
-- `next.config.js` 使用 CommonJS `require`/`module.exports`，并在运行时访问 `process.env`。【F:dashboard/next.config.js†L1-L64】
-- Tailwind 与 PostCSS 配置同样使用 CommonJS 导出。【F:dashboard/postcss.config.js†L1-L6】【F:dashboard/tailwind.config.js†L1-L14】
-- `vitest.config.ts` 通过 Node.js `path` 模块构建别名，需要 Node 的内置模块支持。【F:dashboard/vitest.config.ts†L1-L25】
+### 2.2 Node 绑定的构建链路
+- 脚本命令全部调用 Next CLI、Vitest、Playwright 等 Node 工具，且通过 `node`/`tsx` 执行自定义脚本。【F:dashboard/package.json†L8-L19】
+- Makefile、`start.sh` 与 Dockerfile 明确依赖 Node.js、Yarn 与 npm Registry；构建阶段亦输出静态导出给 Nginx 托管。【F:dashboard/Makefile†L7-L107】【F:dashboard/start.sh†L1-L19】【F:dashboard/Dockerfile†L1-L12】
+- 配置文件使用 CommonJS，并直接引用 Node 内置模块（`path` 等），在 Deno/Fresh 环境需转换为 ESM 或动态导入。【F:dashboard/next.config.js†L6-L101】【F:dashboard/postcss.config.js†L1-L6】【F:dashboard/tailwind.config.js†L1-L24】【F:dashboard/vitest.config.ts†L1-L40】
 
-### 2.3 构建前置脚本
-- `yarn prebuild` 调用 `scripts/export-slugs.ts`、`scripts/scan-md.ts`、`scripts/fetch-dl-index.ts`；脚本大量使用 `fs`、`path`、`process` 等 Node 内置模块。【F:scripts/export-slugs.ts†L1-L63】【F:scripts/scan-md.ts†L1-L58】【F:scripts/fetch-dl-index.ts†L1-L37】
-- 这些脚本写入 `dashboard/public/_build/`、`public/dl-index/` 等目录，用于页面渲染数据。
+### 2.3 内容构建与模板加载
+- `src/templateRegistry.ts` 通过 `fs`、`path` 同步读取磁盘模板，依赖 CommonJS `require`；Fresh 环境需改写为异步模块加载或构建期预处理。【F:dashboard/src/templateRegistry.ts†L1-L120】
+- 预构建脚本（`export-slugs.ts`、`scan-md.ts`、`fetch-dl-index.ts`）大量使用 Node `fs/promises`、`process`，并写入 `public/_build` 与下载目录。【F:scripts/export-slugs.ts†L1-L74】【F:scripts/scan-md.ts†L1-L63】
+- 下载清单在运行时同步读取 JSON 文件，同样倚赖 Node `fs`。【F:dashboard/lib/download-manifest.ts†L1-L24】
 
-### 2.4 运行时（SSR / API 路由）
-- Next App Router 下的 API Route 主要调用后端 REST 服务，本身大多使用 `fetch`，对 Deno 兼容性良好；但 `lib/download-manifest.ts` 等 server-only 模块同步读取文件系统，依赖 Node `fs`/`path`。【F:dashboard/lib/download-manifest.ts†L1-L23】
-- `lib/serviceConfig.ts` 与各页面/组件通过 `process.env` 读取环境变量，需要过渡到 `Deno.env.get` 或在构建阶段注入配置。【F:dashboard/lib/serviceConfig.ts†L1-L107】
+### 2.4 API 路由与运行时配置
+- Next API Routes 运行在 `runtime = 'nodejs'` 下，返回 JSON 供前端消费；Fresh 需改写为 Deno `Request`/`Response` 处理器。【F:dashboard/app/api/content-meta/route.ts†L1-L23】
+- 前端运行时配置依赖 `process.env.NEXT_PUBLIC_*` 与全局变量切换环境/区域，需要在 Deno 中改造为 `Deno.env` 或构建期注入。【F:dashboard/config/runtime-client.ts†L1-L82】
 
-### 2.5 测试与开发工具
-- Vitest、Testing Library 等依赖 Node.js (特别是 JSDOM)；`vitest` CLI 默认使用 Node 执行。
-- 本地开发流程依赖 `yarn dev` 与 Node 的 HMR 服务。
+### 2.5 状态管理与客户端依赖
+- 用户信息等核心状态由自建 `userStore` + React Context 提供，需要在 Fresh + Zustand 方案中拆分为 store 与薄 Provider。【F:dashboard/lib/userStore.tsx†L1-L132】
+- 其他页面多通过 SWR、局部状态管理数据，与 Fresh 的 Islands 模式兼容，但需确保库能够通过 `npm:` 或原生 Deno 导入。
 
-## 3. 迁移策略与建议
+## 3. Fresh + Deno + Zustand 目标架构
 
-### 3.1 建立 Deno 任务与依赖管理
-1. 在仓库根目录新增 `deno.json` / `deno.jsonc`，定义 `tasks` 映射（如 `deno task dev` -> `deno run -A npm:next dev`），并声明所需 `npm` 依赖，启用 Deno 的 Node 兼容层。
-2. 通过 `deno vendor` 或 `deno.json` 中的 `imports`，集中管理 TypeScript 路径别名，替代现有 `tsconfig` 中的 Node 解析。
-3. 调整 CI/Makefile：将 `yarn` 调用替换为 `deno task`，保留向后兼容的回退命令（过渡期可提供双轨脚本）。
+### 3.1 Fresh 项目骨架
+1. 在仓库中新增 `dashboard-fresh/`（暂名），包含 `main.ts`, `fresh.gen.ts`, `routes/`, `islands/`, `static/` 等标准结构；并在 `deno.json` 中启用 `tasks`、`importMap` 指向 `npm:next` 替换项与 `npm:zustand`。【需新建】
+2. 将 Next `app/` 路由映射到 Fresh `routes/`：
+   - `app/page.tsx` → `routes/index.tsx`（读取 CMS 模板）；
+   - `app/(tenant)/**` → `routes/(tenant)/**.tsx`，使用 Fresh `HandlerContext` 拉取数据；
+   - `app/api/**` → `routes/api/**.ts`，直接返回 `Response`。
+3. 在 `islands/` 中拆分需要交互的组件（如邮件、仪表盘 Widget），以保持 SSR + 客户端增强的 Fresh 模式。
 
-### 3.2 配置文件改造
-1. 将 `next.config.js`、`postcss.config.js`、`tailwind.config.js` 转为原生 ESM（如重命名为 `.mjs` 或使用 `export default`）。在配置内部避免 `require`，使用 `import` 并为 Deno 提供类型提示。
-2. 检查 Next.js 版本，启用官方对 Deno 的实验支持（如 `experimental.runtime = 'edge'` 或 `experimental.appDir: true`），确保 App Router 能以 Edge Runtime 打包。
-3. 若仍需 CommonJS（例如 Tailwind CLI），使用 `npm:` 包由 Deno Node 兼容层执行，或迁移到 `tailwindcss@canary` 支持的 ESM 导出。
+### 3.2 构建与配置体系
+1. 创建顶层 `deno.jsonc`，定义 `tasks`：`deno task dev`（调用 `deno run -A main.ts`）、`deno task build`（`deno run -A fresh-build.ts`）、`deno task lint/test` 等；添加 `compilerOptions` 与 `imports` 以取代现有 `tsconfig` 别名。【需新建】
+2. 将 Tailwind/PostCSS 配置转为 ESM 模块，并在 Fresh 流程中通过 `deno task tw:build` 调用 `npm:tailwindcss` 生成 CSS。
+3. 用 Deno 版 Makefile/脚本替换 Node 依赖：所有 CI 步骤改为调用 `deno task`，同时保留 Node 构建路径直至迁移完成。
 
-### 3.3 构建脚本迁移
-1. 将 `scripts/*.ts` 改写为兼容 Deno 的模块：
-   - 用 `Deno.readTextFile` / `Deno.writeTextFile` / `Deno.mkdir` 替代 `fs`。
-   - 使用 `new URL('.', import.meta.url)` 和 `Deno.cwd()` 替代 `__dirname`、`process.cwd()`。
-   - 捕获异常时避免 `process.exit`，改用抛错或 `Deno.exit`。
-2. 将脚本注册到 `deno.json` 的 `tasks` 中（如 `deno task prebuild`），供 Next 构建流程调用。
-3. 若继续兼容 Node 构建，可在脚本中引入运行时分支，检测 `globalThis.Deno` 后切换到相应 API。
+### 3.3 内容与模板加载改造
+1. 将 `templateRegistry` 拆为：
+   - 构建期脚本使用 `Deno.readDir` 与 `import()` 构建模板索引；
+   - 运行时通过 Deno `import` 动态加载模板或从预生成的 manifest 读取。
+2. 重写 `export-slugs.ts`、`scan-md.ts`、`fetch-dl-index.ts` 为 Deno 脚本：
+   - 使用 `std/fs`、`std/path` 处理文件；
+   - 以 `Deno.cwd()`、`new URL(import.meta.url)` 处理路径；
+   - 替换 `process.exit` 为抛错或 `Deno.exit`。
+3. 对下载清单在构建阶段生成纯 JSON 模块（或放入 `static/` 目录），Fresh 路由通过 `import` 读取，避免运行时 `fs` 依赖。
 
-### 3.4 运行时代码适配
-1. 将 `lib/download-manifest.ts` 中的 Node API 替换为 Deno 文件读取，或在构建阶段生成静态 JSON，运行时仅通过 `import` 读取。
-2. 整理 `process.env` 使用：
-   - 客户端公开变量保持 `NEXT_PUBLIC_*`，由 Next 在编译阶段注入；
-  - 服务器端逻辑（如 `lib/serviceConfig.ts`）改用封装的 `getEnv(name)`，内部在 Deno 环境使用 `Deno.env.get` 并提供 Node 回退，确保在多 runtime 下统一获取配置。
-3. 审查 `app/api/**` 与服务器组件：确认是否使用 Node 限定模块（目前主要是 `console`、`fetch`，可直接在 Deno Edge Runtime 运行）。
+### 3.4 API 层与后端集成
+1. 为每个 Next API Route 创建等价的 Fresh handler，保留与 `dashboard/server/**` 模块的调用关系；使用 `fetch` 与 `Request`/`Response` API，确保边缘兼容。
+2. 对需要认证 Cookie 的接口（如 `/api/auth/session`）设计 Fresh `middleware.ts`，将 Cookie 解析/刷新逻辑迁移到 Deno。
+3. 若某些 Node-only 包（例如 `pdfjs-dist` 渲染）无法直接在 Fresh SSR 中运行，可转为客户端 Islands 或在构建阶段预渲染。
 
-### 3.5 测试与开发体验
-1. 评估是否迁移到 `deno test` + `std/testing`，或继续使用 Vitest（通过 `deno run -A npm:vitest`）。
-2. 若保留 Vitest，需要：
-   - 在 `deno.json` 的 `tasks` 中添加 `"test": "deno run -A npm:vitest run"`；
-   - 确保配置文件（`vitest.config.ts`）使用 ESM 并避免 Node-only API，或通过 `npm:path` 兼容模块。
-3. 在文档中更新开发流程，指导使用 `deno task dev` 启动 Next 开发服务器。
+### 3.5 Zustand 状态基线
+1. 抽取公共 store：会话用户（来自 `userStore`）、运行时环境（读取 `runtime-client`）、特性开关等，迁移至 `dashboard-fresh/stores/` 下的 `createXXXStore.ts`。
+2. 在 Fresh `islands/` 中通过 Zustand hooks 访问共享状态，必要时封装 `<Provider>` 以兼容现有组件。
+3. 邮件、下载等功能模块沿用或重构现有 Zustand 逻辑，将 `mail.store.ts` 迁移为岛组件专用 store，并与新的全局 store 解耦。
 
-### 3.6 部署与容器
-1. 若目标是 Deno Deploy：优先使用 Next 的静态导出（`NEXT_SHOULD_EXPORT=true`）并将静态资源托管到 Deno Deploy 静态站点；或使用 `@deno/next`（实验性）以 Edge Runtime 部署。
-2. 更新 Dockerfile：改用 `denoland/deno:alpine`（或合适镜像）执行 `deno task build`，将 `out/` 拷贝到最终镜像，或直接在 Deno 容器内运行 Edge 兼容服务。
-3. 清理 Node.js 安装脚本（`start.sh` 等），提供 Deno 版本的部署脚本。
+### 3.6 UI 组件与路由迁移策略
+1. 采用“页面优先”迁移：先将静态内容页（文档、下载列表）迁至 Fresh，保持 React 组件和 CSS 基本不变；随后逐步迁移需要交互的管理面板。
+2. 使用 Fresh `Head`、`Layout` 功能重建 `AppProviders` 逻辑，将语言、主题 Provider 改为 Zustand + Signals 或 Fresh 中间件注入。
+3. CMS 模板可编译为 Preact 组件，仍放置在 `cms/` 下，通过构建脚本注入 Fresh 路由。
 
-## 4. 迁移子任务拆解
-下表列出推荐的实施顺序与依赖关系：
+### 3.7 开发、测试与质量保证
+1. 评估保留 Vitest（通过 `deno run -A npm:vitest`）还是迁移至 `deno test`，必要时编写兼容层加载 JSDOM。
+2. 将 Playwright 测试改为通过 `deno run -A npm:playwright` 执行，或在迁移完成后替换为 Fresh 官方推荐方案。
+3. 更新文档与脚本，指导开发者使用 `deno task dev`, `deno task test` 等命令，保留 Node 版本作为过渡 fallback。
 
-| 阶段 | 子任务 | 关键文件 / 目录 | 说明 | 前置 |
-| --- | --- | --- | --- | --- |
-| 1 | 建立 Deno 项目骨架 | 仓库根目录、`docs/` | 新增 `deno.json`、`README` 更新、定义 `deno task`。 | 无 |
-| 1 | 配置文件改造为 ESM | `dashboard/next.config.js`、`postcss.config.js`、`tailwind.config.js`、`vitest.config.ts` | 切换到 `export` 语法，移除 CommonJS；需要验证 Next 对 ESM 配置的支持。 | 阶段1骨架 |
-| 2 | 构建脚本 Deno 化 | `scripts/*.ts`、`dashboard/lib/download-manifest.ts` | 替换 `fs/path/process`，实现跨 runtime 工具模块。 | 配置 ESM |
-| 2 | 环境变量适配 | `dashboard/lib/serviceConfig.ts` 及引用 | 引入 `getEnv` 工具，确保 Deno/Node 双环境可用。 | 阶段2脚本 |
-| 3 | 开发/测试任务迁移 | `deno.json`、`dashboard/package.json`、`dashboard/Makefile` | 在 Deno 任务中封装 `next dev`、`vitest`；决定是否保留 `yarn`。 | 前述任务 |
-| 3 | 部署脚本与容器更新 | `dashboard/Dockerfile`、`dashboard/start.sh` | 替换为 Deno 镜像/脚本，更新运维文档。 | 开发任务 |
-| 4 | 可选：替换 Node-only 依赖 | 第三方 npm 包 | 评估 `pdfjs-dist`、`react-grid-layout` 等在 Deno 中的兼容性，必要时寻找替代或自行打包。 | 以上完成 |
+### 3.8 部署与运维
+1. 提供 Deno Deploy/Fresh 官方容器的部署示例：`FROM denoland/deno:alpine`，执行 `deno task build` + `deno task start`。
+2. 迁移 Terraform/Helm 等部署文件，确保环境变量通过 `deno.json` 与 `deployctl` 注入；同时更新 `start.sh`、Dockerfile，保留 Node 版本作为灰度备份。
+3. 在 CI 管道中引入 Deno 缓存与 `deno task lint`，并调整制品（静态资源、manifests）输出目录。
+
+## 4. 分阶段实施路线
+
+| 阶段 | 目标 | 关键输出 | 前置条件 |
+| --- | --- | --- | --- |
+| 0 | 建立 Deno/Fresh 骨架 | `deno.json(c)`、Fresh 基础目录、`deno task dev` 可启动 Hello World | 无 |
+| 1 | 共存期：内容页迁移 | Fresh routes 提供首页、下载、文档的静态渲染；Node 版保留功能测试 | 阶段0 |
+| 2 | API + CMS 适配 | Fresh handler 替换核心 API，`templateRegistry`、构建脚本完成 Deno 化 | 阶段1 |
+| 3 | Zustand 重构 | 会话、运行时、特性等全局状态迁移到共享 store，并与 Fresh Islands 对接 | 阶段2 |
+| 4 | 运维与部署 | Deno 容器/Deploy 工作流上线，Node 版本进入维护模式 | 阶段3 |
+| 5 | 收尾 & 清理 | 移除 Next.js 目录、废弃脚本，更新所有文档与脚手架 | 阶段4 |
 
 ## 5. 风险与注意事项
-- **Next.js 在 Deno 的稳定性**：需关注官方支持状况，必要时考虑将 SSR 功能改造为静态导出或迁移到 Fresh/Preact 等 Deno 原生框架。
-- **Node.js 兼容层性能**：使用 `deno run -A npm:...` 会拉起 Node 兼容层，需评估启动速度及部署体积。
-- **第三方包可用性**：部分 npm 包依赖 Node 原生模块（如 `pdfjs-dist` 的 WASM 加载、`react-grid-layout` 的依赖链）。在 Deno 中使用 `npm:` 时需测试或手工打包。
-- **CI/CD 更新**：构建流水线、版本锁定策略需同步调整，防止 Node/Deno 并存导致的依赖冲突。
+- **Fresh 框架特性差异**：缺少内建的服务器组件与 App Router，需要重构布局/数据获取逻辑；可通过 Islands + 服务器端 handler 模式逐步替代。【设计考量】
+- **第三方依赖兼容性**：例如 `pdfjs-dist`、`react-grid-layout` 等包依赖 Node 构建工具，可能需要改用 `esm.sh`、`skypack` 或自建打包；必要时将其限制在客户端 Islands 中。【F:dashboard/package.json†L20-L38】
+- **构建脚本迁移成本**：大量 Node 工具需改写为 Deno 版本，需预留自动化测试验证生成文件是否一致。【F:scripts/export-slugs.ts†L1-L74】【F:scripts/scan-md.ts†L1-L63】
+- **团队协作与培训**：Fresh/Deno 与 Next.js 开发体验不同，需要补充文档、工作流示例，并在迁移过程中保持双运行时以降低学习曲线。
 
 ---
 
-> 本规划文件将根据实际迁移进展持续更新，请在实施过程中记录新增风险与解决方案。
+> 本规划会随迁移进度更新，执行团队请记录阻碍与修复方案，以便迭代 Fresh + Deno + Zustand 的最佳实践。
