@@ -257,11 +257,16 @@ export default function LoginForm({ language, initialEmail = '', onSuccess }: Lo
 
       if (onSuccess) {
         onSuccess()
-      } else {
-        // Redirect to user panel after short delay
-        setTimeout(() => {
-          globalThis.location.href = '/panel'
-        }, 1000)
+      }
+
+      // Always redirect after login success (backup mechanism)
+      setTimeout(() => {
+        globalThis.location.href = '/panel'
+      }, 1000)
+
+      // Trigger global event to notify other components of login success
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('login-success'))
       }
     } catch (submitError) {
       console.warn('Login failed', submitError)

@@ -45,6 +45,13 @@ export const handler: Handlers<LoginPageData, FreshState> = {
 export default function LoginPage({ data }: PageProps<LoginPageData>) {
   const { language, user, errorParam, registeredParam, setupMfaParam } = data
 
+  // Handle login success - redirect to panel
+  const handleLoginSuccess = () => {
+    setTimeout(() => {
+      globalThis.location.href = '/panel'
+    }, 500)
+  }
+
   const t = {
     zh: {
       title: '登录到您的账户',
@@ -124,7 +131,7 @@ export default function LoginPage({ data }: PageProps<LoginPageData>) {
         }}
         bottomNote={copy.bottomNote}
       >
-        <LoginForm language={language} initialEmail={user?.email || ''} />
+        <LoginForm language={language} initialEmail={user?.email || ''} onSuccess={handleLoginSuccess} />
       </AuthLayout>
     </>
   )

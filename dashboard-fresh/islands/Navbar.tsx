@@ -64,13 +64,24 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
       }
     }
 
+    // Listen for login success event
+    const handleLoginSuccess = () => {
+      if (isActive) {
+        fetchSession()
+      }
+    }
+
     // Only fetch on client side
     if (typeof window !== 'undefined') {
       fetchSession()
+      window.addEventListener('login-success', handleLoginSuccess)
     }
 
     return () => {
       isActive = false
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('login-success', handleLoginSuccess)
+      }
     }
   }, [])
 
