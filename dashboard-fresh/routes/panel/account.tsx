@@ -34,16 +34,9 @@ interface AccountPageData {
 
 export const handler: Handlers<AccountPageData, FreshState> = {
   async GET(req, ctx) {
-    const accountUser = ctx.state.user || null
+    const accountUser = ctx.state.user
 
-    // Redirect to login if not authenticated
-    if (!accountUser) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: '/login' },
-      })
-    }
-
+    // If middleware passed through, user is authenticated
     const user = adaptUser(accountUser)
     const url = new URL(req.url)
     const setupMfa = url.searchParams.get('setupMfa') === '1'

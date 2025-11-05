@@ -48,10 +48,10 @@
 3. 在 `islands/` 中拆分需要交互的组件（如邮件、仪表盘 Widget），以保持 SSR + 客户端增强的 Fresh 模式。
 
 ### 3.2 构建与配置体系
+
 1. 创建顶层 `deno.jsonc`，定义 `tasks`：`deno task dev`（调用 `deno run -A main.ts`）、`deno task build`（`deno run -A fresh-build.ts`）、`deno task lint/test` 等；添加 `compilerOptions` 与 `imports` 以取代现有 `tsconfig` 别名。【需新建】
 2. 将 Tailwind/PostCSS 配置转为 ESM 模块，并在 Fresh 流程中通过 `deno task tw:build` 调用 `npm:tailwindcss` 生成 CSS。
 3. 用 Deno 版 Makefile/脚本替换 Node 依赖：所有 CI 步骤改为调用 `deno task`，同时保留 Node 构建路径直至迁移完成。
-
 ### 3.3 内容与模板加载改造
 1. 将 `templateRegistry` 拆为：
    - 构建期脚本使用 `Deno.readDir` 与 `import()` 构建模板索引；

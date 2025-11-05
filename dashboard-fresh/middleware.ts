@@ -15,7 +15,9 @@ const ACCOUNT_API_BASE = Deno.env.get('ACCOUNT_SERVICE_API_BASE_URL') || 'http:/
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
-  '/',
+  '/',                 // Homepage
+  '/download',         // Download center
+  '/docs',             // Documentation
   '/api/ping',
   '/api/auth/login',
   '/api/auth/register',
@@ -271,7 +273,7 @@ export async function handler(
   }
 
   // For page routes, redirect to login
-  const loginUrl = new URL('/auth/login', url.origin)
+  const loginUrl = new URL('/login', url.origin)
   loginUrl.searchParams.set('redirect', pathname)
 
   return new Response(null, {
