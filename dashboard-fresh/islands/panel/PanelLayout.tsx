@@ -11,6 +11,7 @@ import Header from '@/islands/panel/Header.tsx'
 import type { ComponentChildren } from 'preact'
 import type { User } from '@/lib/userSession.ts'
 import { logoutUser, fetchSessionUser } from '@/lib/userSession.ts'
+import { user as userSignal } from '@/lib/userStore.tsx'
 
 interface PanelLayoutProps {
   user: User | null
@@ -20,9 +21,51 @@ interface PanelLayoutProps {
 
 export default function PanelLayout({ user: initialUser, currentPath, children }: PanelLayoutProps) {
   const open = useSignal(false)
-  const user = useSignal<User | null>(initialUser)
+  // Use Signals store user if available, otherwise use initial user
+  const user = useSignal<User | null>(userSignal.value || initialUser)
   const isLoading = useSignal(false)
   const requiresSetup = useComputed(() => Boolean(user.value && (!user.value.mfaEnabled || user.value.mfaPending)))
+
+  // Update local user when Signals store changes
+  useEffect(() => {
+    const unsubscribe = () => {
+      // Track changes to userSignal
+      const currentUser = userSignal.value
+      if (currentUser) {
+        user.value = currentUser
+      }
+    }
+    // Immediately sync with Signals store
+    unsubscribe()
+
+    // Listen for login-success event to refresh user
+    const handleLoginSuccess = async () => {
+      isLoading.value = true
+      try {
+        const refreshedUser = await fetchSessionUser()
+        user.value = refreshedUser
+        // Also update the Signals store
+        if (refreshedUser) {
+          // Note: We're setting local state, the Signals store will be updated by UserProvider
+        }
+      } catch (error) {
+        console.warn('Failed to refresh user after login', error)
+      } finally {
+        isLoading.value = false
+      }
+    }
+
+    // Listen for login-success event
+    if (typeof window !== 'undefined') {
+      window.addEventListener('login-success', handleLoginSuccess)
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('login-success', handleLoginSuccess)
+      }
+    }
+  }, [])
 
   // Refresh user session periodically
   useEffect(() => {

@@ -8,6 +8,7 @@
 import { useSignal, useComputed, useSignalEffect } from '@preact/signals'
 import { useEffect, useRef } from 'preact/hooks'
 import UserMenu from '@/islands/UserMenu.tsx'
+import { user as userSignal } from '@/lib/userStore.tsx'
 
 interface NavItem {
   key: string
@@ -34,8 +35,16 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
   const searchValue = useSignal('')
   const navRef = useRef<HTMLElement>(null)
 
-  // Use provided user from server, but try to fetch fresh session on client
-  const currentUser = useSignal<User | null>(user || null)
+  // Use Signals store user if available, otherwise use server-provided user
+  const currentUser = useSignal<User | null>(userSignal.value || user || null)
+
+  // Sync with Signals store on mount and when it changes
+  useEffect(() => {
+    // Use Signals store user
+    if (userSignal.value) {
+      currentUser.value = userSignal.value
+    }
+  }, [])
 
   // Fetch session on client-side to get fresh user info
   useEffect(() => {
