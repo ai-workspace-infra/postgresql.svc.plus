@@ -24,7 +24,7 @@ local:
 
 remote:
   # 远端服务器地址与 SSH 账户
-  address: "cn-homepage.svc.plus"
+  address: "cn-console.svc.plus"
   port: 22
   user: "root"
 
