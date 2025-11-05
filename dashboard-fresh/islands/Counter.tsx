@@ -4,7 +4,7 @@
  * Islands in Fresh are interactive components that run on the client.
  * This is a simple example demonstrating:
  * - Preact hooks (useState)
- * - Zustand state management integration
+ * - Signals state management integration
  * - Client-side interactivity
  */
 
