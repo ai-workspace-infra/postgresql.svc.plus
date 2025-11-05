@@ -15,9 +15,7 @@ import {
   deriveMaxAgeFromExpires,
   MFA_COOKIE_NAME,
 } from '@/lib/authGateway.deno.ts'
-import { getAccountServiceApiBaseUrl } from '@/server/serviceConfig.deno.ts'
-
-const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
+import { getAuthUrl } from '@/config/runtime-loader.ts'
 
 type VerifyPayload = {
   token?: string
@@ -45,12 +43,16 @@ function normalizeCode(value: unknown) {
 
 export const handler: Handlers = {
   async POST(req) {
+    console.log('[mfa/verify] ===== Request received =====')
+
     const cookies = getCookies(req.headers)
     let payload: VerifyPayload
+
     try {
       payload = (await req.json()) as VerifyPayload
+      console.log('[mfa/verify] Payload parsed, has code:', !!(payload?.code || payload?.totp))
     } catch (error) {
-      console.error('Failed to decode MFA verification payload', error)
+      console.error('[mfa/verify] Failed to decode payload:', error)
       return new Response(
         JSON.stringify({ success: false, error: 'invalid_request', needMfa: true }),
         {
@@ -64,7 +66,10 @@ export const handler: Handlers = {
     const token = normalizeString(payload?.token || cookieToken)
     const code = normalizeCode(payload?.code ?? payload?.totp)
 
+    console.log('[mfa/verify] Has token:', !!token, 'Code length:', code.length)
+
     if (!token) {
+      console.error('[mfa/verify] ✗ Missing MFA token')
       return new Response(
         JSON.stringify({ success: false, error: 'mfa_token_required', needMfa: true }),
         {
@@ -75,6 +80,7 @@ export const handler: Handlers = {
     }
 
     if (!code) {
+      console.error('[mfa/verify] ✗ Missing MFA code')
       return new Response(
         JSON.stringify({ success: false, error: 'mfa_code_required', needMfa: true }),
         {
@@ -85,21 +91,32 @@ export const handler: Handlers = {
     }
 
     try {
-      const response = await fetch(`${ACCOUNT_API_BASE}/mfa/totp/verify`, {
+      const authUrl = await getAuthUrl()
+      const endpoint = `${authUrl}/api/auth/mfa/totp/verify`
+
+      console.log('[mfa/verify] Calling backend:', endpoint)
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ token, code }),
         cache: 'no-store',
+        signal: AbortSignal.timeout(10000),
       })
 
       const data = (await response.json().catch(() => ({}))) as AccountVerifyResponse
 
+      console.log('[mfa/verify] Backend response - status:', response.status, 'ok:', response.ok)
+
       if (response.ok && typeof data?.token === 'string' && data.token.length > 0) {
+        console.log('[mfa/verify] ✓ MFA verification successful')
+
         const responseHeaders = new Headers({ 'Content-Type': 'application/json' })
         applySessionCookie(responseHeaders, data.token, deriveMaxAgeFromExpires(data?.expiresAt))
         clearMfaCookie(responseHeaders)
+
         return new Response(
           JSON.stringify({ success: true, error: null, needMfa: false, data }),
           {
@@ -110,6 +127,8 @@ export const handler: Handlers = {
       }
 
       const errorCode = typeof data?.error === 'string' ? data.error : 'mfa_verification_failed'
+      console.log('[mfa/verify] ✗ MFA verification failed:', errorCode)
+
       const responseHeaders = new Headers({ 'Content-Type': 'application/json' })
 
       if (typeof data?.mfaToken === 'string' && data.mfaToken.trim()) {
@@ -119,6 +138,7 @@ export const handler: Handlers = {
       }
 
       clearSessionCookie(responseHeaders)
+
       return new Response(
         JSON.stringify({ success: false, error: errorCode, needMfa: true, data }),
         {
@@ -127,10 +147,12 @@ export const handler: Handlers = {
         },
       )
     } catch (error) {
-      console.error('Account service MFA verification proxy failed', error)
+      console.error('[mfa/verify] ✗ Exception:', error)
+
       const responseHeaders = new Headers({ 'Content-Type': 'application/json' })
       applyMfaCookie(responseHeaders, token)
       clearSessionCookie(responseHeaders)
+
       return new Response(
         JSON.stringify({ success: false, error: 'account_service_unreachable', needMfa: true }),
         {

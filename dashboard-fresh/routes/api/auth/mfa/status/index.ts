@@ -8,12 +8,12 @@
 import { Handlers } from '$fresh/server.ts'
 import { getCookies } from '$std/http/cookie.ts'
 import { MFA_COOKIE_NAME, SESSION_COOKIE_NAME } from '@/lib/authGateway.deno.ts'
-import { getAccountServiceApiBaseUrl } from '@/server/serviceConfig.deno.ts'
-
-const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
+import { getAuthUrl } from '@/config/runtime-loader.ts'
 
 export const handler: Handlers = {
   async GET(req) {
+    console.log('[mfa/status] Request received')
+
     const cookies = getCookies(req.headers)
     const sessionToken = cookies[SESSION_COOKIE_NAME] ?? ''
     const storedMfaToken = cookies[MFA_COOKIE_NAME] ?? ''
@@ -24,6 +24,8 @@ export const handler: Handlers = {
     const identifier = String(
       url.searchParams.get('identifier') ?? url.searchParams.get('email') ?? '',
     ).trim()
+
+    console.log('[mfa/status] Identifier:', identifier || 'none', 'Has session:', !!sessionToken)
 
     const headers: Record<string, string> = {
       Accept: 'application/json',
@@ -40,23 +42,47 @@ export const handler: Handlers = {
       params.set('identifier', identifier.toLowerCase())
     }
 
-    const endpointParams = params.toString()
-    const endpoint = endpointParams
-      ? `${ACCOUNT_API_BASE}/mfa/status?${endpointParams}`
-      : `${ACCOUNT_API_BASE}/mfa/status`
+    try {
+      const authUrl = await getAuthUrl()
+      const endpointParams = params.toString()
+      const endpoint = endpointParams
+        ? `${authUrl}/api/auth/mfa/status?${endpointParams}`
+        : `${authUrl}/api/auth/mfa/status`
 
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers,
-      cache: 'no-store',
-    })
+      console.log('[mfa/status] Calling backend:', endpoint)
 
-    const payload = await response.json().catch(() => ({}))
-    return new Response(JSON.stringify(payload), {
-      status: response.status,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers,
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10000),
+      })
+
+      const payload = await response.json().catch(() => ({}))
+
+      console.log('[mfa/status] Backend response - status:', response.status)
+
+      return new Response(JSON.stringify(payload), {
+        status: response.status,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+    } catch (error) {
+      console.error('[mfa/status] ✗ Exception:', error)
+
+      return new Response(
+        JSON.stringify({
+          error: 'account_service_unreachable',
+          mfa: { totpEnabled: false }
+        }),
+        {
+          status: 502,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+    }
   },
 }

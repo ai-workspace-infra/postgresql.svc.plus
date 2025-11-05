@@ -265,15 +265,25 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
     const needsMfa = Boolean(
       data?.needMfa ||
       errorCode === 'mfa_required' ||
+      errorCode === 'mfa_code_required' ||
       errorCode === 'mfa_setup_required',
     )
 
-    if (needsMfa && data?.mfaToken) {
-      const headers = new Headers()
-      applyMfaCookie(headers, data.mfaToken)
-      clearSessionCookie(headers)
+    console.log('[login/handleLogin] Error code:', errorCode, 'Needs MFA:', needsMfa, 'Has mfaToken:', !!data?.mfaToken)
 
-      console.log('[login/handleLogin] → MFA required, mfa_token set')
+    // If MFA is required, return appropriate response
+    if (needsMfa) {
+      const headers = new Headers()
+
+      // If backend provided mfaToken, set it as cookie
+      if (data?.mfaToken) {
+        applyMfaCookie(headers, data.mfaToken)
+        console.log('[login/handleLogin] → MFA required, mfa_token set')
+      } else {
+        console.log('[login/handleLogin] → MFA required, but no mfaToken from backend')
+      }
+
+      clearSessionCookie(headers)
 
       return jsonResponse(
         {
