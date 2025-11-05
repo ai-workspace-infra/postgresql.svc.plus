@@ -101,7 +101,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
     const trimmed = searchValue.value.trim()
     if (!trimmed) return
     // TODO: Implement search functionality
-    console.log('Search:', trimmed)
+    // Note: Avoid logging search terms as they may contain sensitive information
     searchValue.value = ''
   }
 

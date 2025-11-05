@@ -9,6 +9,7 @@ import { Handlers } from '$fresh/server.ts'
 import { getCookies } from '$std/http/cookie.ts'
 import { MFA_COOKIE_NAME, SESSION_COOKIE_NAME } from '@/lib/authGateway.deno.ts'
 import { getAuthUrl } from '@/config/runtime-loader.ts'
+import { maskEmail } from '@/lib/logging.ts'
 
 export const handler: Handlers = {
   async GET(req) {
@@ -25,7 +26,7 @@ export const handler: Handlers = {
       url.searchParams.get('identifier') ?? url.searchParams.get('email') ?? '',
     ).trim()
 
-    console.log('[mfa/status] Identifier:', identifier || 'none', 'Has session:', !!sessionToken)
+    console.log('[mfa/status] Identifier:', identifier ? maskEmail(identifier) : 'none', 'Has session:', !!sessionToken)
 
     const headers: Record<string, string> = {
       Accept: 'application/json',

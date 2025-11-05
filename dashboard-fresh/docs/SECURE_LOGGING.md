@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 
 **不需要查看实际的 TOTP 值**！如果需要验证，使用：
 ```bash
-oathtool --totp -b QGTZSUOHIFSKHLTN3LKHOSCYTLKBDAYD
+oathtool --totp -b xxxx_mfaTotpSecret_xxxx
 ```
 
 ## ✅ 合规性
