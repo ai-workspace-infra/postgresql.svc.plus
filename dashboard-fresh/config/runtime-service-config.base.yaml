@@ -4,3 +4,9 @@ authUrl: https://accounts.svc.plus
 dashboardUrl: https://console.svc.plus
 internalApiBaseUrl: http://127.0.0.1:8090
 logLevel: info
+
+auth:
+  token:
+    # Fixed token authentication mechanism
+    publicToken: "xcontrol-public-token-2024"
+    refreshSecret: "xcontrol-refresh-secret-2024"

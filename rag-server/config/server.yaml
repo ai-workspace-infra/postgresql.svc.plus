@@ -13,6 +13,12 @@ server:
     - "http://localhost:3001"
     - "http://127.0.0.1:3001"
 
+auth:
+  token:
+    # Fixed token authentication mechanism
+    publicToken: "xcontrol-public-token-2024"
+    refreshSecret: "xcontrol-refresh-secret-2024"
+
 global:
   redis:
     addr: "127.0.0.1:6379"
