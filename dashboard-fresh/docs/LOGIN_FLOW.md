@@ -1,26 +1,36 @@
-  1. 核心登录 API - routes/api/auth/login.ts
+  ## 已完成的功能
 
-  - ✅ 重构为多步骤登录流程
+### 1. 核心登录 API - routes/api/auth/login.ts
+
+  - ✅ 重构为多步骤登录流程（支持 3 个步骤）
   - ✅ 使用新的 getAuthUrl() 配置加载器
   - ✅ 添加详细的日志输出
-  - ✅ 识别 mfa_code_required 错误
-  - ✅ 即使没有 mfaToken 也正确返回 needMfa: true
+  - ✅ **移除 MFA 设置重定向逻辑（needMfa: true）**
+  - ✅ **MFA 设置跳转现在只在注册流程中处理**
+  - ✅ 向后兼容：无 step 参数时默认为登录行为
 
-  2. MFA 验证 API - routes/api/auth/mfa/verify/index.ts
+### 2. MFA 验证 API - routes/api/auth/mfa/verify/index.ts
 
-  - ✅ 更新使用 getAuthUrl() 替代旧的 getAccountServiceApiBaseUrl()
+  - ✅ 更新使用 getAuthUrl() 替代旧的配置方式
   - ✅ 添加详细的日志输出
   - ✅ 添加 10 秒超时控制
   - ✅ 改进错误处理
 
-  3. MFA 状态检查 API - routes/api/auth/mfa/status/index.ts
+### 3. MFA 状态检查 API - routes/api/auth/mfa/status/index.ts
 
   - ✅ 更新使用 getAuthUrl() 替代旧的配置方式
   - ✅ 添加详细的日志输出
   - ✅ 添加 10 秒超时控制
   - ✅ 添加错误处理，失败时返回 totpEnabled: false
 
-  4. 运行时配置加载器 - server/runtime-loader.deno.ts
+### 4. 注册表单 - islands/RegisterForm.tsx
+
+  - ✅ 多步骤注册流程
+  - ✅ 邮箱验证码验证
+  - ✅ 自动登录
+  - ✅ **注册成功后总是重定向到 MFA 设置页面**
+
+### 5. 运行时配置加载器 - config/runtime-loader.ts
 
   - ✅ 纯 Deno 实现
   - ✅ 支持 SIT/PROD 环境切换
@@ -28,12 +38,25 @@
   - ✅ 环境变量覆盖
   - ✅ 配置缓存
 
-  5. 开发工具
+  📊 完整的流程说明
 
-  - ✅ dev-local.sh - 本地开发启动脚本
-  - ✅ test-login.sh - 登录 API 测试脚本
+  ### 注册流程 (RegisterForm.tsx)
 
-  📊 完整的登录流程
+  1. 用户填写邮箱和密码
+  2. 请求发送验证码：POST /api/auth/register/send
+  3. 用户输入验证码
+  4. 验证邮箱：POST /api/auth/register/verify
+  5. 完成注册：POST /api/auth/register
+  6. 自动登录：POST /api/auth/login
+  7. **注册成功后，总是重定向到 `/panel/account?NeedSetupMfa=1`**
+  8. 用户可以在 MFA 设置页面选择启用或跳过 MFA
+
+  ### 登录流程
+
+  **重要说明**：
+  - 登录 API **永远不会**返回 `needMfa: true`
+  - `/panel/account?NeedSetupMfa=1` 的重定向**只在注册流程**中处理
+  - 日常登录时，如果需要 TOTP，返回 `needMfa: false` + `error: 'mfa_code_required'`
 
   情况 1：用户未启用 MFA
 
@@ -55,9 +78,9 @@
 
   3. 第一次提交（未输入 TOTP）：POST /api/auth/login
      { email, password }
-     ← { success: false, error: "mfa_code_required", needMfa: true }
+     ← { success: false, error: "mfa_code_required", needMfa: false }
 
-  4. 前端显示错误，要求输入 TOTP
+  4. 前端看到 error 是 mfa_code_required，显示 TOTP 输入框（不跳转）
 
   5. 第二次提交（带 TOTP）：POST /api/auth/login
      { email, password, totp: "123456" }
@@ -67,14 +90,15 @@
 
   6. ✅ 登录成功
 
-  情况 3：使用独立的 MFA 验证 API
+  情况 3：使用独立的 MFA 验证 API（不推荐用于日常登录）
 
   1. 第一次登录（不带 TOTP）：POST /api/auth/login
      { email, password }
-     ← { success: false, error: "mfa_code_required", needMfa: true }
-     + Set-Cookie: mfa_token=xxx
+     ← { success: false, error: "mfa_code_required", needMfa: false }
+     注意：日常登录时不会返回 mfa_token cookie
 
   2. MFA 验证：POST /api/auth/mfa/verify
+     注意：此API主要用于MFA设置流程，日常登录推荐使用情况2的方式
      Cookie: mfa_token=xxx
      { code: "123456" }
      ← { success: true } + session cookie

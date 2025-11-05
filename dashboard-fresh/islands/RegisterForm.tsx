@@ -304,13 +304,12 @@ export default function RegisterForm({ language, onSuccess }: RegisterFormProps)
 
       if (loginResponse.ok) {
         success.value = t.registrationComplete
-        if (onSuccess) {
-          onSuccess()
-        } else {
-          setTimeout(() => {
-            globalThis.location.href = '/'
-          }, 1000)
-        }
+
+        // For first-time registration, always redirect to MFA setup page
+        // Users can choose to skip MFA setup if they want
+        setTimeout(() => {
+          globalThis.location.href = '/panel/account?NeedSetupMfa=1'
+        }, 1000)
       } else {
         // Registration succeeded but login failed, redirect to login page
         setTimeout(() => {

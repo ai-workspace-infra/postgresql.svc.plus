@@ -49,7 +49,6 @@ interface LoginResponse {
   expiresAt?: string
   error?: string
   mfaToken?: string
-  needMfa?: boolean
   mfaEnabled?: boolean
 }
 
@@ -63,7 +62,6 @@ interface VerifyMfaResponse {
 interface ApiResponse {
   success: boolean
   error?: string | null
-  needMfa?: boolean
   mfaEnabled?: boolean
   exists?: boolean
   [key: string]: unknown
@@ -116,7 +114,6 @@ function errorResponse(
     {
       success: false,
       error,
-      needMfa: false,
       ...additionalData,
     },
     status,
@@ -253,61 +250,26 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
         {
           success: true,
           error: null,
-          needMfa: false,
         },
         200,
         headers,
       )
     }
 
-    // MFA required
+    // Authentication failed - MFA is determined by frontend precheck
+    // Note: Frontend should call GET /api/auth/mfa/status?identifier=email to check MFA status
     const errorCode = typeof data?.error === 'string' ? data.error : 'authentication_failed'
-    const needsMfa = Boolean(
-      data?.needMfa ||
-      errorCode === 'mfa_required' ||
-      errorCode === 'mfa_code_required' ||
-      errorCode === 'mfa_setup_required',
-    )
 
-    console.log('[login/handleLogin] Error code:', errorCode, 'Needs MFA:', needsMfa, 'Has mfaToken:', !!data?.mfaToken)
+    console.log('[login/handleLogin] ✗ Authentication failed:', errorCode, 'Has mfaToken:', !!data?.mfaToken)
 
-    // If MFA is required, return appropriate response
-    if (needsMfa) {
-      const headers = new Headers()
-
-      // If backend provided mfaToken, set it as cookie
-      if (data?.mfaToken) {
-        applyMfaCookie(headers, data.mfaToken)
-        console.log('[login/handleLogin] → MFA required, mfa_token set')
-      } else {
-        console.log('[login/handleLogin] → MFA required, but no mfaToken from backend')
-      }
-
-      clearSessionCookie(headers)
-
-      return jsonResponse(
-        {
-          success: false,
-          error: errorCode,
-          needMfa: true,
-        },
-        401,
-        headers,
-      )
-    }
-
-    // Authentication failed
     const headers = new Headers()
     clearSessionCookie(headers)
     clearMfaCookie(headers)
-
-    console.log('[login/handleLogin] ✗ Authentication failed:', errorCode)
 
     return jsonResponse(
       {
         success: false,
         error: errorCode,
-        needMfa: false,
       },
       status || 401,
       headers,
@@ -323,7 +285,6 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
       {
         success: false,
         error: 'account_service_unreachable',
-        needMfa: false,
       },
       502,
       headers,
@@ -376,7 +337,6 @@ async function handleVerifyMfa(
         {
           success: true,
           error: null,
-          needMfa: false,
         },
         200,
         headers,
@@ -388,7 +348,7 @@ async function handleVerifyMfa(
 
     console.log('[login] ✗ MFA verification failed:', errorCode)
 
-    return errorResponse(errorCode, status || 401, { needMfa: true })
+    return errorResponse(errorCode, status || 401)
   } catch (error) {
     console.error('[login] verify_mfa error:', error)
     return errorResponse('account_service_unreachable', 502)
@@ -476,7 +436,6 @@ export const handler: Handlers = {
       {
         success: true,
         error: null,
-        needMfa: false,
       },
       200,
       headers,
