@@ -239,6 +239,8 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
     console.log('[login/handleLogin] Calling proxy to backend...')
     const loginBody: Record<string, string> = { email, password }
     if (totpCode) {
+      // Try both field names for maximum compatibility
+      loginBody.totp = totpCode
       loginBody.totpCode = totpCode
       console.log('[login/handleLogin] → Including TOTP code in request:', totpCode)
     } else {
