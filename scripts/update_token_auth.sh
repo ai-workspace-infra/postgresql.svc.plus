@@ -65,7 +65,8 @@ update_config() {
     local file="$1"
     local public_token="$2"
     local refresh_secret="$3"
-    local dry_run="$4"
+    local access_secret="$4"
+    local dry_run="$5"
 
     log_info "更新配置文件: $file"
 
@@ -73,6 +74,7 @@ update_config() {
         log_info "[DRY RUN] 将要更新: $file"
         log_info "  Public Token: $public_token"
         log_info "  Refresh Secret: $refresh_secret"
+        log_info "  Access Secret: $access_secret"
         return
     fi
 
@@ -82,13 +84,13 @@ update_config() {
     # 使用 sed 更新配置
     # 注意: 这里假设 YAML 配置格式为特定的样式
     if [[ "$file" == *"dashboard-fresh"* ]]; then
-        # dashboard-fresh 配置格式
+        # dashboard-fresh 配置格式 (前端应用，只需 publicToken)
         sed -i '' -e "s/publicToken:.*/publicToken: \"$public_token\"/" "$file"
-        sed -i '' -e "s/refreshSecret:.*/refreshSecret: \"$refresh_secret\"/" "$file"
     else
-        # account 和 rag-server 配置格式
+        # account 和 rag-server 配置格式 (后端服务，需要所有字段)
         sed -i '' -e "s/publicToken:.*/publicToken: \"$public_token\"/" "$file"
         sed -i '' -e "s/refreshSecret:.*/refreshSecret: \"$refresh_secret\"/" "$file"
+        sed -i '' -e "s/accessSecret:.*/accessSecret: \"$access_secret\"/" "$file"
     fi
 
     log_success "已更新: $file"
@@ -123,19 +125,43 @@ validate_configs() {
         log_success "Public Token 一致"
     fi
 
-    # 提取并比较 Refresh Secret
-    local dashboard_refresh=$(grep "refreshSecret:" "$DASHBOARD_CONFIG" | awk '{print $2}' | tr -d '"')
+    # 提取并比较 Refresh Secret (dashboard-fresh 可能没有此字段)
     local account_refresh=$(grep "refreshSecret:" "$ACCOUNT_CONFIG" | awk '{print $2}' | tr -d '"')
     local rag_refresh=$(grep "refreshSecret:" "$RAG_CONFIG" | awk '{print $2}' | tr -d '"')
 
-    if [ "$dashboard_refresh" != "$account_refresh" ] || [ "$dashboard_refresh" != "$rag_refresh" ]; then
+    if [ "$account_refresh" != "$rag_refresh" ]; then
         log_error "Refresh Secret 不一致!"
-        log_error "  Dashboard: $dashboard_refresh"
         log_error "  Account: $account_refresh"
         log_error "  RAG: $rag_refresh"
         errors=$((errors + 1))
     else
         log_success "Refresh Secret 一致"
+    fi
+
+    # 提取并比较 Access Secret (仅检查 account 和 rag-server)
+    local account_access=$(grep "accessSecret:" "$ACCOUNT_CONFIG" | awk '{print $2}' | tr -d '"')
+    local rag_access=$(grep "accessSecret:" "$RAG_CONFIG" | awk '{print $2}' | tr -d '"')
+
+    if [ "$account_access" != "$rag_access" ]; then
+        log_error "Access Secret 不一致!"
+        log_error "  Account: $account_access"
+        log_error "  RAG: $rag_access"
+        errors=$((errors + 1))
+    else
+        log_success "Access Secret 一致"
+    fi
+
+    # 检查 auth.enable 字段
+    local account_auth_enabled=$(grep -A1 "^auth:" "$ACCOUNT_CONFIG" | grep "enable:" | awk '{print $2}')
+    local rag_auth_enabled=$(grep -A1 "^auth:" "$RAG_CONFIG" | grep "enable:" | awk '{print $2}')
+
+    if [ "$account_auth_enabled" != "$rag_auth_enabled" ]; then
+        log_error "Auth Enable 状态不一致!"
+        log_error "  Account: $account_auth_enabled"
+        log_error "  RAG: $rag_auth_enabled"
+        errors=$((errors + 1))
+    else
+        log_success "Auth Enable 状态一致"
     fi
 
     if [ $errors -eq 0 ]; then
@@ -153,11 +179,13 @@ generate_new_tokens() {
 
     local public_token="xcontrol-public-$(date +%Y%m%d)-$(openssl rand -hex 4)"
     local refresh_secret="xcontrol-refresh-$(date +%Y%m%d)-$(openssl rand -hex 16)"
+    local access_secret="xcontrol-access-$(date +%Y%m%d)-$(openssl rand -hex 32)"
 
     echo ""
     log_info "=== 新的密钥对 ==="
     echo "Public Token: $public_token"
     echo "Refresh Secret: $refresh_secret"
+    echo "Access Secret: $access_secret"
     echo ""
 
     read -p "确认生成新密钥? [y/N] " -n 1 -r
@@ -169,30 +197,33 @@ generate_new_tokens() {
 
     echo "$public_token" > /tmp/new_public_token.txt
     echo "$refresh_secret" > /tmp/new_refresh_secret.txt
+    echo "$access_secret" > /tmp/new_access_secret.txt
 
     log_success "新密钥已生成并保存到临时文件"
     log_info "临时文件位置:"
     log_info "  /tmp/new_public_token.txt"
     log_info "  /tmp/new_refresh_secret.txt"
+    log_info "  /tmp/new_access_secret.txt"
 }
 
 # 应用新密钥
 apply_new_tokens() {
     local dry_run="$1"
 
-    if [ ! -f "/tmp/new_public_token.txt" ] || [ ! -f "/tmp/new_refresh_secret.txt" ]; then
+    if [ ! -f "/tmp/new_public_token.txt" ] || [ ! -f "/tmp/new_refresh_secret.txt" ] || [ ! -f "/tmp/new_access_secret.txt" ]; then
         log_error "找不到新密钥文件，请先运行 --generate-new"
         exit 1
     fi
 
     local public_token=$(cat /tmp/new_public_token.txt)
     local refresh_secret=$(cat /tmp/new_refresh_secret.txt)
+    local access_secret=$(cat /tmp/new_access_secret.txt)
 
     log_info "应用新的密钥到配置文件..."
 
-    update_config "$DASHBOARD_CONFIG" "$public_token" "$refresh_secret" "$dry_run"
-    update_config "$ACCOUNT_CONFIG" "$public_token" "$refresh_secret" "$dry_run"
-    update_config "$RAG_CONFIG" "$public_token" "$refresh_secret" "$dry_run"
+    update_config "$DASHBOARD_CONFIG" "$public_token" "$refresh_secret" "$access_secret" "$dry_run"
+    update_config "$ACCOUNT_CONFIG" "$public_token" "$refresh_secret" "$access_secret" "$dry_run"
+    update_config "$RAG_CONFIG" "$public_token" "$refresh_secret" "$access_secret" "$dry_run"
 
     if [ "$dry_run" = "true" ]; then
         log_info "[DRY RUN] 完成预览模式"
@@ -200,7 +231,7 @@ apply_new_tokens() {
     fi
 
     # 清理临时文件
-    rm -f /tmp/new_public_token.txt /tmp/new_refresh_secret.txt
+    rm -f /tmp/new_public_token.txt /tmp/new_refresh_secret.txt /tmp/new_access_secret.txt
 
     log_success "所有配置文件已更新"
 

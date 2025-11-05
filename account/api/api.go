@@ -61,6 +61,7 @@ type handler struct {
 	resetMu                   sync.RWMutex
 	metricsProvider           service.UserMetricsProvider
 	agentStatusReader         agentStatusReader
+	tokenService              *auth.TokenService
 }
 
 type mfaChallenge struct {
@@ -167,6 +168,15 @@ func WithPasswordResetTTL(ttl time.Duration) Option {
 	}
 }
 
+// WithTokenService configures the handler with the provided token service.
+func WithTokenService(tokenService *auth.TokenService) Option {
+	return func(h *handler) {
+		if tokenService != nil {
+			h.tokenService = tokenService
+		}
+	}
+}
+
 // RegisterRoutes attaches account service endpoints to the router.
 func RegisterRoutes(r *gin.Engine, opts ...Option) {
 	h := &handler{
@@ -201,23 +211,35 @@ func RegisterRoutes(r *gin.Engine, opts ...Option) {
 
 	auth.POST("/login", h.login)
 
-	auth.GET("/session", h.session)
-	auth.DELETE("/session", h.deleteSession)
+	// Token exchange endpoint - converts public token to access/refresh tokens
+	auth.POST("/token/exchange", h.exchangeToken)
 
-	auth.POST("/mfa/totp/provision", h.provisionTOTP)
-	auth.POST("/mfa/totp/verify", h.verifyTOTP)
-	auth.POST("/mfa/disable", h.disableMFA)
-	auth.GET("/mfa/status", h.mfaStatus)
+	// Token refresh endpoint - generates new access token using refresh token
+	auth.POST("/token/refresh", h.refreshToken)
 
-	auth.POST("/password/reset", h.requestPasswordReset)
-	auth.POST("/password/reset/confirm", h.confirmPasswordReset)
+	// Protected routes requiring authentication
+	authProtected := auth.Group("")
+	if h.tokenService != nil {
+		authProtected.Use(h.tokenService.AuthMiddleware())
+	}
 
-	auth.POST("/config/sync", h.syncConfig)
+	authProtected.GET("/session", h.session)
+	authProtected.DELETE("/session", h.deleteSession)
 
-	auth.GET("/admin/settings", h.getAdminSettings)
-	auth.POST("/admin/settings", h.updateAdminSettings)
+	authProtected.POST("/mfa/totp/provision", h.provisionTOTP)
+	authProtected.POST("/mfa/totp/verify", h.verifyTOTP)
+	authProtected.POST("/mfa/disable", h.disableMFA)
+	authProtected.GET("/mfa/status", h.mfaStatus)
 
-	registerAdminRoutes(auth, h)
+	authProtected.POST("/password/reset", h.requestPasswordReset)
+	authProtected.POST("/password/reset/confirm", h.confirmPasswordReset)
+
+	authProtected.POST("/config/sync", h.syncConfig)
+
+	authProtected.GET("/admin/settings", h.getAdminSettings)
+	authProtected.POST("/admin/settings", h.updateAdminSettings)
+
+	registerAdminRoutes(authProtected, h)
 }
 
 type registerRequest struct {
@@ -880,6 +902,89 @@ func (h *handler) login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+type tokenRefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (h *handler) refreshToken(c *gin.Context) {
+	if h.tokenService == nil {
+		respondError(c, http.StatusServiceUnavailable, "token_service_unavailable", "token service is not configured")
+		return
+	}
+
+	var req tokenRefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid_request", "invalid request payload")
+		return
+	}
+
+	// Refresh access token
+	accessToken, err := h.tokenService.RefreshAccessToken(req.RefreshToken)
+	if err != nil {
+		respondError(c, http.StatusUnauthorized, "invalid_refresh_token", "invalid or expired refresh token")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"access_token": accessToken,
+		"token_type":   "Bearer",
+		"expires_in":   int64(h.tokenService.GetAccessTokenExpiry().Seconds()),
+	})
+}
+
+type tokenExchangeRequest struct {
+	PublicToken string `json:"public_token"`
+	UserID      string `json:"user_id"`
+	Email       string `json:"email"`
+	Roles       string `json:"roles"`
+}
+
+func (h *handler) exchangeToken(c *gin.Context) {
+	if h.tokenService == nil {
+		respondError(c, http.StatusServiceUnavailable, "token_service_unavailable", "token service is not configured")
+		return
+	}
+
+	var req tokenExchangeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid_request", "invalid request payload")
+		return
+	}
+
+	// Validate public token
+	if !h.tokenService.ValidatePublicToken(req.PublicToken) {
+		respondError(c, http.StatusUnauthorized, "invalid_public_token", "invalid public token")
+		return
+	}
+
+	// Parse roles
+	var roles []string
+	if req.Roles != "" {
+		roles = strings.Split(req.Roles, ",")
+		for i := range roles {
+			roles[i] = strings.TrimSpace(roles[i])
+		}
+	} else {
+		roles = []string{"user"}
+	}
+
+	// Generate token pair
+	tokenPair, err := h.tokenService.GenerateTokenPair(req.UserID, req.Email, roles)
+	if err != nil {
+		slog.Error("failed to generate token pair", "err", err)
+		respondError(c, http.StatusInternalServerError, "token_generation_failed", "failed to generate tokens")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"public_token":  tokenPair.PublicToken,
+		"access_token":  tokenPair.AccessToken,
+		"refresh_token": tokenPair.RefreshToken,
+		"token_type":    tokenPair.TokenType,
+		"expires_in":    tokenPair.ExpiresIn,
+	})
 }
 
 func (h *handler) findUserByIdentifier(ctx context.Context, identifier string) (*store.User, error) {

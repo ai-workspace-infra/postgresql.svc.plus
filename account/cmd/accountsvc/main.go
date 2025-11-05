@@ -27,6 +27,7 @@ import (
 	"xcontrol/account/internal/agentmode"
 	"xcontrol/account/internal/agentproto"
 	"xcontrol/account/internal/agentserver"
+	"xcontrol/account/internal/auth"
 	"xcontrol/account/internal/mailer"
 	"xcontrol/account/internal/model"
 	"xcontrol/account/internal/service"
@@ -135,6 +136,28 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		emailVerificationEnabled = false
 	}
 
+	// Initialize TokenService for authentication
+	var tokenService *auth.TokenService
+	if cfg.Auth.Enable {
+		accessExpiry := cfg.Auth.Token.AccessExpiry
+		if accessExpiry <= 0 {
+			accessExpiry = 1 * time.Hour
+		}
+		refreshExpiry := cfg.Auth.Token.RefreshExpiry
+		if refreshExpiry <= 0 {
+			refreshExpiry = 168 * time.Hour // 7 days
+		}
+
+		tokenService = auth.NewTokenService(auth.TokenConfig{
+			PublicToken:    cfg.Auth.Token.PublicToken,
+			RefreshSecret:  cfg.Auth.Token.RefreshSecret,
+			AccessSecret:   cfg.Auth.Token.AccessSecret,
+			AccessExpiry:   accessExpiry,
+			RefreshExpiry:  refreshExpiry,
+		})
+		logger.Info("token service initialized", "auth_enabled", cfg.Auth.Enable)
+	}
+
 	gormDB, gormCleanup, err := openAdminSettingsDB(cfg.Store)
 	if err != nil {
 		return err
@@ -217,6 +240,9 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		options = append(options, api.WithEmailSender(emailSender))
 	}
 	options = append(options, api.WithEmailVerification(emailVerificationEnabled))
+	if tokenService != nil {
+		options = append(options, api.WithTokenService(tokenService))
+	}
 	if agentRegistry != nil {
 		options = append(options, api.WithAgentStatusReader(agentRegistry))
 	}

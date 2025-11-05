@@ -24,6 +24,7 @@ type Config struct {
 	Server  Server  `yaml:"server"`
 	Store   Store   `yaml:"store"`
 	Session Session `yaml:"session"`
+	Auth    Auth    `yaml:"auth"`
 	SMTP    SMTP    `yaml:"smtp"`
 	Xray    Xray    `yaml:"xray"`
 	Agent   Agent   `yaml:"agent"`
@@ -71,6 +72,21 @@ type Store struct {
 // Session defines session management configuration.
 type Session struct {
 	TTL time.Duration `yaml:"ttl"`
+}
+
+// Auth defines authentication configuration.
+type Auth struct {
+	Enable bool   `yaml:"enable"`
+	Token  Token  `yaml:"token"`
+}
+
+// Token defines token authentication configuration.
+type Token struct {
+	PublicToken    string        `yaml:"publicToken"`
+	RefreshSecret  string        `yaml:"refreshSecret"`
+	AccessSecret   string        `yaml:"accessSecret"`
+	AccessExpiry   time.Duration `yaml:"accessExpiry"`
+	RefreshExpiry  time.Duration `yaml:"refreshExpiry"`
 }
 
 // SMTP defines outbound SMTP configuration used for transactional email.
