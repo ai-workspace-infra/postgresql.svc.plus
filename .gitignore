@@ -35,3 +35,24 @@ dashboard/.yarn/
 dashboard/config/.runtime-env-config.yaml
 dashboard/config/.runtime-env-config.cn.yaml
 dashboard/config/.runtime-env-config.global.yaml
+
+# Test files and test data
+tests/local/
+tests/output/
+tests/temp/
+test-results/
+*.test.log
+*.test.output
+coverage/
+.nyc_output/
+*.test-cache/
+*.test-data/
+.env.test
+.env.local
+.env.*.local
+
+# Build artifacts
+build/
+dist/
+out/
+target/

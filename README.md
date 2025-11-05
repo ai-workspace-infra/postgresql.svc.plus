@@ -15,15 +15,15 @@ All UI components provide both Chinese and English interfaces.
 
 ## Tech Stack
 
-| Category         | Technology            | Version                    |
-|------------------|-----------------------|----------------------------|
-| Gateway          | OpenResty             | 1.27.1.2                   |
-| BackendFramework | Go                    | 1.24                       |
-| FrontFramework   | Next.js/Node.js/Yarn  | 14.1.0/v22.20.0/4.10.3     |
-| Cache            | Redis                 | 8.2.0                      |
-| Database         | PostgreSQL + pgvector | 14.18                      |
-| Model (Local)    | HuggingFace Hub + Ollama | baai/bge-m3, llama2:13b |
-| Model (Online)   | Chutes.AI  | baai/bge-m3, moonshotai/Kimi-K2-Instruct |
+| Category         | Technology                 | Version                    |
+|------------------|----------------------------|----------------------------|
+| Gateway          | OpenResty                  | 1.27.1.2                   |
+| BackendFramework | Go                         | 1.24                       |
+| FrontFramework   | Deno/Fresh/Preact/signals  | 2.5.6/v1.7.3/10.22.0/1.2.2 |
+| Cache            | Redis                      | 8.2.0                      |
+| Database         | PostgreSQL + pgvector      | 16                         |
+| Model (Local)    | HuggingFace Hub + Ollama | baai/bge-m3, llama2:13b      |
+| Model (Online)   | Chutes.AI  | baai/bge-m3, moonshotai/Kimi-K2-Instruct   |
 
 ## LangChainGo 核心功能集成一览
 
