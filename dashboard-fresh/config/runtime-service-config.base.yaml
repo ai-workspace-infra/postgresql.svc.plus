@@ -8,5 +8,4 @@ logLevel: info
 auth:
   enable: true
   token:
-    # Fixed token authentication mechanism
-    publicToken: "xcontrol-public-token-2024"
+    publicToken: "xcontrol-public-20251105-d20810c2"
