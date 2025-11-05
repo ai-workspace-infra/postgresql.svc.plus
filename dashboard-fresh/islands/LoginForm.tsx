@@ -257,14 +257,15 @@ export default function LoginForm({ language, initialEmail = '', onSuccess }: Lo
 
       if (onSuccess) {
         onSuccess()
+      } else {
+        // Fallback: redirect if no onSuccess callback provided
+        setTimeout(() => {
+          globalThis.location.href = '/panel'
+        }, 1000)
       }
 
-      // Always redirect after login success (backup mechanism)
-      setTimeout(() => {
-        globalThis.location.href = '/panel'
-      }, 1000)
-
       // Trigger global event to notify other components of login success
+      // This allows Navbar and other components to update their state
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('login-success'))
       }

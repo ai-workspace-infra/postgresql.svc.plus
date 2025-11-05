@@ -244,7 +244,7 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
       // Try both field names for maximum compatibility
       loginBody.totp = totpCode
       loginBody.totpCode = totpCode
-      console.log('[login/handleLogin] → Including TOTP code in request:', totpCode)
+      console.log('[login/handleLogin] → Including TOTP code in request: [REDACTED]')
     } else {
       console.log('[login/handleLogin] → No TOTP code provided')
     }
