@@ -160,10 +160,18 @@ type ServerCfg struct {
 	AllowedOrigins []string `yaml:"allowedOrigins"`
 }
 
+type AuthCfg struct {
+	Enable      bool   `yaml:"enable"`
+	AuthURL     string `yaml:"authUrl"`
+	APIBaseURL  string `yaml:"apiBaseUrl"`
+	PublicToken string `yaml:"publicToken"`
+}
+
 type Config struct {
 	Log    Log    `yaml:"log"`
 	Global Global `yaml:"global"`
 	Sync   Sync   `yaml:"sync"`
+	Auth   AuthCfg `yaml:"auth"`
 	Models struct {
 		Embedder  ModelCfg `yaml:"embedder"`
 		Generator ModelCfg `yaml:"generator"`

@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/cobra"
@@ -18,6 +19,7 @@ import (
 	"xcontrol/rag-server"
 	"xcontrol/rag-server/api"
 	"xcontrol/rag-server/config"
+	"xcontrol/rag-server/internal/auth"
 	rconfig "xcontrol/rag-server/internal/rag/config"
 	"xcontrol/rag-server/proxy"
 )
@@ -112,6 +114,45 @@ var rootCmd = &cobra.Command{
 		r := server.New(
 			api.RegisterRoutes(conn, cfg.Sync.Repo.Proxy),
 		)
+
+		// 启用认证中间件
+		if cfg.Auth.Enable {
+			logger.Info("enabling authentication middleware")
+
+			// 创建认证客户端
+			authConfig := auth.DefaultConfig()
+			authConfig.AuthURL = cfg.Auth.AuthURL
+			authConfig.PublicToken = cfg.Auth.PublicToken
+
+			authClient := auth.NewAuthClient(authConfig)
+
+			// 创建中间件配置
+			middlewareConfig := auth.DefaultMiddlewareConfig(authClient)
+
+			// 添加健康检查跳过路径
+			middlewareConfig.SkipPaths = append(middlewareConfig.SkipPaths, "/healthz", "/ping")
+
+			// 应用中间件（全局）
+			r.Use(auth.VerifyTokenMiddleware(middlewareConfig))
+
+			// 添加健康检查路由
+			r.GET("/healthz", auth.HealthCheckHandler(authClient))
+			r.GET("/ping", auth.HealthCheckHandler(authClient))
+
+			logger.Info("authentication middleware enabled",
+				"auth_url", cfg.Auth.AuthURL,
+				"cache_ttl", middlewareConfig.CacheTTL.String(),
+			)
+		} else {
+			logger.Warn("authentication is disabled")
+			r.GET("/healthz", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{
+					"status": "ok",
+					"auth":   "disabled",
+				})
+			})
+		}
+
 		server.UseCORS(r, logger, cfg.Server)
 
 		addr := cfg.Server.Addr

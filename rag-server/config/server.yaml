@@ -15,13 +15,9 @@ server:
 
 auth:
   enable: true
-  token:
-    # Fixed token authentication mechanism
-    publicToken: "xcontrol-public-token-2024"
-    refreshSecret: "xcontrol-refresh-secret-2024"
-    accessSecret: "xcontrol-access-secret-2024"
-    accessExpiry: "1h"
-    refreshExpiry: "168h"
+  authUrl: "https://accounts.svc.plus"
+  apiBaseUrl: "https://api.svc.plus"
+  publicToken: "xcontrol-public-token-2025"
 
 global:
   redis:
