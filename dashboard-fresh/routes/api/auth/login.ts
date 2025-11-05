@@ -137,7 +137,12 @@ async function proxy<T>(
   const authUrl = await getAuthUrl()
   const url = `${authUrl}${endpoint}`
 
-  console.log(`[login-proxy] → ${endpoint}`, { email: body.email || 'N/A' })
+  console.log(`[login-proxy] → ${endpoint}`, {
+    email: body.email || 'N/A',
+    hasPassword: !!body.password,
+    hasTotp: !!body.totpCode,
+    totp: body.totpCode || 'N/A',
+  })
 
   try {
     const response = await fetch(url, {
@@ -154,6 +159,9 @@ async function proxy<T>(
     console.log(`[login-proxy] ← ${endpoint} [${response.status}]`, {
       ok: response.ok,
       hasData: !!data,
+      hasToken: !!data?.token,
+      hasMfaToken: !!data?.mfaToken,
+      error: data?.error,
     })
 
     return {
@@ -232,11 +240,17 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
     const loginBody: Record<string, string> = { email, password }
     if (totpCode) {
       loginBody.totpCode = totpCode
+      console.log('[login/handleLogin] → Including TOTP code in request:', totpCode)
+    } else {
+      console.log('[login/handleLogin] → No TOTP code provided')
     }
+
+    console.log('[login/handleLogin] → Request body:', loginBody)
 
     const { ok, status, data } = await proxy<LoginResponse>('/api/auth/login', loginBody)
 
     console.log('[login/handleLogin] Backend response - ok:', ok, 'status:', status)
+    console.log('[login/handleLogin] Backend response data:', JSON.stringify(data, null, 2))
 
     // Successful login with token
     if (ok && data?.token) {
