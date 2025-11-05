@@ -28,22 +28,21 @@
       "@templates/*": ["src/templates/*"],
       "@src/*": ["src/*"]
     },
-    "types": ["node"],
-    "plugins": [{ "name": "next" }]
+    "types": ["node"]
   },
   "include": [
-    "app",
     "config",
     "cms",
     "components",
     "i18n",
     "lib",
-    "ui",
     "src",
     "server",
-    "src",
     "types",
-    ".next/types/**/*.ts"
+    "routes",
+    "islands",
+    "api",
+    "static"
   ],
   "exclude": ["node_modules"]
 }
