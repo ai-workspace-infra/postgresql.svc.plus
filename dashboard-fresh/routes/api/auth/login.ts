@@ -89,6 +89,87 @@ function normalizeCode(value: unknown): string {
 }
 
 /**
+ * Redact sensitive fields from logs
+ *
+ * SECURITY: This function prevents accidental logging of sensitive information
+ * such as passwords, tokens, MFA secrets, etc.
+ *
+ * Redacted fields: password, token, accessToken, refreshToken, mfaToken,
+ *                  mfaTotpSecret, totp, totpCode, code, secret, privateKey
+ */
+function redactSensitiveFields<T extends Record<string, unknown>>(obj: T): T {
+  const sensitiveKeys = [
+    'password',
+    'token',
+    'accessToken',
+    'refreshToken',
+    'mfaToken',
+    'mfaTotpSecret',
+    'totp',
+    'totpCode',
+    'code',
+    'secret',
+    'privateKey',
+    'private_key',
+  ]
+
+  const redacted = { ...obj }
+
+  // Redact top-level sensitive fields
+  for (const key of sensitiveKeys) {
+    if (key in redacted) {
+      redacted[key as keyof T] = '[REDACTED]' as unknown as T[keyof T]
+    }
+  }
+
+  // Redact nested objects
+  for (const [key, value] of Object.entries(redacted)) {
+    if (value && typeof value === 'object' && !(value instanceof Date)) {
+      redacted[key as keyof T] = redactSensitiveFields(value as Record<string, unknown>) as unknown as T[keyof T]
+    }
+  }
+
+  return redacted
+}
+
+/**
+ * Mask email address (show first 3 and last 2 chars)
+ *
+ * Example: manbuzhe2009@qq.com → man***09@qq.com
+ *          user@example.com      → use***@example.com
+ *
+ * SECURITY: Prevents full email address from appearing in logs
+ */
+function maskEmail(email: string): string {
+  if (!email || !email.includes('@')) return email
+  const [username, domain] = email.split('@')
+  if (username.length <= 5) return `${username[0]}***@${domain}`
+  return `${username.substring(0, 3)}***${username.slice(-2)}@${domain}`
+}
+
+/**
+ * Create safe log object with masked fields
+ *
+ * SECURITY: Automatically masks emails and redacts sensitive fields
+ * Use this instead of direct logging for any data that might contain
+ * personal or authentication information.
+ *
+ * @param obj - Object to sanitize
+ * @returns Sanitized object safe for logging
+ */
+function safeLog(obj: Record<string, unknown>): Record<string, unknown> {
+  const safe = { ...obj }
+
+  // Mask email
+  if (safe.email && typeof safe.email === 'string') {
+    safe.email = maskEmail(safe.email)
+  }
+
+  // Redact sensitive fields
+  return redactSensitiveFields(safe)
+}
+
+/**
  * Create standard JSON response
  */
 function jsonResponse(data: ApiResponse, status = 200, headers?: HeadersInit): Response {
@@ -138,10 +219,10 @@ async function proxy<T>(
   const url = `${authUrl}${endpoint}`
 
   console.log(`[login-proxy] → ${endpoint}`, {
-    email: body.email || 'N/A',
+    email: body.email ? maskEmail(String(body.email)) : 'N/A',
     hasPassword: !!body.password,
     hasTotp: !!body.totpCode,
-    totp: body.totpCode || 'N/A',
+    totp: body.totpCode ? '[REDACTED]' : 'N/A',
   })
 
   try {
@@ -156,13 +237,14 @@ async function proxy<T>(
 
     const data = await response.json().catch(() => ({})) as T
 
-    console.log(`[login-proxy] ← ${endpoint} [${response.status}]`, {
+    console.log(`[login-proxy] ← ${endpoint} [${response.status}]`, safeLog({
       ok: response.ok,
       hasData: !!data,
       hasToken: !!data?.token,
       hasMfaToken: !!data?.mfaToken,
       error: data?.error,
-    })
+      ...data,
+    }))
 
     return {
       ok: response.ok,
@@ -225,7 +307,7 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
   const remember = Boolean(payload?.remember)
   const totpCode = normalizeCode(payload?.totp)
 
-  console.log('[login/handleLogin] Email:', email || '(empty)')
+  console.log('[login/handleLogin] Email:', email ? maskEmail(email) : '(empty)')
   console.log('[login/handleLogin] Has password:', !!password)
   console.log('[login/handleLogin] Remember:', remember)
   console.log('[login/handleLogin] Has TOTP:', !!totpCode)
@@ -247,12 +329,16 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
       console.log('[login/handleLogin] → No TOTP code provided')
     }
 
-    console.log('[login/handleLogin] → Request body:', loginBody)
+    console.log('[login/handleLogin] → Request body:', safeLog(loginBody))
 
     const { ok, status, data } = await proxy<LoginResponse>('/api/auth/login', loginBody)
 
     console.log('[login/handleLogin] Backend response - ok:', ok, 'status:', status)
-    console.log('[login/handleLogin] Backend response data:', JSON.stringify(data, null, 2))
+    console.log('[login/handleLogin] Backend response:', {
+      status: status,
+      ok: ok,
+      ...safeLog(data),
+    })
 
     // Successful login with token
     if (ok && data?.token) {
