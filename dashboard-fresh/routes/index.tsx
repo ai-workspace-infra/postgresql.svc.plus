@@ -14,6 +14,7 @@ import { DOMParser } from 'https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts
 // Import Islands for client-side interactivity
 import Navbar from '@/islands/Navbar.tsx'
 import AskAIButton from '@/islands/AskAIButton.tsx'
+// import ShowcaseCarousel from '@/islands/home/ShowcaseCarousel.tsx'
 
 // Supported languages
 type Language = 'zh' | 'en'
@@ -250,28 +251,40 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
       <Navbar language={language} user={user} pathname="/" />
 
       {/* Main Content with offset for fixed navbar */}
-      <main class="relative flex flex-col bg-brand-surface text-brand-heading pt-24">
-        {/* Hero Section - Operations */}
-        <header class="relative isolate overflow-hidden py-20 sm:py-24">
-          <div class="absolute inset-0 bg-gradient-to-b from-brand via-brand/70 to-transparent" aria-hidden />
-          <div class="absolute -right-32 top-10 h-64 w-64 rounded-full bg-white/20 blur-3xl" aria-hidden />
+      <main
+        class="relative flex flex-col bg-gradient-to-br from-sky-50 via-indigo-50/30 to-white text-slate-900"
+        style="padding-top: var(--app-shell-nav-offset, 4rem)"
+      >
+        {/* Hero Section - Improved Design */}
+        <header class="relative isolate overflow-hidden pt-16 pb-20 md:pt-24 md:pb-32">
+          {/* Decorative blur elements for 2C visual appeal */}
+          <div class="pointer-events-none absolute inset-0 overflow-hidden">
+            <div class="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-sky-200/30 blur-3xl" />
+            <div class="absolute top-1/2 -left-40 h-96 w-96 rounded-full bg-indigo-200/20 blur-3xl" />
+            <div class="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-purple-200/20 blur-3xl" />
+          </div>
+
           <div class="relative px-4 sm:px-6 lg:px-8">
             <div class="mx-auto w-full max-w-6xl">
-              <div class="rounded-3xl border border-white/30 bg-white/10 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.18)] backdrop-blur-lg sm:p-10 lg:p-12">
+              <div class="rounded-3xl border border-sky-200/50 bg-white/80 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.08)] backdrop-blur-lg sm:p-10 lg:p-12">
                 {shouldFallbackHero ? (
                   <div
-                    class="prose prose-invert max-w-none text-white/90"
+                    class="prose prose-slate max-w-none"
                     dangerouslySetInnerHTML={{ __html: sections.operations.html }}
                   />
                 ) : (
                   <div class="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-12">
-                    <div class="space-y-6 text-white">
+                    <div class="space-y-6">
                       <div class="flex flex-wrap items-center gap-3">
-                        <span class="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em]">
+                        <span class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.35em] text-sky-700 shadow-sm">
+                          <span class="flex h-2 w-2">
+                            <span class="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-sky-400 opacity-75" />
+                            <span class="relative inline-flex h-2 w-2 rounded-full bg-sky-500" />
+                          </span>
                           CloudNative Suite
                         </span>
                         {operationsUpdated && (
-                          <span class="text-xs text-white/80">
+                          <span class="text-xs text-slate-600">
                             {language === 'zh'
                               ? `最近更新 · ${operationsUpdated}`
                               : `Last updated · ${operationsUpdated}`}
@@ -279,11 +292,11 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
                         )}
                       </div>
                       {heroContent.heading && (
-                        <h1 class="text-[32px] font-bold leading-tight sm:text-[36px]">
+                        <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
                           {heroContent.heading}
                         </h1>
                       )}
-                      <div class="space-y-4 text-base text-white/85">
+                      <div class="max-w-[70ch] space-y-4 text-lg text-slate-600">
                         {heroContent.paragraphs.map((paragraph, index) => (
                           <p
                             key={index}
@@ -292,30 +305,39 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
                           />
                         ))}
                       </div>
-                      <div class="flex flex-wrap gap-3 pt-2 text-sm font-semibold">
+                      <div class="flex flex-wrap gap-4 pt-2">
                         <a
                           href="/demo"
-                          class="inline-flex items-center rounded-full bg-white px-5 py-2 text-brand shadow-[0_4px_20px_rgba(51,102,255,0.25)] transition hover:bg-brand-light hover:text-white"
+                          class="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-100"
                         >
-                          {primaryCtaLabel}
+                          <span class="absolute inset-0 bg-gradient-to-r from-sky-700 to-indigo-700 opacity-0 transition-opacity group-hover:opacity-100" />
+                          <span class="relative">{primaryCtaLabel}</span>
+                          <svg class="relative h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
                         </a>
                         <a
                           href="/download"
-                          class="inline-flex items-center rounded-full border border-white/40 px-5 py-2 text-white/85 transition hover:border-white hover:text-white"
+                          class="group inline-flex items-center justify-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-8 py-4 font-semibold text-slate-900 shadow-sm transition-all hover:border-sky-400 hover:bg-slate-50 hover:shadow-md active:scale-95"
                         >
-                          {secondaryCtaLabel}
+                          <span>{secondaryCtaLabel}</span>
+                          <svg class="h-5 w-5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
                         </a>
                       </div>
                     </div>
                     {heroContent.highlights.length > 0 && (
-                      <div class="space-y-4 rounded-2xl border border-white/20 bg-white/10 p-6 text-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-                        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/90">
+                      <div class="space-y-4 rounded-2xl border border-sky-200/50 bg-sky-50/50 p-6 shadow-lg backdrop-blur-sm">
+                        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-sky-700">
                           {language === 'zh' ? '核心能力' : 'Key Capabilities'}
                         </p>
                         <ul class="space-y-3 text-sm">
                           {heroContent.highlights.map((item, index) => (
-                            <li key={index} class="flex items-start gap-3">
-                              <span class="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-white" aria-hidden />
+                            <li key={index} class="flex items-start gap-3 text-slate-700">
+                              <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                              </svg>
                               <span
                                 class="leading-relaxed"
                                 dangerouslySetInnerHTML={{ __html: item.html }}
@@ -331,6 +353,9 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
             </div>
           </div>
         </header>
+
+        {/* Showcase Carousel - New Interactive Section */}
+        {/* <ShowcaseCarousel /> */}
 
         {/* Main Content Sections */}
         <section class="relative isolate py-20 sm:py-24">

@@ -37,6 +37,18 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
 
   const isHiddenRoute = pathname ? ['/login', '/register'].some((prefix) => pathname.startsWith(prefix)) : false
 
+  // Generate language toggle URL that preserves current path and params
+  const getLanguageToggleUrl = () => {
+    if (typeof window === 'undefined') {
+      // Server-side fallback
+      return language === 'zh' ? '?lang=en' : '?lang=zh'
+    }
+    const newLang = language === 'zh' ? 'en' : 'zh'
+    const url = new URL(window.location.href)
+    url.searchParams.set('lang', newLang)
+    return `${url.pathname}${url.search}`
+  }
+
   const isChinese = language === 'zh'
   const labels = {
     home: isChinese ? '首页' : 'Home',
@@ -267,7 +279,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
 
             {/* Language Toggle */}
             <a
-              href={language === 'zh' ? '?lang=en' : '?lang=zh'}
+              href={getLanguageToggleUrl()}
               class="rounded-full border border-brand-border px-3 py-1.5 text-sm text-brand-heading transition hover:border-brand hover:bg-brand-surface"
             >
               {language === 'zh' ? 'English' : '中文'}
@@ -414,7 +426,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
 
             <div class="flex flex-col gap-2">
               <a
-                href={language === 'zh' ? '?lang=en' : '?lang=zh'}
+                href={getLanguageToggleUrl()}
                 class="rounded-lg border border-brand-border px-3 py-2 text-sm text-brand-heading transition hover:bg-brand-surface"
               >
                 {language === 'zh' ? 'Switch to English' : '切换到中文'}

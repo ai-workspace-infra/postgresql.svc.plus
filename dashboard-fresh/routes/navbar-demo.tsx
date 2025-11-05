@@ -33,7 +33,7 @@ export default function NavbarDemoPage(props: PageProps) {
       <Navbar language={language} user={user} pathname={props.url.pathname} />
 
       {/* Main content with offset for fixed navbar */}
-      <main class="min-h-screen bg-brand-surface pt-24">
+      <main class="min-h-screen bg-brand-surface" style="padding-top: var(--app-shell-nav-offset, 6rem)">
         <div class="mx-auto max-w-7xl px-6 py-12 sm:px-8">
           <div class="space-y-8">
             {/* Header */}

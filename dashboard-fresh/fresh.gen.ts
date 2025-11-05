@@ -28,6 +28,7 @@ import * as $MobileMenu from './islands/MobileMenu.tsx'
 import * as $Navbar from './islands/Navbar.tsx'
 import * as $RegisterForm from './islands/RegisterForm.tsx'
 import * as $SearchDialog from './islands/SearchDialog.tsx'
+import * as $home_ShowcaseCarousel from './islands/home/ShowcaseCarousel.tsx'
 import * as $panel_Header from './islands/panel/Header.tsx'
 import * as $panel_PanelLayout from './islands/panel/PanelLayout.tsx'
 import * as $panel_Sidebar from './islands/panel/Sidebar.tsx'
@@ -63,6 +64,7 @@ const manifest = {
     './islands/Navbar.tsx': $Navbar,
     './islands/RegisterForm.tsx': $RegisterForm,
     './islands/SearchDialog.tsx': $SearchDialog,
+    './islands/home/ShowcaseCarousel.tsx': $home_ShowcaseCarousel,
     './islands/panel/Header.tsx': $panel_Header,
     './islands/panel/PanelLayout.tsx': $panel_PanelLayout,
     './islands/panel/Sidebar.tsx': $panel_Sidebar,
