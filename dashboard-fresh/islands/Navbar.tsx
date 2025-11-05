@@ -7,6 +7,7 @@
 
 import { useSignal, useComputed, useSignalEffect } from '@preact/signals'
 import { useEffect, useRef } from 'preact/hooks'
+import UserMenu from '@/islands/UserMenu.tsx'
 
 interface NavItem {
   key: string
@@ -30,10 +31,8 @@ interface NavbarProps {
 export default function Navbar({ language, user, pathname = '/' }: NavbarProps) {
   const menuOpen = useSignal(false)
   const mobileServicesOpen = useSignal(false)
-  const accountMenuOpen = useSignal(false)
   const searchValue = useSignal('')
   const navRef = useRef<HTMLElement>(null)
-  const accountMenuRef = useRef<HTMLDivElement>(null)
 
   const isHiddenRoute = pathname ? ['/login', '/register'].some((prefix) => pathname.startsWith(prefix)) : false
 
@@ -56,15 +55,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
     download: isChinese ? '下载' : 'Download',
     moreServices: isChinese ? '更多服务' : 'More services',
     searchPlaceholder: isChinese ? '请输入关键字搜索内容' : 'Ask anything about your docs',
-    login: isChinese ? '登录' : 'Login',
-    register: isChinese ? '注册' : 'Register',
-    userCenter: isChinese ? '个人中心' : 'User Center',
-    logout: isChinese ? '退出登录' : 'Logout',
   }
-
-  const accountInitial = useComputed(() =>
-    user?.username?.charAt(0)?.toUpperCase() ?? user?.email?.charAt(0)?.toUpperCase() ?? '?'
-  )
 
   const mainLinks: NavItem[] = [
     { key: 'home', label: labels.home, href: '/' },
@@ -77,22 +68,6 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
     { key: 'cloudIac', label: isChinese ? '云原生 IaC' : 'Cloud IaC', href: '/cloud_iac' },
     { key: 'insight', label: isChinese ? '可观测性' : 'Observability', href: '/insight' },
   ]
-
-  // Handle click outside for account menu
-  useEffect(() => {
-    if (!accountMenuOpen.value) return
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
-        accountMenuOpen.value = false
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [accountMenuOpen.value])
 
   // Update CSS variable for navbar offset
   useEffect(() => {
@@ -215,56 +190,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
               </button>
             </form>
 
-            {user ? (
-              <div class="relative" ref={accountMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => (accountMenuOpen.value = !accountMenuOpen.value)}
-                  class="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white shadow-[0_4px_12px_rgba(51,102,255,0.3)] transition hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand/30 focus:ring-offset-2"
-                  aria-haspopup="menu"
-                  aria-expanded={accountMenuOpen.value}
-                >
-                  {accountInitial}
-                </button>
-                {accountMenuOpen.value && (
-                  <div class="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-brand-border bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
-                    <div class="border-b border-brand-border/60 bg-brand-surface px-4 py-3">
-                      <p class="text-sm font-semibold text-brand-heading">{user.username}</p>
-                      <p class="text-xs text-brand-heading/70">{user.email}</p>
-                    </div>
-                    <div class="py-1 text-sm text-brand-heading">
-                      <a
-                        href="/panel"
-                        class="block px-4 py-2 transition hover:bg-brand-surface"
-                        onClick={() => (accountMenuOpen.value = false)}
-                      >
-                        {labels.userCenter}
-                      </a>
-                      <a
-                        href="/logout"
-                        class="flex w-full items-center px-4 py-2 text-left text-red-600 hover:bg-red-50"
-                        onClick={() => (accountMenuOpen.value = false)}
-                      >
-                        {labels.logout}
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div class="flex items-center gap-3 text-sm font-medium text-brand-heading">
-                <a href="/login" class="transition hover:text-brand">
-                  {labels.login}
-                </a>
-                <span class="h-3 w-px bg-gray-300" aria-hidden="true" />
-                <a
-                  href="/register"
-                  class="rounded-full border border-brand-border px-4 py-1.5 text-brand transition hover:border-brand hover:bg-brand-surface"
-                >
-                  {labels.register}
-                </a>
-              </div>
-            )}
+            <UserMenu user={user} language={language} />
 
             {/* Mail Icon */}
             <a
@@ -382,47 +308,9 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
               )}
             </div>
 
-            {user ? (
-              <div class="rounded-xl border border-brand-border bg-white p-4 text-brand-heading shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-                <div class="flex items-center gap-3">
-                  <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white">
-                    {accountInitial}
-                  </span>
-                  <div>
-                    <p class="text-sm font-semibold">{user.username}</p>
-                    <p class="text-xs text-brand-heading/60">{user.email}</p>
-                  </div>
-                </div>
-                <a
-                  href="/panel"
-                  class="mt-3 inline-flex items-center justify-center rounded-lg border border-brand-border bg-white px-3 py-1.5 text-xs font-semibold text-brand transition hover:border-brand hover:text-brand-light"
-                  onClick={() => (menuOpen.value = false)}
-                >
-                  {labels.userCenter}
-                </a>
-                <a
-                  href="/logout"
-                  class="mt-3 inline-flex items-center justify-center rounded-lg border border-brand-border px-3 py-1.5 text-xs font-semibold text-brand transition hover:border-brand hover:bg-brand-surface focus:outline-none focus:ring-2 focus:ring-brand/30 focus:ring-offset-2"
-                  onClick={() => (menuOpen.value = false)}
-                >
-                  {labels.logout}
-                </a>
-              </div>
-            ) : (
-              <div class="flex items-center gap-3 text-sm font-medium text-gray-700">
-                <a href="/login" class="py-2" onClick={() => (menuOpen.value = false)}>
-                  {labels.login}
-                </a>
-                <span class="h-3 w-px bg-gray-300" aria-hidden="true" />
-                <a
-                  href="/register"
-                  class="rounded-full border border-brand-border px-4 py-1.5 text-brand transition hover:border-brand hover:bg-brand-surface"
-                  onClick={() => (menuOpen.value = false)}
-                >
-                  {labels.register}
-                </a>
-              </div>
-            )}
+            <div onClick={() => (menuOpen.value = false)}>
+              <UserMenu user={user} language={language} />
+            </div>
 
             <div class="flex flex-col gap-2">
               <a
