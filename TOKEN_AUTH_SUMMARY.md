@@ -1,5 +1,55 @@
 # Token Auth 双层签发 - 实现总结
 
+xcontrol-account（Go 后端）路由接口
+
+Endpoint	Method	使用密钥	说明
+/api/auth/exchange	POST	publicToken 验证	从公共令牌换取 Access Token
+/api/auth/refresh	POST	refreshSecret 签发	刷新 Access Token
+/api/auth/verify	GET	accessSecret 验证	验证 Access Token
+
+
+# xcontrol-account（Go 后端）配置
+
+auth:
+  enable: true
+  token:
+    publicToken: "xcontrol-public-token-2025"
+    refreshSecret: "xcontrol-refresh-secret-2025"
+    accessSecret: "xcontrol-access-secret-2025"
+    accessExpiry: "1h"     # access token 生命周期
+    refreshExpiry: "168h"  # refresh token 生命周期 (7 天)
+
+环境变量加载
+
+export PUBLIC_TOKEN="xcontrol-public-token-2025"
+export REFRESH_SECRET="xcontrol-refresh-secret-2025"
+export ACCESS_SECRET="xcontrol-access-secret-2025"
+
+# RAG-Sever（Go 后端）配置
+
+只保留公钥部分：
+auth:
+  enable: true
+  token:
+    publicToken: "xcontrol-public-token-2025"
+  apiBaseUrl: "https://api.svc.plus"
+  authUrl: "https://accounts.svc.plus"
+
+# dashboard-fresh（Deno 前端）配置
+✅ 1. config/runtime-service-config.prod.yaml
+
+只保留公钥部分：
+
+auth:
+  enable: true
+  token:
+    publicToken: "xcontrol-public-token-2025"
+  apiBaseUrl: "https://api.svc.plus"
+  authUrl: "https://accounts.svc.plus"
+
+
+🚫 不要保存 refreshSecret 或 accessSecret，前端永远不持有私钥。
+
 ## 🎉 完成项目
 
 本项目成功实现了 **Public + Refresh + JWT access_token** 三层认证机制，涵盖 Go 后端和 Deno 前端。
@@ -237,3 +287,57 @@ bash scripts/update_token_auth.sh --rotate --dry-run
 **项目状态**: ✅ 完成
 **创建日期**: 2025-11-05
 **版本**: v1.0
+
+
+实现的功能
+
+  1. 双层签发机制 (JWT + Exchange Endpoint) ✓
+  - Public Token: 客户端标识和认证
+  - Access Token: JWT (HS256) 用于 API 访问
+  - Refresh Token: JWT 用于刷新 access token
+  - Exchange Endpoint: /api/auth/token/exchange - 将 public token 转换为 token 对
+  - Refresh Endpoint: /api/auth/token/refresh - 刷新 access token
+
+  2. 配置支持 ✓
+  - auth.enable: true - 默认开启，可选关闭
+  - auth.token.publicToken - Public token
+  - auth.token.refreshSecret - Refresh token 密钥
+  - auth.token.accessSecret - Access token 密钥
+  - auth.token.accessExpiry: "1h" - Access token 过期时间
+  - auth.token.refreshExpiry: "168h" - Refresh token 过期时间 (7天)
+
+  3. 服务集成 ✓
+  - account 服务: 完整实现 TokenService 和认证中间件
+  - rag-server 服务: 配置已同步
+  - dashboard-fresh 服务: 前端配置已同步
+
+  4. 测试验证 ✓
+  - 所有 dry-run 测试通过 (6/6)
+  - 配置文件一致性验证通过
+  - 更新脚本正常工作
+
+  Commit: 3e4fc9cFiles modified: 7 files, 212 insertions(+), 26 deletions(-)
+
+  API 端点
+
+  - POST /api/auth/token/exchange - 交换 token
+  - POST /api/auth/token/refresh - 刷新 token
+  - POST /api/auth/login - 登录
+  - Protected routes 使用 JWT middleware 认证
+
+  所有功能已实现并测试通过！ ✓
+
+# 总结
+
+Accounts 是 “造令牌者”；
+API/ Deno 是 “持令牌者”；
+RefreshSecret 与 AccessSecret 是“根安全”；
+PublicToken 是 “门禁卡”；
+两者通过 /api/auth/exchange 实现零信任连接。  
+
+# 角色定位对照
+服务	职责	持有密钥	能否签发 Token	是否验证 Token
+accounts-service (Go)	认证中心	✅ public + access + refresh	✅ 是	✅ 是
+dashboard-fresh (Deno)	前端控制台	✅ public	❌ 否	❌ 否（委托后端）
+rag-server (Go)	RAG 后端（中间层 API）	✅ public	❌ 否	✅ 可验证 access token
+api-service (Go)	业务服务	✅ accessSecret	❌ 否	✅ 是
