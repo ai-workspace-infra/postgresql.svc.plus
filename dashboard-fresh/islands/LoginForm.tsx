@@ -258,9 +258,9 @@ export default function LoginForm({ language, initialEmail = '', onSuccess }: Lo
       if (onSuccess) {
         onSuccess()
       } else {
-        // Redirect to home after short delay
+        // Redirect to user panel after short delay
         setTimeout(() => {
-          globalThis.location.href = '/'
+          globalThis.location.href = '/panel'
         }, 1000)
       }
     } catch (submitError) {

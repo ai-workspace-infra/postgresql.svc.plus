@@ -34,6 +34,46 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
   const searchValue = useSignal('')
   const navRef = useRef<HTMLElement>(null)
 
+  // Use provided user from server, but try to fetch fresh session on client
+  const currentUser = useSignal<User | null>(user || null)
+
+  // Fetch session on client-side to get fresh user info
+  useEffect(() => {
+    let isActive = true
+
+    const fetchSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session', {
+          credentials: 'include',
+        })
+
+        if (!isActive || !response.ok) {
+          return
+        }
+
+        const data = (await response.json()) as {
+          user?: User
+        }
+
+        if (isActive && data.user) {
+          currentUser.value = data.user
+        }
+      } catch (error) {
+        // Silently fail if session fetch fails
+        console.debug('Failed to fetch session:', error)
+      }
+    }
+
+    // Only fetch on client side
+    if (typeof window !== 'undefined') {
+      fetchSession()
+    }
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
   const isHiddenRoute = pathname ? ['/login', '/register'].some((prefix) => pathname.startsWith(prefix)) : false
 
   // Generate language toggle URL that preserves current path and params
@@ -190,7 +230,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
               </button>
             </form>
 
-            <UserMenu user={user} language={language} />
+            <UserMenu user={currentUser.value} language={language} />
 
             {/* Mail Icon */}
             <a
@@ -309,7 +349,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
             </div>
 
             <div onClick={() => (menuOpen.value = false)}>
-              <UserMenu user={user} language={language} />
+              <UserMenu user={currentUser.value} language={language} />
             </div>
 
             <div class="flex flex-col gap-2">
