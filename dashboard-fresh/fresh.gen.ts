@@ -6,6 +6,10 @@ import * as $_404 from './routes/_404.tsx'
 import * as $_500 from './routes/_500.tsx'
 import * as $_app from './routes/_app.tsx'
 import * as $api_auth_login from './routes/api/auth/login.ts'
+import * as $api_auth_mfa_disable_index from './routes/api/auth/mfa/disable/index.ts'
+import * as $api_auth_mfa_setup_index from './routes/api/auth/mfa/setup/index.ts'
+import * as $api_auth_mfa_status_index from './routes/api/auth/mfa/status/index.ts'
+import * as $api_auth_mfa_verify_index from './routes/api/auth/mfa/verify/index.ts'
 import * as $api_auth_session from './routes/api/auth/session.ts'
 import * as $api_content_meta from './routes/api/content-meta.ts'
 import * as $api_docs from './routes/api/docs.ts'
@@ -40,6 +44,10 @@ const manifest = {
     './routes/_500.tsx': $_500,
     './routes/_app.tsx': $_app,
     './routes/api/auth/login.ts': $api_auth_login,
+    './routes/api/auth/mfa/disable/index.ts': $api_auth_mfa_disable_index,
+    './routes/api/auth/mfa/setup/index.ts': $api_auth_mfa_setup_index,
+    './routes/api/auth/mfa/status/index.ts': $api_auth_mfa_status_index,
+    './routes/api/auth/mfa/verify/index.ts': $api_auth_mfa_verify_index,
     './routes/api/auth/session.ts': $api_auth_session,
     './routes/api/content-meta.ts': $api_content_meta,
     './routes/api/docs.ts': $api_docs,
