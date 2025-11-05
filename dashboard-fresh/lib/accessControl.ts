@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo } from 'preact/hooks'
 
-import { useUser } from './userStore'
-import type { SessionUser, TenantMembership, UserRole } from './userStore'
+import { useUser } from './userStore.tsx'
+import type { SessionUser, TenantMembership, UserRole } from './userStore.tsx'
 
 type AccessReason = 'unauthenticated' | 'forbidden'
 

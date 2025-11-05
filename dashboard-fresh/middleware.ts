@@ -42,7 +42,7 @@ const PROTECTED_API_ROUTES = [
   '/api/mail',
 ]
 
-interface AccountUser {
+export interface AccountUser {
   id?: string
   uuid?: string
   name?: string

@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo } from 'preact/hooks'
 
-import { useUser } from '@lib/userStore'
+import { useUser } from '@lib/userStore.tsx'
 
 export function useTenantAuthContext() {
   const { user } = useUser()
@@ -10,7 +10,7 @@ export function useTenantAuthContext() {
   return useMemo(() => {
     const memberships = user?.tenants ?? []
     const defaultTenant =
-      memberships.find((tenant) => tenant.id === user?.tenantId) ?? memberships[0] ?? (user?.tenantId ? { id: user.tenantId } : null)
+      memberships.find((tenant: any) => tenant.id === user?.tenantId) ?? memberships[0] ?? (user?.tenantId ? { id: user.tenantId } : null)
 
     return {
       user,

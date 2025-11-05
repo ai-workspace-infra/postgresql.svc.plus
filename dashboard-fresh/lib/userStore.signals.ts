@@ -7,9 +7,8 @@
 
 import { createContext } from 'preact'
 import { useContext, useEffect } from 'preact/hooks'
-import { signal, computed } from '@preact/signals'
-import type { AccountUser as MiddlewareUser } from '@/middleware.ts'
-import { h } from 'preact'
+import { signal, computed, effect } from '@preact/signals'
+import type { User as MiddlewareUser } from '@/middleware.ts'
 
 // ========== Types ==========
 
@@ -75,14 +74,14 @@ const user = computed(() => {
 
   const normalizedGroups = Array.isArray(rawUser.groups)
     ? rawUser.groups
-        .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
-        .map((value: string) => value.trim())
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+        .map((value) => value.trim())
     : []
 
   const normalizedPermissions = Array.isArray(rawUser.permissions)
     ? rawUser.permissions
-        .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
-        .map((value: string) => value.trim())
+        .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+        .map((value) => value.trim())
     : []
 
   const normalizedTenantId =
@@ -92,15 +91,14 @@ const user = computed(() => {
 
   const normalizedTenants = Array.isArray(rawUser.tenants)
     ? rawUser.tenants
-        .map((tenant: unknown) => {
+        .map((tenant) => {
           if (!tenant || typeof tenant !== 'object') {
             return null
           }
 
-          const tenantObj = tenant as { id?: string; name?: string; role?: string }
           const id =
-            typeof tenantObj.id === 'string' && tenantObj.id.trim().length > 0
-              ? tenantObj.id.trim()
+            typeof tenant.id === 'string' && tenant.id.trim().length > 0
+              ? tenant.id.trim()
               : undefined
           if (!id) {
             return null
@@ -108,17 +106,17 @@ const user = computed(() => {
 
           const normalizedTenant: TenantMembership = { id }
 
-          if (typeof tenantObj.name === 'string' && tenantObj.name.trim().length > 0) {
-            normalizedTenant.name = tenantObj.name.trim()
+          if (typeof tenant.name === 'string' && tenant.name.trim().length > 0) {
+            normalizedTenant.name = tenant.name.trim()
           }
 
-          if (typeof tenantObj.role === 'string' && tenantObj.role.trim().length > 0) {
-            normalizedTenant.role = normalizeRole(tenantObj.role)
+          if (typeof tenant.role === 'string' && tenant.role.trim().length > 0) {
+            normalizedTenant.role = normalizeRole(tenant.role)
           }
 
           return normalizedTenant
         })
-        .filter((tenant: unknown): tenant is TenantMembership => Boolean(tenant))
+        .filter((tenant): tenant is TenantMembership => Boolean(tenant))
     : undefined
 
   const identifier =
@@ -265,7 +263,7 @@ export function UserProvider({ children }: { children: preact.VNode[] | preact.V
     refresh,
   }
 
-  return h(UserContext.Provider, { value }, children)
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
 export function useUser(): UserContextValue {
@@ -276,115 +274,10 @@ export function useUser(): UserContextValue {
   return context
 }
 
-// ========== Mail Store (Shared) ==========
+// ========== Selective Exports (for testing/migration) ==========
 
-export interface MailState {
-  tenantId: string | null
-  selectedMessageId: string | null
-  label: string | null
-  search: string
-  pageSize: number
-  cursor: string | null
-}
+// Export raw signals for direct access if needed (advanced usage)
+export { _userSignal, _isLoadingSignal }
 
-// Mail store signals
-const mailTenantId = signal<string | null>(null)
-const mailSelectedMessageId = signal<string | null>(null)
-const mailLabel = signal<string | null>(null)
-const mailSearch = signal<string>('')
-const mailPageSize = signal<number>(25)
-const mailCursor = signal<string | null>(null)
-
-const DEFAULT_MAIL_STATE: Omit<MailState, keyof MailState> = {
-  tenantId: null,
-  selectedMessageId: null,
-  label: null,
-  search: '',
-  pageSize: 25,
-  cursor: null,
-}
-
-// Mail store actions
-function setMailTenant(newTenantId: string): void {
-  mailTenantId.value = newTenantId
-  mailSelectedMessageId.value = null
-  mailLabel.value = null
-  mailCursor.value = null
-}
-
-function setMailSelectedMessageId(id: string | null): void {
-  mailSelectedMessageId.value = id
-}
-
-function setMailLabel(newLabel: string | null): void {
-  mailLabel.value = newLabel
-  mailCursor.value = null
-}
-
-function setMailSearch(term: string): void {
-  mailSearch.value = term
-  mailCursor.value = null
-}
-
-function setMailCursor(newCursor: string | null): void {
-  mailCursor.value = newCursor
-}
-
-function setMailPageSize(size: number): void {
-  mailPageSize.value = size
-  mailCursor.value = null
-}
-
-function resetMailStore(): void {
-  mailTenantId.value = null
-  mailSelectedMessageId.value = null
-  mailLabel.value = null
-  mailSearch.value = ''
-  mailPageSize.value = 25
-  mailCursor.value = null
-}
-
-// Mail store object - backward compatible with Zustand API
-export const useMailStore = (selector?: (state: MailState) => any) => {
-  const state: MailState = {
-    tenantId: mailTenantId.value,
-    selectedMessageId: mailSelectedMessageId.value,
-    label: mailLabel.value,
-    search: mailSearch.value,
-    pageSize: mailPageSize.value,
-    cursor: mailCursor.value,
-  }
-
-  if (selector) {
-    return selector(state)
-  }
-
-  return {
-    ...state,
-    setTenant: setMailTenant,
-    setSelectedMessageId: setMailSelectedMessageId,
-    setLabel: setMailLabel,
-    setSearch: setMailSearch,
-    setCursor: setMailCursor,
-    setPageSize: setMailPageSize,
-    reset: resetMailStore,
-  }
-}
-
-// Export individual mail store exports
-export {
-  mailTenantId,
-  mailSelectedMessageId,
-  mailLabel,
-  mailSearch,
-  mailPageSize,
-  mailCursor,
-  setMailTenant as setTenant,
-  setMailSelectedMessageId as setSelectedMessageId,
-  setMailLabel as setLabel,
-  setMailSearch as setSearch,
-  setMailCursor as setCursor,
-  setMailPageSize as setPageSize,
-  resetMailStore as resetMailStore,
-  resetMailStore as reset,
-}
+// Export actions for direct use
+export { refresh, login, logout }
