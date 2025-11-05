@@ -373,6 +373,10 @@ export const useMailStore = (selector?: (state: MailState) => any) => {
 
 // Export individual mail store exports
 export {
+  // User signals
+  user,
+  isLoading,
+  // Mail signals
   mailTenantId,
   mailSelectedMessageId,
   mailLabel,
