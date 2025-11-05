@@ -122,22 +122,8 @@ export function LoginForm() {
     const requiresTotp = mfaRequirement === 'required'
     const sanitizedTotp = totpCode.replace(/\D/g, '')
 
-    if (requiresTotp) {
-      if (!sanitizedTotp) {
-        setError(pageCopy.missingTotp ?? authCopy.alerts.mfa?.missing ?? authCopy.alerts.missingCredentials)
-        return
-      }
-
-      if (sanitizedTotp.length !== 6) {
-        setError(
-          authCopy.alerts.mfa?.invalidFormat ??
-            authCopy.alerts.mfa?.invalid ??
-            pageCopy.missingTotp ??
-            authCopy.alerts.missingCredentials,
-        )
-        return
-      }
-    } else if (sanitizedTotp && sanitizedTotp.length !== 6) {
+    // If TOTP is provided, validate its format (but don't require it)
+    if (sanitizedTotp && sanitizedTotp.length !== 6) {
       setError(
         authCopy.alerts.mfa?.invalidFormat ??
           authCopy.alerts.mfa?.invalid ??

@@ -156,16 +156,8 @@ export default function LoginForm({ language, initialEmail = '', onSuccess }: Lo
     const requiresTotp = mfaRequirement.value === 'required'
     const sanitizedTotp = totpCode.value.replace(/\D/g, '')
 
-    if (requiresTotp) {
-      if (!sanitizedTotp) {
-        error.value = t.missingTotp
-        return
-      }
-      if (sanitizedTotp.length !== 6) {
-        error.value = t.invalidTotp
-        return
-      }
-    } else if (sanitizedTotp && sanitizedTotp.length !== 6) {
+    // If TOTP is provided, validate its format (but don't require it)
+    if (sanitizedTotp && sanitizedTotp.length !== 6) {
       error.value = t.invalidTotp
       return
     }
@@ -206,6 +198,7 @@ export default function LoginForm({ language, initialEmail = '', onSuccess }: Lo
       if (!isSuccessful) {
         const messageKey = payload.error ?? 'generic_error'
 
+        // Handle MFA-related errors - update UI to require MFA
         if (
           messageKey === 'mfa_code_required' ||
           messageKey === 'invalid_mfa_code' ||
@@ -214,33 +207,36 @@ export default function LoginForm({ language, initialEmail = '', onSuccess }: Lo
           messageKey === 'mfa_challenge_failed'
         ) {
           mfaRequirement.value = 'required'
-        }
 
-        switch (messageKey) {
-          case 'missing_credentials':
-            error.value = t.missingEmail
-            break
-          case 'invalid_credentials':
-            error.value = t.invalidCredentials
-            break
-          case 'user_not_found':
-            error.value = t.userNotFound
-            break
-          case 'mfa_code_required':
+          // If backend requires MFA code, show appropriate message
+          if (messageKey === 'mfa_code_required') {
             error.value = t.missingTotp
-            break
-          case 'invalid_mfa_code':
+          } else if (messageKey === 'invalid_mfa_code') {
             error.value = t.invalidTotp
-            break
-          case 'mfa_challenge_failed':
+          } else if (messageKey === 'mfa_challenge_failed') {
             error.value = t.mfaRequired
-            break
-          case 'account_service_unreachable':
-            error.value = t.serviceUnavailable
-            break
-          default:
+          } else {
             error.value = t.genericError
-            break
+          }
+        } else {
+          // Handle other errors
+          switch (messageKey) {
+            case 'missing_credentials':
+              error.value = t.missingEmail
+              break
+            case 'invalid_credentials':
+              error.value = t.invalidCredentials
+              break
+            case 'user_not_found':
+              error.value = t.userNotFound
+              break
+            case 'account_service_unreachable':
+              error.value = t.serviceUnavailable
+              break
+            default:
+              error.value = t.genericError
+              break
+          }
         }
         return
       }
