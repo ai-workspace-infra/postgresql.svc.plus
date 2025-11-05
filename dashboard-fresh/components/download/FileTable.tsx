@@ -1,12 +1,11 @@
-'use client'
 
-import { useMemo, useState } from 'react'
-import Breadcrumbs, { Crumb } from './Breadcrumbs'
-import CopyButton from './CopyButton'
-import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
-import { formatBytes, formatDate } from '../../lib/format'
-import type { DirListing } from '../../types/download'
+import { useMemo, useState } from 'preact/hooks'
+import Breadcrumbs, { Crumb } from './Breadcrumbs.tsx'
+import CopyButton from './CopyButton.tsx'
+import { useLanguage } from '@i18n/LanguageProvider.tsx'
+import { translations } from '@i18n/translations.ts'
+import { formatBytes, formatDate } from '../../lib/format.ts'
+import type { DirListing } from '../../types/download.ts'
 
 interface FileTableProps {
   listing: DirListing

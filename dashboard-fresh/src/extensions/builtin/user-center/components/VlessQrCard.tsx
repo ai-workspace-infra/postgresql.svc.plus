@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
-import { Copy, Download, QrCode } from 'lucide-react'
+import { Copy, Download, QrCode } from 'lucide-preact'
 import { toDataURL } from 'qrcode'
 
 import Card from './Card'

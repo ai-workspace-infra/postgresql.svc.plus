@@ -1,6 +1,6 @@
-'use client'
-
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext } from 'preact'
+import { useContext, useEffect, useState } from 'preact/hooks'
+import type { ComponentChildren } from 'preact'
 
 export type Language = 'en' | 'zh'
 
@@ -16,7 +16,7 @@ const LanguageContext = createContext<LanguageContextType>({
   setLanguage: () => {},
 })
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+export function LanguageProvider({ children }: { children: ComponentChildren }) {
   const [language, setLanguage] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const stored = window.localStorage.getItem(STORAGE_KEY)

@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 export interface Crumb {
   label: string
   href: string
@@ -12,9 +10,9 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
         {items.map((item, idx) => (
           <li key={idx} className="flex items-center gap-1">
             {idx > 0 && <span>/</span>}
-            <Link href={item.href} className="text-blue-600 hover:underline">
+            <a href={item.href} className="text-blue-600 hover:underline">
               {item.label}
-            </Link>
+            </a>
           </li>
         ))}
       </ol>

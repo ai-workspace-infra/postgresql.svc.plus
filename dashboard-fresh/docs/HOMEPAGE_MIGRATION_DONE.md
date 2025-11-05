@@ -233,3 +233,81 @@ cat routes/api/auth/login.ts
 **下一步:** 迁移认证 API 或认证页面
 
 **最后更新:** 2025-11-04
+
+
+📊 app/ 目录迁移情况总结
+
+  ✅ 已迁移到 routes/ (约 18%)
+
+  | app/ 路径                  | routes/ 路径        | 状态             |
+  |--------------------------|-------------------|----------------|
+  | page.tsx (首页)            | index.tsx         | ✅ 已迁移          |
+  | (auth)/login/page.tsx    | login.tsx         | ✅ 已迁移          |
+  | (auth)/register/page.tsx | register.tsx      | ✅ 已迁移          |
+  | panel/page.tsx           | panel/index.tsx   | ✅ 已迁移          |
+  | panel/account/page.tsx   | panel/account.tsx | ✅ 已迁移          |
+  | panel/mail/page.tsx      | panel/mail.tsx    | ✅ 已迁移          |
+  | 404/page.tsx             | _404.tsx          | ✅ 已迁移          |
+  | API 路由                   | api/*             | ✅ 部分迁移 (12/29) |
+
+  ❌ 未迁移 (约 82%)
+
+  认证相关
+
+  - (auth)/email-verification/page.tsx - 邮箱验证页面
+
+  租户/邮件系统 (4 个页面)
+
+  - (tenant)/[tenantId]/mail/page.tsx - 邮件列表
+  - (tenant)/[tenantId]/mail/compose/page.tsx - 撰写邮件
+  - (tenant)/[tenantId]/mail/message/[id]/page.tsx - 邮件详情
+  - (tenant)/[tenantId]/mail/settings/page.tsx - 邮件设置
+
+  文档系统 (3 个页面)
+
+  - docs/page.tsx - 文档首页
+  - docs/[collection]/page.tsx - 文档集合
+  - docs/[collection]/[version]/page.tsx - 文档版本
+
+  下载中心 (2 个页面)
+
+  - download/page.tsx - 下载首页
+  - download/[...segments]/page.tsx - 动态下载路径
+
+  演示/Demo (3 个页面)
+
+  - demo/page.tsx - 演示首页
+  - demo/theme/page.tsx - 主题演示
+  - demo/markdown/page.tsx - ⚠️ 已损坏（引用了已删除的 ui/）
+
+  云 IaC (3 个页面)
+
+  - cloud_iac/page.tsx - IaC 首页
+  - cloud_iac/[provider]/page.tsx - 云供应商
+  - cloud_iac/[provider]/[service]/page.tsx - 云服务
+
+  洞察工作台
+
+  - insight/page.tsx - 洞察工作台
+
+  其他
+
+  - logout/page.tsx - 登出页面
+
+  用户面板子页面 (6 个)
+
+  - panel/agent/page.tsx - Agent 管理
+  - panel/api/page.tsx - API 管理
+  - panel/appearance/page.tsx - 外观设置
+  - panel/ldp/page.tsx - LDP 页面
+  - panel/management/page.tsx - 管理页面
+  - panel/subscription/page.tsx - 订阅管理
+
+  ---
+  🎯 结论
+
+  ❌ app/ 目录的功能还没有完全迁移！
+
+  - 已迁移: ~18% (主要是首页、登录注册、部分面板页面)
+  - 未迁移: ~82% (大量功能模块)
+  - API 迁移: 41.4% (12/29 个端点)

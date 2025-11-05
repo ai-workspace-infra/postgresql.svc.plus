@@ -1,11 +1,8 @@
-'use client'
-
-import Link from 'next/link'
-import { useMemo, useState } from 'react'
-import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
-import { formatDate } from '../../lib/format'
-import { formatSegmentLabel } from '../../lib/download-data'
+import { useMemo, useState } from 'preact/hooks'
+import { useLanguage } from '@i18n/LanguageProvider.tsx'
+import { translations } from '@i18n/translations.ts'
+import { formatDate } from '../../lib/format.ts'
+import { formatSegmentLabel } from '../../lib/download-data.ts'
 
 interface Section {
   key: string
@@ -51,7 +48,7 @@ export default function CardGrid({ sections }: { sections: Section[] }) {
       </div>
       <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
         {filtered.map((section) => (
-          <Link
+          <a
             key={section.key}
             href={section.href}
             className="mb-4 block break-inside-avoid rounded-3xl border bg-white p-5 shadow-sm ring-1 ring-gray-100 transition hover:-translate-y-1 hover:shadow-lg"
@@ -79,7 +76,7 @@ export default function CardGrid({ sections }: { sections: Section[] }) {
                 )}
               </div>
             </div>
-          </Link>
+          </a>
         ))}
       </div>
     </div>

@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Copy } from 'lucide-react'
+import { Copy } from 'lucide-preact'
 
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'

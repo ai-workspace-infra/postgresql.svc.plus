@@ -1,14 +1,13 @@
-'use client'
 
-import { useMemo } from 'react'
-import Breadcrumbs, { type Crumb } from './Breadcrumbs'
-import CardGrid from './CardGrid'
-import FileTable from './FileTable'
-import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
-import { formatDate } from '@lib/format'
-import { formatSegmentLabel, type DownloadSection } from '@lib/download-data'
-import type { DirListing } from '../../types/download'
+import { useMemo } from 'preact/hooks'
+import Breadcrumbs, { type Crumb } from './Breadcrumbs.tsx'
+import CardGrid from './CardGrid.tsx'
+import FileTable from './FileTable.tsx'
+import { useLanguage } from '@i18n/LanguageProvider.tsx'
+import { translations } from '@i18n/translations.ts'
+import { formatDate } from '@lib/format.ts'
+import { formatSegmentLabel, type DownloadSection } from '@lib/download-data.ts'
+import type { DirListing } from '../../types/download.ts'
 
 type DownloadListingContentProps = {
   segments: string[]

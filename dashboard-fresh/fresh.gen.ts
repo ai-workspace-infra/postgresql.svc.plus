@@ -17,21 +17,34 @@ import * as $api_downloads from './routes/api/downloads.ts'
 import * as $api_ping from './routes/api/ping.ts'
 import * as $api_render_markdown from './routes/api/render-markdown.ts'
 import * as $api_templates from './routes/api/templates.ts'
+import * as $download_segments_index from './routes/download/[...segments]/index.tsx'
+import * as $download_index from './routes/download/index.tsx'
+import * as $email_verification from './routes/email-verification.tsx'
 import * as $index from './routes/index.tsx'
 import * as $login from './routes/login.tsx'
+import * as $logout from './routes/logout.tsx'
 import * as $navbar_demo from './routes/navbar-demo.tsx'
 import * as $panel_account from './routes/panel/account.tsx'
+import * as $panel_agent from './routes/panel/agent.tsx'
+import * as $panel_api from './routes/panel/api.tsx'
+import * as $panel_appearance from './routes/panel/appearance.tsx'
 import * as $panel_index from './routes/panel/index.tsx'
+import * as $panel_ldp from './routes/panel/ldp.tsx'
 import * as $panel_mail from './routes/panel/mail.tsx'
+import * as $panel_management from './routes/panel/management.tsx'
+import * as $panel_subscription from './routes/panel/subscription.tsx'
 import * as $register from './routes/register.tsx'
 import * as $AccountDropdown from './islands/AccountDropdown.tsx'
 import * as $AskAIButton from './islands/AskAIButton.tsx'
 import * as $Counter from './islands/Counter.tsx'
+import * as $EmailVerificationForm from './islands/EmailVerificationForm.tsx'
 import * as $LoginForm from './islands/LoginForm.tsx'
+import * as $LogoutHandler from './islands/LogoutHandler.tsx'
 import * as $MobileMenu from './islands/MobileMenu.tsx'
 import * as $Navbar from './islands/Navbar.tsx'
 import * as $RegisterForm from './islands/RegisterForm.tsx'
 import * as $SearchDialog from './islands/SearchDialog.tsx'
+import * as $UserMenu from './islands/UserMenu.tsx'
 import * as $home_ShowcaseCarousel from './islands/home/ShowcaseCarousel.tsx'
 import * as $panel_Header from './islands/panel/Header.tsx'
 import * as $panel_PanelLayout from './islands/panel/PanelLayout.tsx'
@@ -55,23 +68,36 @@ const manifest = {
     './routes/api/ping.ts': $api_ping,
     './routes/api/render-markdown.ts': $api_render_markdown,
     './routes/api/templates.ts': $api_templates,
+    './routes/download/[...segments]/index.tsx': $download_segments_index,
+    './routes/download/index.tsx': $download_index,
+    './routes/email-verification.tsx': $email_verification,
     './routes/index.tsx': $index,
     './routes/login.tsx': $login,
+    './routes/logout.tsx': $logout,
     './routes/navbar-demo.tsx': $navbar_demo,
     './routes/panel/account.tsx': $panel_account,
+    './routes/panel/agent.tsx': $panel_agent,
+    './routes/panel/api.tsx': $panel_api,
+    './routes/panel/appearance.tsx': $panel_appearance,
     './routes/panel/index.tsx': $panel_index,
+    './routes/panel/ldp.tsx': $panel_ldp,
     './routes/panel/mail.tsx': $panel_mail,
+    './routes/panel/management.tsx': $panel_management,
+    './routes/panel/subscription.tsx': $panel_subscription,
     './routes/register.tsx': $register,
   },
   islands: {
     './islands/AccountDropdown.tsx': $AccountDropdown,
     './islands/AskAIButton.tsx': $AskAIButton,
     './islands/Counter.tsx': $Counter,
+    './islands/EmailVerificationForm.tsx': $EmailVerificationForm,
     './islands/LoginForm.tsx': $LoginForm,
+    './islands/LogoutHandler.tsx': $LogoutHandler,
     './islands/MobileMenu.tsx': $MobileMenu,
     './islands/Navbar.tsx': $Navbar,
     './islands/RegisterForm.tsx': $RegisterForm,
     './islands/SearchDialog.tsx': $SearchDialog,
+    './islands/UserMenu.tsx': $UserMenu,
     './islands/home/ShowcaseCarousel.tsx': $home_ShowcaseCarousel,
     './islands/panel/Header.tsx': $panel_Header,
     './islands/panel/PanelLayout.tsx': $panel_PanelLayout,

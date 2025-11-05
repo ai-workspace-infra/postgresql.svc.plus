@@ -1,6 +1,6 @@
-import { createFeatureFlag } from '@lib/featureFlags'
+import { createFeatureFlag } from '@lib/featureFlags.ts'
 
-import { builtinExtensions } from './builtin'
+import { builtinExtensions } from './builtin/index.ts'
 import type {
   DashboardExtension,
   ExtensionRegistry,

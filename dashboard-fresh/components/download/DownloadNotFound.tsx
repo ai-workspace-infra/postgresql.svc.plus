@@ -1,7 +1,6 @@
-'use client'
 
-import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
+import { useLanguage } from '@i18n/LanguageProvider.tsx'
+import { translations } from '@i18n/translations.ts'
 
 export default function DownloadNotFound() {
   const { language } = useLanguage()

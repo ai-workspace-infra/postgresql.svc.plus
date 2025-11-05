@@ -1,6 +1,5 @@
-'use client'
 
-import { Copy } from 'lucide-react'
+import { Copy } from 'lucide-preact'
 
 interface Props {
   text: string

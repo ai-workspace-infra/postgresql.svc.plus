@@ -1,4 +1,4 @@
-import { Code, CreditCard, Home, Mail, Palette, Server, Settings, Shield, User } from 'lucide-react'
+import { Code, CreditCard, Home, Mail, Palette, Server, Settings, Shield, User } from 'lucide-preact'
 
 import type { DashboardExtension } from '../../types'
 

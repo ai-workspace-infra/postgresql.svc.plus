@@ -1,10 +1,8 @@
-"use client"
-
-import { useMemo, useState } from 'react'
-import { formatSegmentLabel, type DownloadSection } from '../../lib/download-data'
-import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
-import CardGrid from './CardGrid'
+import { useMemo, useState } from 'preact/hooks'
+import { formatSegmentLabel, type DownloadSection } from '../../lib/download-data.ts'
+import { useLanguage } from '@i18n/LanguageProvider.tsx'
+import { translations } from '@i18n/translations.ts'
+import CardGrid from './CardGrid.tsx'
 
 interface DownloadBrowserProps {
   sectionsMap: Record<string, DownloadSection[]>
