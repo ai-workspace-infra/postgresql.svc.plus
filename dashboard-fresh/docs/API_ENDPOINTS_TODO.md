@@ -3,12 +3,12 @@
 ## 📊 迁移进度
 
 **总计:** 29 个 API 端点
-**已完成:** 8 个 (27.6%)
-**待迁移:** 21 个 (72.4%)
+**已完成:** 12 个 (41.4%)
+**待迁移:** 17 个 (58.6%)
 
 ---
 
-## ✅ 已完成 (8/29)
+## ✅ 已完成 (12/29)
 
 ### 核心 API
 - [x] `/api/ping` → `routes/api/ping.ts`
@@ -22,11 +22,32 @@
 - [x] `/api/auth/login` → `routes/api/auth/login.ts`
 - [x] `/api/auth/session` → `routes/api/auth/session.ts`
 
+### MFA (多因素认证)
+- [x] `/api/auth/mfa/status` → `routes/api/auth/mfa/status/index.ts`
+  - **方法:** GET
+  - **功能:** 获取 MFA 状态
+  - **完成日期:** 2025-11-05
+
+- [x] `/api/auth/mfa/setup` → `routes/api/auth/mfa/setup/index.ts`
+  - **方法:** POST
+  - **功能:** 设置 MFA (生成 TOTP secret)
+  - **完成日期:** 2025-11-05
+
+- [x] `/api/auth/mfa/verify` → `routes/api/auth/mfa/verify/index.ts`
+  - **方法:** POST
+  - **功能:** 验证 TOTP 代码
+  - **完成日期:** 2025-11-05
+
+- [x] `/api/auth/mfa/disable` → `routes/api/auth/mfa/disable/index.ts`
+  - **方法:** POST
+  - **功能:** 禁用 MFA
+  - **完成日期:** 2025-11-05
+
 ---
 
-## 📋 待迁移 (21/29)
+## 📋 待迁移 (17/29)
 
-### 🔐 认证相关 (7 个) - 高优先级
+### 🔐 认证相关 (3 个) - 高优先级
 
 #### 注册流程
 - [ ] `app/api/auth/register/route.ts` → `routes/api/auth/register.ts`
@@ -54,27 +75,6 @@
   - **方法:** POST
   - **功能:** 发送邮箱验证链接
   - **依赖:** 邮件服务
-
-#### MFA (多因素认证)
-- [ ] `app/api/auth/mfa/setup/route.ts` → `routes/api/auth/mfa/setup.ts`
-  - **方法:** POST
-  - **功能:** 设置 MFA (生成 TOTP secret)
-  - **依赖:** Account Service, qrcode
-
-- [ ] `app/api/auth/mfa/verify/route.ts` → `routes/api/auth/mfa/verify.ts`
-  - **方法:** POST
-  - **功能:** 验证 TOTP 代码
-  - **依赖:** Account Service
-
-- [ ] `app/api/auth/mfa/status/route.ts` → `routes/api/auth/mfa/status.ts`
-  - **方法:** GET
-  - **功能:** 获取 MFA 状态
-  - **依赖:** 需要认证
-
-- [ ] `app/api/auth/mfa/disable/route.ts` → `routes/api/auth/mfa/disable.ts`
-  - **方法:** POST
-  - **功能:** 禁用 MFA
-  - **依赖:** 需要认证
 
 ---
 
@@ -196,47 +196,38 @@
 5. /api/auth/verify-email/send
 ```
 
-### 第三批: MFA 安全 (4 个)
-完成多因素认证
-```
-6. /api/auth/mfa/setup
-7. /api/auth/mfa/verify
-8. /api/auth/mfa/status
-9. /api/auth/mfa/disable
-```
-
-### 第四批: 用户管理 (2 个)
+### 第三批: 用户管理 (2 个)
 基本用户操作
 ```
-10. /api/users
-11. /api/admin/users/metrics
+6. /api/users
+7. /api/admin/users/metrics
 ```
 
-### 第五批: 管理功能 (2 个)
+### 第四批: 管理功能 (2 个)
 系统管理
 ```
-12. /api/admin/settings
-13. /api/admin/users/[userId]/role
+8. /api/admin/settings
+9. /api/admin/users/[userId]/role
 ```
 
-### 第六批: 邮件系统 (7 个)
+### 第五批: 邮件系统 (7 个)
 邮件功能
 ```
-14-20. /api/mail/* (所有邮件相关)
+10-16. /api/mail/* (所有邮件相关)
 ```
 
-### 第七批: AI 功能 (2 个)
+### 第六批: AI 功能 (2 个)
 AI 集成
 ```
-21. /api/askai
-22. /api/rag/query
+17. /api/askai
+18. /api/rag/query
 ```
 
-### 第八批: 动态路由 (2 个)
+### 第七批: 动态路由 (2 个)
 复杂路由
 ```
-23. /api/task/[...segments]
-24. /api/agent/[...segments]
+19. /api/task/[...segments]
+20. /api/agent/[...segments]
 ```
 
 ---
@@ -371,5 +362,6 @@ curl http://localhost:8000/api/auth/session \
 
 ---
 
-**最后更新:** 2025-11-04
-**进度:** 8/29 完成 (27.6%)
+**最后更新:** 2025-11-05
+**进度:** 12/29 完成 (41.4%)
+**最新迁移:** MFA 认证 API (status, setup, verify, disable)
