@@ -49,10 +49,17 @@
 
   2. 前端显示 TOTP 输入框
 
-  3. POST /api/auth/login  email, password, mfa_code}
+  3. 前端提交登录：POST /api/auth/login
+     { email, password, totp: "123456" }
      ← { success: true } + session cookie
 
   4. ✅ 登录成功
+
+  重要说明：
+  - 前端根据预检结果决定是否显示 TOTP 输入框
+  - 如果显示，用户可以输入 TOTP；如果不显示，用户直接登录
+  - 前端总是发送请求，如果提供了 TOTP 则包含在请求中
+  - 后端验证 TOTP（如果提供）并返回结果
 
 
 # 后端 API 路径映射

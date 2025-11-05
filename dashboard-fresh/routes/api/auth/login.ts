@@ -31,6 +31,7 @@ interface LoginPayload {
   email?: string
   password?: string
   remember?: boolean
+  totp?: string
 }
 
 interface VerifyMfaPayload {
@@ -214,10 +215,12 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
   const email = normalizeEmail(payload?.email)
   const password = typeof payload?.password === 'string' ? payload.password : ''
   const remember = Boolean(payload?.remember)
+  const totpCode = normalizeCode(payload?.totp)
 
   console.log('[login/handleLogin] Email:', email || '(empty)')
   console.log('[login/handleLogin] Has password:', !!password)
   console.log('[login/handleLogin] Remember:', remember)
+  console.log('[login/handleLogin] Has TOTP:', !!totpCode)
 
   if (!email || !password) {
     console.error('[login/handleLogin] ✗ Missing credentials')
@@ -226,10 +229,12 @@ async function handleLogin(payload: LoginPayload): Promise<Response> {
 
   try {
     console.log('[login/handleLogin] Calling proxy to backend...')
-    const { ok, status, data } = await proxy<LoginResponse>('/api/auth/login', {
-      email,
-      password,
-    })
+    const loginBody: Record<string, string> = { email, password }
+    if (totpCode) {
+      loginBody.totpCode = totpCode
+    }
+
+    const { ok, status, data } = await proxy<LoginResponse>('/api/auth/login', loginBody)
 
     console.log('[login/handleLogin] Backend response - ok:', ok, 'status:', status)
 
