@@ -6,7 +6,7 @@ function stripTrailingSlashes(pathname: string) {
   return pathname.replace(/\/+$/u, '')
 }
 
-export function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isApiRoute = pathname === '/api' || pathname.startsWith('/api/')
   const shouldStrip = isApiRoute && pathname.length > 1 && pathname.endsWith('/')

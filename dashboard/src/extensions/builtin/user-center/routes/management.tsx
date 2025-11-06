@@ -277,10 +277,8 @@ export default function UserCenterManagementRoute() {
         users={usersSWR.data}
         isLoading={usersLoading}
         onRoleChange={handleRoleChange}
-        onRoleReset={handleRoleReset}
         canEditRoles={canEditRoles}
         pendingUserIds={pendingRoleUpdates}
-        message={roleUpdateMessage}
       />
     </div>
   )

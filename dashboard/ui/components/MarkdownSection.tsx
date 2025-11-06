@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { JSX } from 'react'
 import clsx from 'clsx'
 
 import type { MarkdownRenderResult } from '../../api/render-markdown'
