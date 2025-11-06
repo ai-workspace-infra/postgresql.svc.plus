@@ -7,7 +7,7 @@ import { getAccountServiceApiBaseUrl } from '@server/serviceConfig'
 const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 export async function GET(request: NextRequest) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? ''
   const storedMfaToken = cookieStore.get(MFA_COOKIE_NAME)?.value ?? ''
 

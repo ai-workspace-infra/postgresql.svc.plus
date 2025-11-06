@@ -56,7 +56,7 @@ async function fetchSession(token: string) {
 
 export async function GET(request: NextRequest) {
   void request
-  const token = cookies().get(SESSION_COOKIE_NAME)?.value
+  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value
   if (!token) {
     return NextResponse.json({ user: null })
   }
@@ -166,7 +166,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   void request
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
   if (token) {
     await fetch(`${ACCOUNT_API_BASE}/session`, {

@@ -8,7 +8,7 @@ const ACCOUNT_API_BASE = getAccountServiceApiBaseUrl()
 
 export async function POST(request: NextRequest) {
   void request
-  const token = cookies().get(SESSION_COOKIE_NAME)?.value?.trim()
+  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value?.trim()
 
   if (!token) {
     return NextResponse.json({ success: false, error: 'session_required' }, { status: 401 })

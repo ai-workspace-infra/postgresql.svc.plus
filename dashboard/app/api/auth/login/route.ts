@@ -112,8 +112,8 @@ export function GET() {
   )
 }
 
-export function DELETE() {
-  const cookieStore = cookies()
+export async function DELETE() {
+  const cookieStore = await cookies()
   const response = NextResponse.json({ success: true, error: null, needMfa: false })
   if (cookieStore.has(MFA_COOKIE_NAME)) {
     clearMfaCookie(response)

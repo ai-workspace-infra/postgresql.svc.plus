@@ -22,7 +22,7 @@ function normalizeString(value: unknown) {
 }
 
 export async function POST(request: NextRequest) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   let payload: SetupPayload
   try {
     payload = (await request.json()) as SetupPayload

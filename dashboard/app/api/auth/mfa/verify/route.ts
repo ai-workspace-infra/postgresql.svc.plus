@@ -38,7 +38,7 @@ function normalizeCode(value: unknown) {
 }
 
 export async function POST(request: NextRequest) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   let payload: VerifyPayload
   try {
     payload = (await request.json()) as VerifyPayload
