@@ -14,9 +14,9 @@ type ErrorPayload = {
 }
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     userId: string
-  }
+  }>
 }
 
 function resolveUserId(param?: string): string | null {
@@ -39,7 +39,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json<ErrorPayload>({ error: 'forbidden' }, { status: 403 })
   }
 
-  const userId = resolveUserId(params?.userId)
+  const { userId: userIdParam } = await params
+  const userId = resolveUserId(userIdParam)
   if (!userId) {
     return NextResponse.json<ErrorPayload>({ error: 'invalid_user' }, { status: 400 })
   }

@@ -51,5 +51,3 @@ export const cmsConfig: CmsConfig = {
     },
   },
 }
-
-export type { CmsConfig }

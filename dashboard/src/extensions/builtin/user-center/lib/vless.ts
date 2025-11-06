@@ -87,6 +87,7 @@ const DEFAULT_XRAY_CONFIG = {
             port: 1443,
             users: [
               {
+                id: '',
                 encryption: 'none',
                 flow: 'xtls-rprx-vision',
               },

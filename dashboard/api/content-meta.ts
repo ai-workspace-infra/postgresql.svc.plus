@@ -54,7 +54,7 @@ export async function getContentCommitMeta(requestPath: string): Promise<Content
     if (err.code === 'ENOENT') {
       throw new ContentNotFoundError(`Content file not found: ${requestPath}`)
     }
-    if (err.code === '128' || err.code === 128 || err.stderr?.includes('unknown revision') || err.stderr?.includes('fatal')) {
+    if (err.code === '128' || err.stderr?.includes('unknown revision') || err.stderr?.includes('fatal')) {
       return {
         path: toContentRelativePath(absolutePath),
       }

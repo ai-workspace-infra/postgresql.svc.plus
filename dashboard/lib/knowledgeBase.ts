@@ -1,4 +1,4 @@
-import { getServerServiceBaseUrl } from './serviceConfig'
+import { getServerServiceBaseUrl } from '../server/serviceConfig'
 
 export async function fetchRelatedDocs(query: string): Promise<string[]> {
   const apiBase = getServerServiceBaseUrl()

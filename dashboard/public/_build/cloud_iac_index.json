@@ -35,6 +35,11 @@
     },
     {
       "provider": "aliyun",
+      "service": "aliyun-landing-zone",
+      "category": "landing_zone"
+    },
+    {
+      "provider": "aliyun",
       "service": "apigateway-dataworks",
       "category": "api_integration"
     },
@@ -112,6 +117,11 @@
       "provider": "aws",
       "service": "cloudwatch-eventbridge",
       "category": "observability"
+    },
+    {
+      "provider": "aws",
+      "service": "control-tower-landing-zone",
+      "category": "landing_zone"
     },
     {
       "provider": "aws",
@@ -197,6 +207,11 @@
       "provider": "azure",
       "service": "azure-iot",
       "category": "edge_iot"
+    },
+    {
+      "provider": "azure",
+      "service": "azure-landing-zone",
+      "category": "landing_zone"
     },
     {
       "provider": "azure",
@@ -287,6 +302,11 @@
       "provider": "gcp",
       "service": "gcp-iot",
       "category": "edge_iot"
+    },
+    {
+      "provider": "gcp",
+      "service": "gcp-landing-zone",
+      "category": "landing_zone"
     },
     {
       "provider": "gcp",

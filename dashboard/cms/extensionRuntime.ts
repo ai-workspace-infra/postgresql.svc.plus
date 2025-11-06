@@ -46,8 +46,8 @@ export function applyExtensionLayouts(children: ReactNode): ReactNode {
 }
 
 function unwrapAppShellBypass(node: ReactNode): { content: ReactNode; skipAppShell: boolean } {
-  if (isValidElement(node) && node.type === AppShellBypass) {
-    return { content: node.props.children, skipAppShell: true }
+  if (isValidElement(node) && (node.type as any) === AppShellBypass) {
+    return { content: (node.props as any).children, skipAppShell: true }
   }
 
   return { content: node, skipAppShell: false }

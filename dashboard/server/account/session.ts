@@ -173,7 +173,7 @@ function extractBearer(value: string | null): string | undefined {
   return trimmed
 }
 
-function resolveTokenFromRequest(request?: NextRequest): string | undefined {
+async function resolveTokenFromRequest(request?: NextRequest): Promise<string | undefined> {
   if (request) {
     const authHeader = request.headers.get('authorization')
     const authToken = extractBearer(authHeader)
@@ -191,7 +191,7 @@ function resolveTokenFromRequest(request?: NextRequest): string | undefined {
   }
 
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const cookieToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
     if (cookieToken && cookieToken.trim().length > 0) {
       return cookieToken.trim()
@@ -215,7 +215,7 @@ export async function userHasRole(
 }
 
 export async function getAccountSession(request?: NextRequest): Promise<AccountSessionResult> {
-  const token = resolveTokenFromRequest(request)
+  const token = await resolveTokenFromRequest(request)
   if (!token) {
     return { token: undefined, user: null }
   }

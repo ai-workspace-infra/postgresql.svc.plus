@@ -922,7 +922,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
             label: 'VLESS QR code',
             description: 'Scan to import the accelerator configuration instantly.',
             linkLabel: 'VLESS URI',
-            linkHelper: 'Click “Copy link” to copy your private VLESS URI.',
+            linkHelper: 'Click "Copy link" to copy your private VLESS URI.',
             copyLink: 'Copy link',
             copied: 'Link copied',
             downloadQr: 'Download QR',
@@ -932,6 +932,9 @@ export const translations: Record<'en' | 'zh', Translation> = {
             missingUuid: 'We could not locate your UUID. Refresh the page or sign in again.',
             downloadTooltip:
               'Your UUID is the only credential required to access this node. Keep it private and do not share it.\nmacOS: /opt/homebrew/etc/config.json\nLinux: /usr/local/etc/config.json',
+            warning: 'Your UUID is the only credential required to access this node. Keep it private and do not share it.',
+            macPath: '/opt/homebrew/etc/config.json',
+            linuxPath: '/usr/local/etc/config.json',
             qrAlt: 'VLESS connection QR code',
           },
         },
@@ -1583,6 +1586,9 @@ export const translations: Record<'en' | 'zh', Translation> = {
             missingUuid: '无法获取您的 UUID，请刷新页面或重新登录。',
             downloadTooltip:
               'UUID 是访问节点的唯一凭证，请谨慎保存，勿随意分发。\nmacOS：/opt/homebrew/etc/config.json\nLinux：/usr/local/etc/config.json',
+            warning: 'UUID 是访问节点的唯一凭证，请谨慎保存，勿随意分发。',
+            macPath: '/opt/homebrew/etc/config.json',
+            linuxPath: '/usr/local/etc/config.json',
             qrAlt: 'VLESS 连接二维码',
           },
         },

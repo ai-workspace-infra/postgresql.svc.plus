@@ -259,22 +259,23 @@ export default function UserCenterManagementRoute() {
 
   return (
     <div className="space-y-6">
-      <OverviewCards data={metricsSWR.data?.overview} loading={metricsLoading} lastUpdatedLabel={lastUpdatedLabel} />
-      <TrendChart data={metricsSWR.data?.series} loading={metricsLoading} />
+      <OverviewCards overview={metricsSWR.data?.overview} isLoading={metricsLoading} lastUpdatedLabel={lastUpdatedLabel} />
+      <TrendChart series={metricsSWR.data?.series} isLoading={metricsLoading} />
       <PermissionMatrixEditor
         matrix={matrixDraft}
-        loading={settingsLoading}
-        saving={matrixPending}
-        dirty={matrixDirty}
-        status={matrixStatus}
-        error={matrixError}
-        onTogglePermission={handleTogglePermission}
+        roles={['user', 'admin', 'operator']}
+        isLoading={settingsLoading}
+        isSaving={matrixPending}
+        hasChanges={matrixDirty}
+        statusMessage={matrixStatus}
+        errorMessage={matrixError}
+        onToggle={handleTogglePermission}
         onSave={handleSaveMatrix}
         canEdit={canEditPermissions}
       />
       <UserGroupManagement
         users={usersSWR.data}
-        loading={usersLoading}
+        isLoading={usersLoading}
         onRoleChange={handleRoleChange}
         onRoleReset={handleRoleReset}
         canEditRoles={canEditRoles}
