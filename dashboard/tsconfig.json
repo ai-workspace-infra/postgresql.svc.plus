@@ -14,10 +14,12 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "jsx": "preserve",
-    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "baseUrl": ".",             // 👈 根路径基准
     "paths": {
+      "@cms": ["cms/index.ts"], // 👈 增加这行以兼容 import "@cms"
       "@cms/*": ["cms/*"],
+
       "@components/*": ["components/*"],
       "@i18n/*": ["i18n/*"],
       "@lib/*": ["lib/*"],
@@ -33,7 +35,6 @@
   },
   "include": [
     "app",
-    "config",
     "cms",
     "components",
     "i18n",
@@ -41,9 +42,9 @@
     "ui",
     "src",
     "server",
-    "src",
     "types",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "config"]
 }

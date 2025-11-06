@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { collectExtensionProviders } from '@cms/client'
 import { LanguageProvider } from '@i18n/LanguageProvider'
 import { UserProvider } from '@lib/userStore'
-import { ThemeProvider } from '@theme'
+import { ThemeProvider } from '../src/theme'
 
 const extensionProviders = collectExtensionProviders()
 

@@ -2,8 +2,8 @@
 
 import ThemePreferenceCard from '../../panel/account/ThemePreferenceCard'
 import Card from '../../panel/components/Card'
-import { useTheme } from '@theme'
-import type { ThemeTokens } from '@theme'
+import { useTheme } from '../../../src/theme'
+import type { ThemeTokens } from '../../../src/theme'
 
 const COLOR_TOKENS: Array<{ key: keyof ThemeTokens['colors']; label: string }> = [
   { key: 'background', label: '背景 Background' },

@@ -5,9 +5,18 @@ import path from 'path'
 
 import yaml from 'js-yaml'
 
-import baseSource from '../config/runtime-service-config.base.yaml'
-import prodSource from '../config/runtime-service-config.prod.yaml'
-import sitSource from '../config/runtime-service-config.sit.yaml'
+// 使用 process.cwd() 获取项目根目录，避免 __dirname 在生产环境的问题
+const configDir = path.join(process.cwd(), 'config')
+
+function loadYamlSource(sourceKey: RuntimeSourceKey): string | undefined {
+  try {
+    const filePath = path.join(configDir, `runtime-service-config.${sourceKey}.yaml`)
+    return fs.readFileSync(filePath, 'utf8')
+  } catch (error) {
+    console.warn(`[runtime-config] Failed to load YAML source "${sourceKey}"`, error)
+    return undefined
+  }
+}
 
 type RuntimeSourceKey = 'base' | 'prod' | 'sit'
 
@@ -37,10 +46,9 @@ export type RuntimeEnvSettings = {
 
 const RUNTIME_ENV_CONFIG_BASENAME = '.runtime-env-config.yaml'
 
-const YAML_SOURCES: Record<RuntimeSourceKey, string | undefined> = {
-  base: baseSource,
-  prod: prodSource,
-  sit: sitSource,
+// 动态加载 YAML 源文件，避免 Turbopack 编译问题
+function getYamlSource(sourceKey: RuntimeSourceKey): string | undefined {
+  return loadYamlSource(sourceKey)
 }
 
 const parsedYamlCache: Partial<Record<RuntimeSourceKey, Record<string, unknown>>> = {}
@@ -57,7 +65,7 @@ function parseYamlSource(sourceKey: RuntimeSourceKey): Record<string, unknown> {
     return parsedYamlCache[sourceKey]!
   }
 
-  const source = YAML_SOURCES[sourceKey]
+  const source = getYamlSource(sourceKey)
   if (!source) {
     return {}
   }
@@ -245,6 +253,20 @@ let runtimeEnvSettingsCache: RuntimeEnvSettings | undefined
 export function readRuntimeEnvSettings(): RuntimeEnvSettings {
   if (runtimeEnvSettingsCache) {
     return runtimeEnvSettingsCache
+  }
+
+  // 首先检查 RUNTIME_ENV 环境变量
+  const runtimeEnv = process.env.RUNTIME_ENV
+  if (runtimeEnv) {
+    const environment = normalizeEnvironmentValue(runtimeEnv)
+    if (environment) {
+      runtimeEnvSettingsCache = {
+        environment,
+        region: 'default',
+        detectedBy: 'env:RUNTIME_ENV',
+      }
+      return runtimeEnvSettingsCache
+    }
   }
 
   const candidates: Array<{ path: string; detectedBy: string }> = []

@@ -1,0 +1,54 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const nextConfig = {
+  // 配置允许的外部图片域名
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'dl.svc.plus',
+      },
+    ],
+  },
+
+  webpack: (config) => {
+    // 添加 YAML 文件支持
+    config.module.rules.push({
+      test: /\.ya?ml$/i,
+      type: 'asset/source',
+    });
+
+    // 显式 alias，保证 Turbopack 也能解析
+    config.resolve.alias = {
+      ...(config.resolve.alias ?? {}),
+      "@cms": path.join(__dirname, "cms"),
+      "@components": path.join(__dirname, "components"),
+      "@i18n": path.join(__dirname, "i18n"),
+      "@lib": path.join(__dirname, "lib"),
+      "@types": path.join(__dirname, "types"),
+      "@server": path.join(__dirname, "server"),
+      "@theme": path.join(__dirname, "src", "theme"),
+      "@templates": path.join(__dirname, "src", "templates"),
+      "@src": path.join(__dirname, "src"),
+    };
+
+    // 添加模块搜索路径
+    config.resolve.modules = [
+      ...(config.resolve.modules || []),
+      __dirname,
+      path.join(__dirname, "src"),
+    ];
+
+    return config;
+  },
+  reactStrictMode: true,
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
+};
+
+export default nextConfig;
