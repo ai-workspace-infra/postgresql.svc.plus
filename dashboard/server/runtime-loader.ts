@@ -260,9 +260,13 @@ export function readRuntimeEnvSettings(): RuntimeEnvSettings {
   if (runtimeEnv) {
     const environment = normalizeEnvironmentValue(runtimeEnv)
     if (environment) {
+      // 检查 REGION 环境变量
+      const regionEnv = process.env.REGION
+      const region = regionEnv ? normalizeRegionValue(regionEnv) || 'default' : 'default'
+
       runtimeEnvSettingsCache = {
         environment,
-        region: 'default',
+        region,
         detectedBy: 'env:RUNTIME_ENV',
       }
       return runtimeEnvSettingsCache
@@ -307,12 +311,14 @@ export function readRuntimeEnvSettings(): RuntimeEnvSettings {
       }
 
       const environment = normalizeEnvironmentValue(parsed.environment)
-      const region = normalizeRegionValue(parsed.region)
+      const regionEnv = process.env.REGION
+      const regionFromFile = normalizeRegionValue(parsed.region)
+      const region = regionEnv ? (normalizeRegionValue(regionEnv) || 'default') : (regionFromFile ?? 'default')
 
       if (environment) {
         runtimeEnvSettingsCache = {
           environment,
-          region: region ?? 'default',
+          region,
           detectedBy: candidate.detectedBy,
         }
         return runtimeEnvSettingsCache
