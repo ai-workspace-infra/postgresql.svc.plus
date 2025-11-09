@@ -229,6 +229,7 @@ export default function Navbar() {
     home: isChinese ? '首页' : 'Home',
     docs: isChinese ? '文档' : 'Docs',
     download: isChinese ? '下载' : 'Download',
+    openSource: isChinese ? '开源项目' : 'Open source',
     moreServices: isChinese ? '更多服务' : 'More services',
     searchPlaceholder: isChinese ? '请输入关键字搜索内容' : 'Ask anything about your docs',
   }
@@ -270,7 +271,14 @@ export default function Navbar() {
   const mainLinks = [
     { key: 'home', label: labels.home, href: '/' },
     { key: 'docs', label: labels.docs, href: '/docs' },
-    { key: 'download', label: labels.download, href: '/download' },
+  ]
+
+  const downloadLink = { key: 'download', label: labels.download, href: '/download' }
+
+  const openSourceProjects = [
+    { key: 'xstream', label: 'XStream', href: '/xstream' },
+    { key: 'xcloudflow', label: 'XCloudFlow', href: '/xcloudflow' },
+    { key: 'xscopehub', label: 'XScopeHub', href: '/xscopehub' },
   ]
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -309,6 +317,35 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 ))}
+                <Link key={downloadLink.key} href={downloadLink.href} className="transition hover:text-brand">
+                  {downloadLink.label}
+                </Link>
+                <div className="group relative">
+                  <button className="flex items-center gap-1 transition hover:text-brand">
+                    <span>{labels.openSource}</span>
+                    <svg
+                      className="h-4 w-4 text-brand-heading/60 transition group-hover:text-brand"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="pointer-events-none absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-brand-border bg-white py-2 text-sm text-brand-heading opacity-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-200 group-hover:pointer-events-auto group-hover:block group-hover:translate-y-2 group-hover:opacity-100">
+                    {openSourceProjects.map((project) => (
+                      <Link
+                        key={project.key}
+                        href={project.href}
+                        className="block px-4 py-2 transition hover:bg-brand-surface hover:text-brand"
+                      >
+                        {project.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
                 {serviceItems.length > 0 ? (
                   <div className="group relative">
                     <button className="flex items-center gap-1 transition hover:text-brand">
