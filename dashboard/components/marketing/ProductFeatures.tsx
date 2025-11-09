@@ -1,10 +1,37 @@
-import { Activity, Brain, Rocket, Shield } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import {
+  Activity,
+  BellRing,
+  Brain,
+  Cloud,
+  Coins,
+  Database,
+  GitBranch,
+  Puzzle,
+  Rocket,
+  Shield,
+  ShieldCheck,
+} from 'lucide-react'
+
+import type { ProductConfig } from '@src/products/registry'
 
 type ProductFeaturesProps = {
+  config: ProductConfig
   lang: 'zh' | 'en'
 }
 
-const FEATURES = {
+type FeatureDefinition = {
+  title: string
+  description: string
+  icon: LucideIcon
+}
+
+type FeatureSet = {
+  zh: FeatureDefinition[]
+  en: FeatureDefinition[]
+}
+
+const DEFAULT_FEATURES: FeatureSet = {
   zh: [
     {
       title: '极速连接',
@@ -51,8 +78,109 @@ const FEATURES = {
   ],
 }
 
-export default function ProductFeatures({ lang }: ProductFeaturesProps) {
-  const items = FEATURES[lang]
+const FEATURE_LIBRARY: Record<string, FeatureSet> = {
+  xstream: DEFAULT_FEATURES,
+  xscopehub: {
+    zh: [
+      {
+        title: '全栈可观测数据',
+        description: '统一聚合日志、指标与追踪，秒级关联上下游依赖。',
+        icon: Database,
+      },
+      {
+        title: 'AI 根因洞察',
+        description: '基于时间序列与拓扑的智能关联分析，快速定位故障。',
+        icon: Brain,
+      },
+      {
+        title: '自动化告警编排',
+        description: '多渠道告警与自愈策略编排，减少人工值守负担。',
+        icon: BellRing,
+      },
+      {
+        title: '生态级集成',
+        description: '通过 Webhook 与插件体系，与 CI/CD、ITSM 平台无缝联动。',
+        icon: Puzzle,
+      },
+    ],
+    en: [
+      {
+        title: 'Full-stack telemetry',
+        description: 'Unify logs, metrics, and traces with second-level dependency mapping.',
+        icon: Database,
+      },
+      {
+        title: 'AI-driven insights',
+        description: 'Correlate time-series signals with topology to pinpoint root causes fast.',
+        icon: Brain,
+      },
+      {
+        title: 'Automated alerting',
+        description: 'Orchestrate multichannel alerts and auto-remediation runbooks to cut toil.',
+        icon: BellRing,
+      },
+      {
+        title: 'Ecosystem integrations',
+        description: 'Connect to CI/CD and ITSM systems through webhooks and an extensible plugin hub.',
+        icon: Puzzle,
+      },
+    ],
+  },
+  xcloudflow: {
+    zh: [
+      {
+        title: '多云蓝图编排',
+        description: '跨公有云与私有云的资源模型统一建模，一次定义多环境复用。',
+        icon: Cloud,
+      },
+      {
+        title: 'GitOps 流水线',
+        description: '将基础设施交付纳入 Git 审批与回滚流程，自动推进部署。',
+        icon: GitBranch,
+      },
+      {
+        title: '策略与合规',
+        description: '内置策略扫描与准入控制，确保资源变更符合监管要求。',
+        icon: ShieldCheck,
+      },
+      {
+        title: '成本可视化',
+        description: '实时跟踪多云资源使用与成本分摊，辅助优化预算。',
+        icon: Coins,
+      },
+    ],
+    en: [
+      {
+        title: 'Multi-cloud blueprints',
+        description: 'Model infrastructure once and reuse across public and private clouds.',
+        icon: Cloud,
+      },
+      {
+        title: 'GitOps pipelines',
+        description: 'Bring infrastructure delivery into Git reviews with automated rollouts.',
+        icon: GitBranch,
+      },
+      {
+        title: 'Policy & compliance',
+        description: 'Built-in policy checks and admission controls enforce governance at deploy time.',
+        icon: ShieldCheck,
+      },
+      {
+        title: 'Cost visibility',
+        description: 'Track multi-cloud spend and allocations in real time to optimize budgets.',
+        icon: Coins,
+      },
+    ],
+  },
+}
+
+export default function ProductFeatures({ config, lang }: ProductFeaturesProps) {
+  const featureSet = FEATURE_LIBRARY[config.slug] ?? DEFAULT_FEATURES
+  const items = featureSet[lang]
+  const intro =
+    lang === 'zh'
+      ? `${config.name} 的核心能力组合，帮助团队快速落地。`
+      : `Key capabilities from ${config.name} to help your team ship faster.`
 
   return (
     <section id="features" aria-labelledby="features-title" className="py-16">
@@ -61,11 +189,7 @@ export default function ProductFeatures({ lang }: ProductFeaturesProps) {
           <h2 id="features-title" className="text-3xl font-bold text-slate-900">
             {lang === 'zh' ? '核心功能' : 'Core Features'}
           </h2>
-          <p className="mt-2 text-slate-600">
-            {lang === 'zh'
-              ? '为稳定、低延迟的全球访问而生。'
-              : 'Built for stable, low-latency global access.'}
-          </p>
+          <p className="mt-2 text-slate-600">{intro}</p>
         </header>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {items.map(({ title, description, icon: Icon }) => (

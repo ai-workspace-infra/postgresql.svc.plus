@@ -2,6 +2,13 @@ export const dynamic = 'error'
 
 import MailSettings from '../../../../components/mail/MailSettings'
 
-export default function MailSettingsPage({ params }: { params: { slug: string } }) {
-  return <MailSettings tenantId={params.slug} />
+type PageProps = {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default async function MailSettingsPage({ params }: PageProps) {
+  const { slug } = await params
+  return <MailSettings tenantId={slug} />
 }

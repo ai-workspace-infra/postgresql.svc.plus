@@ -2,6 +2,13 @@ export const dynamic = 'error'
 
 import ComposeForm from '../../../../components/mail/ComposeForm'
 
-export default function ComposePage({ params }: { params: { slug: string } }) {
-  return <ComposeForm tenantId={params.slug} />
+type PageProps = {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default async function ComposePage({ params }: PageProps) {
+  const { slug } = await params
+  return <ComposeForm tenantId={slug} />
 }

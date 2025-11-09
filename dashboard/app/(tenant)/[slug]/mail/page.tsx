@@ -2,7 +2,13 @@ export const dynamic = 'error'
 
 import MailDashboard from '../../../components/mail/MailDashboard'
 
-export default function TenantMailPage({ params }: { params: { slug: string } }) {
-  const { slug } = params
+type PageProps = {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default async function TenantMailPage({ params }: PageProps) {
+  const { slug } = await params
   return <MailDashboard tenantId={slug} tenantName={slug} />
 }

@@ -183,7 +183,7 @@ export default function Client({ config }: ClientProps) {
       </header>
       <main>
         <ProductHero config={config} lang={lang} onExportPoster={handleExportPoster} />
-        <ProductFeatures lang={lang} />
+        <ProductFeatures config={config} lang={lang} />
         <ProductEditions config={config} lang={lang} />
         <ProductScenarios lang={lang} />
         <ProductDownload config={config} lang={lang} />

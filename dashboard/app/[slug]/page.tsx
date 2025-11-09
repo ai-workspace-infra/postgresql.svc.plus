@@ -5,9 +5,9 @@ import Client from './Client'
 import { PRODUCT_MAP, getAllSlugs } from '@src/products/registry'
 
 type PageProps = {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export async function generateStaticParams() {
@@ -15,7 +15,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const config = PRODUCT_MAP.get(params.slug)
+  const { slug } = await params
+  const config = PRODUCT_MAP.get(slug)
 
   if (!config) {
     return {}
@@ -45,8 +46,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default function ProductPage({ params }: PageProps) {
-  const config = PRODUCT_MAP.get(params.slug)
+export default async function ProductPage({ params }: PageProps) {
+  const { slug } = await params
+  const config = PRODUCT_MAP.get(slug)
 
   if (!config) {
     notFound()
