@@ -17,26 +17,25 @@ const heroContent = {
     description:
       '通过统一治理、自动化与可观测能力，连接团队、工具与环境，让企业以更简洁的方式管理复杂的多云栈。',
     focusAreas: ['跨云统一治理', '安全与合规自动化', '可观测与智能协同'],
+    ctaLabel: '了解产品详情',
     products: [
       {
         label: 'XCloudFlow',
         headline: '多云自动化与 GitOps 编排',
-        description: '以声明式 IaC 驱动跨云交付流程，内建审批、审计与合规校验，保障变更可控。',
+        description: '声明式 IaC 引擎连接 Terraform、Pulumi 与 GitOps 流水线，帮助平台团队统一变更治理。',
+        href: 'https://www.svc.plus/xcloudflow',
       },
       {
-        label: 'XScoveHub',
+        label: 'XScopeHub',
         headline: '可观测与智能协同',
-        description: '统一指标、日志、链路与事件流，AI 助理联动诊断与响应，缩短故障恢复时间。',
+        description: '统一指标、日志与链路拓扑，并结合 AI 协作完成事件诊断、知识沉淀与跨团队协同。',
+        href: 'https://www.svc.plus/xscopehub',
       },
       {
         label: 'XStream',
         headline: '安全与合规自动化',
-        description: '策略即代码将安全基线嵌入流水线，持续评估风险并生成可追溯的合规报告。',
-      },
-      {
-        label: 'XBoard',
-        headline: '平台体验与工作流',
-        description: '统一门户连接角色、权限、成本与协作，帮助平台团队构建一致的交付体验。',
+        description: '策略即代码守护交付流水线，为全球团队提供网络加速、合规审计与安全基线。',
+        href: 'https://www.svc.plus/xstream',
       },
     ],
   },
@@ -46,26 +45,25 @@ const heroContent = {
     description:
       'Unify governance, automation, and observability so teams can manage complex multi-cloud estates with clarity.',
     focusAreas: ['Unified multi-cloud governance', 'Automated security & compliance', 'Observability with intelligent workflows'],
+    ctaLabel: 'Explore product site',
     products: [
       {
         label: 'XCloudFlow',
         headline: 'Multi-cloud automation & GitOps orchestration',
-        description: 'Drive declarative IaC workflows with approvals, audit trails, and guardrails built in from day one.',
+        description: 'A declarative IaC engine that connects Terraform, Pulumi, and GitOps pipelines so platform teams govern change consistently.',
+        href: 'https://www.svc.plus/xcloudflow',
       },
       {
-        label: 'XScoveHub',
+        label: 'XScopeHub',
         headline: 'Observability & intelligent collaboration',
-        description: 'Correlate metrics, logs, traces, and events while AI copilots coordinate diagnosis and remediation.',
+        description: 'Unify metrics, logs, and traces with AI-guided incident response, knowledge sharing, and cross-team coordination.',
+        href: 'https://www.svc.plus/xscopehub',
       },
       {
         label: 'XStream',
         headline: 'Security & compliance automation',
-        description: 'Embed policy-as-code controls into every release to surface risks early and keep evidence auditable.',
-      },
-      {
-        label: 'XBoard',
-        headline: 'Platform experience & workflows',
-        description: 'Connect roles, permissions, costs, and collaboration in a unified workspace for platform teams.',
+        description: 'Policy-as-code guardrails with global acceleration that keep distributed releases fast, auditable, and compliant.',
+        href: 'https://www.svc.plus/xstream',
       },
     ],
   },
@@ -103,14 +101,22 @@ export default function Homepage() {
             </div>
             <div className="grid gap-4">
               {content.products.map((product) => (
-                <article
+                <div
                   key={product.label}
-                  className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:border-sky-200 hover:shadow-md"
+                  className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
                 >
                   <span className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">{product.label}</span>
                   <h3 className="text-lg font-semibold text-slate-900">{product.headline}</h3>
                   <p className="text-sm leading-relaxed text-slate-600">{product.description}</p>
-                </article>
+                  <a
+                    href={product.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-semibold text-brand transition hover:text-brand-dark"
+                  >
+                    {content.ctaLabel} →
+                  </a>
+                </div>
               ))}
             </div>
           </div>
