@@ -18,12 +18,12 @@ class="fixed top-0 z-50 w-full border-b border-brand-border/60 bg-white/85 backd
 - `fixed top-0` - Fixed positioning at top
 
 ### 2. Branding Contrast and Alignment ✅
-**Problem:** Logo and "CloudNative Suite" nearly invisible, poor contrast
+**Problem:** Logo and "Cloud-Neutral" nearly invisible, poor contrast
 **Solution:**
 ```tsx
 <a href="/" class="flex items-center gap-2 text-xl font-semibold text-gray-900">
   <img src="/icons/cloudnative_32.png" alt="logo" width={24} height={24} class="h-6 w-6" />
-  CloudNative Suite
+  Cloud-Neutral
 </a>
 ```
 - `text-gray-900` - High contrast dark gray (not CSS variable)

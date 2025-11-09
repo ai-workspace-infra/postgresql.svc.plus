@@ -184,11 +184,11 @@ function AskAIDialog({ language, onClose }: AskAIDialogProps) {
                 </p>
                 <div class="space-y-2">
                   {(language === 'zh' ? [
-                    '如何开始使用 CloudNative Suite？',
+                    '如何开始使用 Cloud-Neutral？',
                     'XCloudFlow 支持哪些云平台？',
                     '如何配置多集群管理？',
                   ] : [
-                    'How to get started with CloudNative Suite?',
+                    'How to get started with Cloud-Neutral?',
                     'Which cloud platforms does XCloudFlow support?',
                     'How to configure multi-cluster management?',
                   ]).map((suggested) => (

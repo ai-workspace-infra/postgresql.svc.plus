@@ -55,7 +55,7 @@ export default function LoginPage({ data }: PageProps<LoginPageData>) {
   const t = {
     zh: {
       title: '登录到您的账户',
-      pageTitle: '登录 - CloudNative Suite',
+      pageTitle: '登录 - Cloud-Neutral',
       badge: '欢迎回来',
       description: '输入您的邮箱和密码继续',
       registerPrompt: '还没有账户？',
@@ -74,7 +74,7 @@ export default function LoginPage({ data }: PageProps<LoginPageData>) {
     },
     en: {
       title: 'Sign in to your account',
-      pageTitle: 'Login - CloudNative Suite',
+      pageTitle: 'Login - Cloud-Neutral',
       badge: 'Welcome Back',
       description: 'Enter your email and password to continue',
       registerPrompt: "Don't have an account?",

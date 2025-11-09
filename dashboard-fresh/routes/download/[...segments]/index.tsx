@@ -109,7 +109,7 @@ export default function DownloadListing({ data }: PageProps<DownloadListingData>
     return (
       <>
         <Head>
-          <title>Download Not Found - CloudNative Suite</title>
+          <title>Download Not Found - Cloud-Neutral</title>
         </Head>
         <main class="px-4 py-10 md:px-8">
           <DownloadNotFound />
@@ -121,7 +121,7 @@ export default function DownloadListing({ data }: PageProps<DownloadListingData>
   return (
     <>
       <Head>
-        <title>{title} - Download - CloudNative Suite</title>
+        <title>{title} - Download - Cloud-Neutral</title>
         <meta name="description" content={`Download ${title} packages and resources`} />
       </Head>
 

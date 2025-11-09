@@ -55,7 +55,7 @@ export default function AccountPage({ data }: PageProps<AccountPageData>) {
   return (
     <>
       <Head>
-        <title>Account Settings - CloudNative Suite</title>
+        <title>Account Settings - Cloud-Neutral</title>
         <meta name="description" content="Manage your account settings" />
         <link rel="stylesheet" href="/styles/globals.css" />
       </Head>

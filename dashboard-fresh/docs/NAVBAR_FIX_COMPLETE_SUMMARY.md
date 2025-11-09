@@ -142,7 +142,7 @@ curl http://localhost:8000/navbar-demo
 ### Visual Testing
 1. Navigate to `http://localhost:8000/`
 2. Check navbar appearance:
-   - Logo and "CloudNative Suite" visible with high contrast ✅
+   - Logo and "Cloud-Neutral" visible with high contrast ✅
    - Menu items properly spaced ✅
    - Hover effects working ✅
    - Search bar styled correctly ✅

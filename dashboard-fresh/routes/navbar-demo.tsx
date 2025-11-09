@@ -24,7 +24,7 @@ export default function NavbarDemoPage(props: PageProps) {
   return (
     <>
       <Head>
-        <title>Navbar Demo - CloudNative Suite</title>
+        <title>Navbar Demo - Cloud-Neutral</title>
         <meta name="description" content="Demonstration of the fixed Fresh Navbar component" />
         <link rel="stylesheet" href="/styles/globals.css" />
       </Head>
@@ -180,7 +180,7 @@ export default function NavbarDemoPage(props: PageProps) {
       {/* Footer */}
       <footer class="border-t border-brand-border bg-white py-8">
         <div class="mx-auto max-w-7xl px-6 text-center text-sm text-brand-heading/70">
-          <p>© 2025 CloudNative Suite. {language === 'zh' ? '保留所有权利。' : 'All rights reserved.'}</p>
+          <p>© 2025 Cloud-Neutral. {language === 'zh' ? '保留所有权利。' : 'All rights reserved.'}</p>
         </div>
       </footer>
     </>

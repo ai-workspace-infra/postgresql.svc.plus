@@ -35,7 +35,7 @@ RootLayout
 迁移包含：
 
 #### Navbar (固定顶部导航)
-- ✅ CloudNative Suite 品牌logo
+- ✅ Cloud-Neutral 品牌logo
 - ✅ 主导航链接 (文档、下载、演示)
 - ✅ 语言切换 (中文/English)
 - ✅ 登录/注册按钮
@@ -53,7 +53,7 @@ RootLayout
 - ✅ Server-side markdown 渲染
 
 #### Footer (底部信息)
-- ✅ CloudNative Suite 品牌信息
+- ✅ Cloud-Neutral 品牌信息
 - ✅ 描述 (双语支持)
 - ✅ 链接 (隐私政策、服务条款、联系我们)
 - ✅ GitHub 链接
@@ -213,7 +213,7 @@ curl http://localhost:8001/?lang=en
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>云原生套件 - CloudNative Suite</title>
+    <title>云原生套件 - Cloud-Neutral</title>
     <link rel="stylesheet" href="/styles/globals.css" />
   </head>
   <body>
@@ -282,7 +282,7 @@ curl http://localhost:8001/?lang=en
   <div class="mx-auto max-w-7xl px-4">
     <div class="flex h-16 items-center justify-between">
       <div class="flex items-center">
-        <a href="/" class="text-xl font-bold">CloudNative Suite</a>
+        <a href="/" class="text-xl font-bold">Cloud-Neutral</a>
         <div class="hidden md:block ml-10">
           <a href="/docs">文档</a>
           <a href="/download">下载</a>
@@ -308,7 +308,7 @@ curl http://localhost:8001/?lang=en
   <div class="mx-auto max-w-6xl px-8 py-14">
     <div class="flex justify-between">
       <div>
-        <p>CloudNative Suite</p>
+        <p>Cloud-Neutral</p>
         <p>
           {language === 'zh'
             ? '企业级云原生团队的统一可观测性、DevOps 和 AI 工作流平台。'
@@ -322,7 +322,7 @@ curl http://localhost:8001/?lang=en
       </div>
     </div>
     <div class="border-t pt-6">
-      <span>© 2025 CloudNative Suite. All rights reserved.</span>
+      <span>© 2025 Cloud-Neutral. All rights reserved.</span>
       <span>
         {language === 'zh'
           ? '在云原生时代充满信心地构建。'

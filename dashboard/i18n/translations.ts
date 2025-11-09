@@ -549,7 +549,7 @@ export type Translation = {
 export const translations: Record<'en' | 'zh', Translation> = {
   en: {
     hero: {
-      title: 'CloudNative Suite',
+      title: 'Cloud-Neutral',
       description: 'Unified tools for building and managing your cloud native stack.',
       start: 'Get Started',
       learn: 'Learn More',
@@ -608,7 +608,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
     },
     login: {
       title: 'Account Login',
-      description: 'Sign in to personalize your CloudNative Suite experience.',
+      description: 'Sign in to personalize your Cloud-Neutral experience.',
       usernameLabel: 'Username',
       passwordLabel: 'Password',
       submit: 'Sign in',
@@ -703,7 +703,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
     auth: {
       register: {
         badge: 'Create account',
-        title: 'Join CloudNative Suite',
+        title: 'Join Cloud-Neutral',
 
         subtitle: 'We’ll email a verification code so you can confirm your address before accessing the workspace.',
 
@@ -832,7 +832,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
           wechat: 'Continue with WeChat',
         },
         registerPrompt: {
-          text: 'New to CloudNative Suite?',
+          text: 'New to Cloud-Neutral?',
           link: 'Create an account',
         },
         alerts: {
@@ -1278,7 +1278,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
     },
     login: {
       title: '账户登录',
-      description: '登录以获得个性化的 CloudNative Suite 体验。',
+      description: '登录以获得个性化的 Cloud-Neutral 体验。',
       usernameLabel: '用户名',
       passwordLabel: '密码',
       submit: '立即登录',
@@ -1372,7 +1372,7 @@ export const translations: Record<'en' | 'zh', Translation> = {
     auth: {
       register: {
         badge: '立即注册',
-        title: '加入 CloudNative Suite',
+        title: '加入 Cloud-Neutral',
         subtitle: '我们会先向你的邮箱发送验证码，确认地址后即可进入工作台。',
 
         highlights: [

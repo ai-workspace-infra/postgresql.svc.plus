@@ -53,7 +53,7 @@ export default function LogoutPage({ data }: PageProps<LogoutPageData>) {
   return (
     <>
       <Head>
-        <title>{title} - CloudNative Suite</title>
+        <title>{title} - Cloud-Neutral</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 

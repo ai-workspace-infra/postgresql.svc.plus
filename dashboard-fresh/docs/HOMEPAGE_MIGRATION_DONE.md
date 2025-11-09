@@ -154,7 +154,7 @@ curl http://localhost:8000/api/ping
 ### 预期效果
 
 **首页将显示:**
-1. CloudNative Suite 品牌和标题
+1. Cloud-Neutral 品牌和标题
 2. 3个核心功能卡片
    - Fast Deployment
    - Secure by Default

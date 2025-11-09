@@ -51,7 +51,7 @@ export default function MailPage({ data }: PageProps<MailPageData>) {
   return (
     <>
       <Head>
-        <title>Mail Service - CloudNative Suite</title>
+        <title>Mail Service - Cloud-Neutral</title>
         <meta name="description" content="Multi-tenant mail service management" />
         <link rel="stylesheet" href="/styles/globals.css" />
       </Head>

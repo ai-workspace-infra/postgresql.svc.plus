@@ -186,7 +186,7 @@ export default function Navbar({ language, user, pathname = '/' }: NavbarProps) 
                 height={24}
                 class="h-6 w-6"
               />
-              CloudNative Suite
+              Cloud-Neutral
             </a>
             <div class="hidden lg:flex items-center gap-6 text-sm font-medium text-brand-heading">
               {mainLinks.map((link) => (

@@ -89,7 +89,7 @@ $ make dev
 
 ### 首页
 - **URL:** http://localhost:8000/
-- **内容:** CloudNative Suite 品牌页面
+- **内容:** Cloud-Neutral 品牌页面
 - **功能:**
   - Hero banner
   - 3个功能卡片（Fast Deployment, Secure, Monitoring）

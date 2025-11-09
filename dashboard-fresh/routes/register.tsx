@@ -41,7 +41,7 @@ export default function RegisterPage({ data }: PageProps<RegisterPageData>) {
   const t = {
     zh: {
       title: '创建您的账户',
-      pageTitle: '注册 - CloudNative Suite',
+      pageTitle: '注册 - Cloud-Neutral',
       badge: '开始使用',
       description: '填写信息以创建您的账户',
       loginPrompt: '已有账户？',
@@ -68,7 +68,7 @@ export default function RegisterPage({ data }: PageProps<RegisterPageData>) {
     },
     en: {
       title: 'Create your account',
-      pageTitle: 'Register - CloudNative Suite',
+      pageTitle: 'Register - Cloud-Neutral',
       badge: 'Get Started',
       description: 'Fill in your details to create an account',
       loginPrompt: 'Already have an account?',

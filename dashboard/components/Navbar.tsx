@@ -301,7 +301,7 @@ export default function Navbar() {
                   className="h-6 w-6"
                   unoptimized
                 />
-                CloudNative Suite
+                Cloud-Neutral
               </Link>
               <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-brand-heading">
                 {mainLinks.map((link) => (

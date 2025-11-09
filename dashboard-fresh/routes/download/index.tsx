@@ -60,8 +60,8 @@ export default function DownloadHome({ data }: PageProps<DownloadHomeData>) {
   return (
     <>
       <Head>
-        <title>Download Center - CloudNative Suite</title>
-        <meta name="description" content="Download packages, tools and resources for CloudNative Suite" />
+        <title>Download Center - Cloud-Neutral</title>
+        <meta name="description" content="Download packages, tools and resources for Cloud-Neutral" />
       </Head>
 
       <main class="px-4 py-10 md:px-8">

@@ -7,7 +7,7 @@ import { applyExtensionLayouts, getActiveTheme } from '@cms'
 import { AppProviders } from './AppProviders'
 
 export const metadata = {
-  title: 'CloudNative Suite',
+  title: 'Cloud-Neutral',
   description: 'Unified tools for your cloud native stack',
 }
 

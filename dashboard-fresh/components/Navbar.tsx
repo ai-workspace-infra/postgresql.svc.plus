@@ -307,7 +307,7 @@ export default function Navbar() {
                   className="h-6 w-6"
                   unoptimized
                 />
-                CloudNative Suite
+                Cloud-Neutral
               </Link>
               <div className="hidden items-center gap-6 text-sm font-medium text-[var(--color-heading)] transition-colors lg:flex">
                 {mainLinks.map((link) => (

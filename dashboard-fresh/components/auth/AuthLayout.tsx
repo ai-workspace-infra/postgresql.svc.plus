@@ -120,7 +120,7 @@ export function AuthLayout({
         <div class="w-full max-w-md">
           <div class="mb-8 text-center">
             <a href="/" class="text-3xl font-semibold tracking-tight text-slate-900">
-              CloudNative Suite
+              Cloud-Neutral
             </a>
             <p class="mt-1 text-sm text-slate-500">云原生套件 · Cloud-Neutral</p>
           </div>

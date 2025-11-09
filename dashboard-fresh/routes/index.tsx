@@ -240,7 +240,7 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
   return (
     <>
       <Head>
-        <title>云原生套件 - CloudNative Suite</title>
+        <title>云原生套件 - Cloud-Neutral</title>
         <meta
           name="description"
           content="构建一体化的云原生工具集，融合基础设施即代码（IaC）、GitOps 理念与可观测体系"
@@ -281,7 +281,7 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
                             <span class="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-sky-400 opacity-75" />
                             <span class="relative inline-flex h-2 w-2 rounded-full bg-sky-500" />
                           </span>
-                          CloudNative Suite
+                          Cloud-Neutral
                         </span>
                         {operationsUpdated && (
                           <span class="text-xs text-slate-600">
@@ -535,7 +535,7 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
           <div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
             <div class="space-y-3">
               <p class="text-xs font-semibold uppercase tracking-[0.32em] text-brand-light/90">
-                CloudNative Suite
+                Cloud-Neutral
               </p>
               <p class="max-w-lg text-sm text-white/70">
                 {language === 'zh'
@@ -571,7 +571,7 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
                 <p class="text-sm font-semibold text-white">
                   {language === 'zh' ? '公众号' : 'WeChat'}
                 </p>
-                <span class="text-white/80">CloudNative Suite 官方资讯</span>
+                <span class="text-white/80">Cloud-Neutral 官方资讯</span>
               </div>
               <div class="space-y-2">
                 <p class="text-sm font-semibold text-white">
@@ -584,7 +584,7 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
             </div>
           </div>
           <div class="flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/60 sm:flex-row sm:items-center sm:justify-between">
-            <span>© 2025 CloudNative Suite. All rights reserved.</span>
+            <span>© 2025 Cloud-Neutral. All rights reserved.</span>
             <span>
               {language === 'zh'
                 ? '在云原生时代充满信心地构建。'

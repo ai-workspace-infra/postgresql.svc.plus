@@ -51,7 +51,7 @@ export default function PanelPage({ data }: PageProps<PanelPageData>) {
   return (
     <>
       <Head>
-        <title>Dashboard - CloudNative Suite</title>
+        <title>Dashboard - Cloud-Neutral</title>
         <meta name="description" content="User Control Panel" />
         <link rel="stylesheet" href="/styles/globals.css" />
       </Head>

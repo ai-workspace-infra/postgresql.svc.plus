@@ -19,7 +19,7 @@
 ### 1. Navbar 样式和布局问题 ✅
 
 #### 修复前的问题
-- ❌ Logo 和 "CloudNative Suite" 几乎看不见（对比度低）
+- ❌ Logo 和 "Cloud-Neutral" 几乎看不见（对比度低）
 - ❌ 菜单项间距不正确，悬停效果丢失
 - ❌ 搜索栏和登录/注册按钮未对齐
 - ❌ 语言选择器和实验性图标未渲染
@@ -222,7 +222,7 @@ http://localhost:8000/navbar-demo   # Navbar 演示页
 - [x] Navbar 固定在页面顶部
 - [x] 半透明白色背景可见
 - [x] 背景模糊效果正常
-- [x] Logo 和 "CloudNative Suite" 清晰可见
+- [x] Logo 和 "Cloud-Neutral" 清晰可见
 - [x] 菜单项间距正确
 - [x] 悬停时菜单项变为品牌色
 - [x] 搜索框样式正确（圆角、边框）

@@ -55,7 +55,7 @@ export default function EmailVerificationPage({ data }: PageProps<EmailVerificat
   return (
     <>
       <Head>
-        <title>{title} - CloudNative Suite</title>
+        <title>{title} - Cloud-Neutral</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
