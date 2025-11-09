@@ -1135,12 +1135,6 @@ export const translations: Record<'en' | 'zh', Translation> = {
             bodyHtml:
               '<ul><li><a href="#">Platform engineering book club</a> — Weekly deep dives into governance case studies.</li><li><a href="#">Slack community</a> — Chat live with 2,000+ practitioners.</li><li><a href="#">GitHub Issues</a> — Share feature requests and report bugs.</li></ul>',
           },
-          newsletter: {
-            title: 'Subscribe to the digest',
-            ctaLabel: 'Subscribe now',
-            bodyHtml:
-              'Receive roadmap updates, best-practice articles, and event invites in your inbox once a month.',
-          },
           resources: {
             title: 'Recommended resources',
             bodyHtml:
