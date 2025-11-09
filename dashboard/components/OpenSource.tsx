@@ -5,54 +5,35 @@ import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
 import { designTokens, type PageVariant } from '@theme/designTokens'
 
+const introCopy = {
+  en: 'Explore our open-source suites with focused documentation sites. Each project extends Cloud-Neutral capabilities while staying easy to self-host.',
+  zh: '了解 Cloud-Neutral 的开源项目，我们提供专题站点介绍核心能力，便于自建与二次开发。',
+}
+
 const projects = [
   {
     name: 'XCloudFlow',
     desc: {
-      en: 'Multi-cloud IaC engine built with Pulumi SDK and Go.',
-      zh: '基于 Pulumi SDK 和 Go 构建的多云 IaC 引擎。',
+      en: 'Multi-cloud IaC & GitOps automation with Terraform, Pulumi, and policy guardrails.',
+      zh: '连接 Terraform、Pulumi 与 GitOps 的多云 IaC 自动化引擎，内建策略守护。',
     },
-    link: 'https://github.com/svc-design/XCloudFlow',
-  },
-  {
-    name: 'KubeGuard',
-    desc: {
-      en: 'Kubernetes cluster application and node-level backup system.',
-      zh: 'Kubernetes 集群应用与节点级备份系统。',
-    },
-    link: 'https://github.com/svc-design/KubeGuard',
-  },
-  {
-    name: 'XConfig',
-    desc: {
-      en: 'Lightweight task execution & configuration orchestration engine.',
-      zh: '轻量级任务执行与配置编排引擎。',
-    },
-    link: 'https://github.com/svc-design/XConfig',
+    link: 'https://www.svc.plus/xcloudflow',
   },
   {
     name: 'XScopeHub',
     desc: {
-      en: 'Observability suite: Vector/OTel → OpenObserve → nearline ETL → Postgres/Timescale + pgvector & Apache AGE for 10-min active call graph; includes DeepFlow, node_exporter, process-exporter, Vector agents.',
-      zh: '观测套件：Vector/OTel → OpenObserve → 近线 ETL → Postgres/Timescale + pgvector 与 Apache AGE 实现 10 分钟活跃调用图；集成 DeepFlow、node_exporter、process-exporter、Vector 代理。',
+      en: 'Observability and AI-assisted collaboration that unifies metrics, logs, and traces.',
+      zh: '统一指标、日志与链路的可观测平台，并以 AI 协作支撑事件分析与知识沉淀。',
     },
-    link: 'https://github.com/svc-design/XScopeHub',
-  },
-  {
-    name: 'Navi',
-    desc: {
-      en: 'Guiding your tasks, helping you get things done faster.',
-      zh: '引导你的任务，帮助你更快完成工作。',
-    },
-    link: 'https://github.com/svc-design/Navi',
+    link: 'https://www.svc.plus/xscopehub',
   },
   {
     name: 'XStream',
     desc: {
-      en: 'Cross-border developer proxy accelerator for global accessibility.',
-      zh: '跨境开发者代理加速器，全球访问更高效。',
+      en: 'Policy-as-code security automation with global delivery acceleration.',
+      zh: '策略即代码的安全自动化引擎，为全球团队提供网络加速与合规能力。',
     },
-    link: 'https://github.com/svc-design/Xstream',
+    link: 'https://www.svc.plus/xstream',
   },
 ]
 
@@ -75,27 +56,28 @@ export default function OpenSource({ variant = 'homepage' }: OpenSourceProps) {
     >
       <div className={clsx(designTokens.layout.container, 'flex flex-col gap-12')}>
         <h2 className="text-3xl font-bold text-center text-slate-900 sm:text-4xl">{t.openSourceTitle}</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto max-w-2xl text-center text-sm text-slate-600 sm:text-base">
+          <p>{introCopy[language]}</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (
-            <div
+            <a
               key={p.name}
+              href={p.link}
+              target="_blank"
+              rel="noopener noreferrer"
               className={clsx(
                 designTokens.cards.base,
                 designTokens.transitions[variant],
-                'flex flex-col gap-4 p-6'
+                'flex flex-col gap-3 p-6 text-left'
               )}
             >
-              <h3 className="text-xl font-semibold text-slate-900">{p.name}</h3>
-              <p className="text-sm text-slate-600 sm:text-base">{p.desc[language]}</p>
-              <a
-                href={p.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-brand transition hover:text-brand-dark"
-              >
-                GitHub →
-              </a>
-            </div>
+              <span className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">{p.name}</span>
+              <span className="text-base font-semibold text-slate-900 sm:text-lg">{p.desc[language]}</span>
+              <span className="text-sm font-medium text-brand transition hover:text-brand-dark">
+                {language === 'zh' ? '访问专题站点' : 'Visit product site'} →
+              </span>
+            </a>
           ))}
         </div>
       </div>
