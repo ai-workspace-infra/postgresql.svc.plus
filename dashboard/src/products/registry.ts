@@ -2,6 +2,19 @@ import xcloudflow from './xcloudflow'
 import xscopehub from './xscopehub'
 import xstream from './xstream'
 
+export type EditionLink = {
+  label: string
+  href: string
+  external?: boolean
+}
+
+export type Editions = {
+  selfhost: EditionLink[]
+  managed: EditionLink[]
+  paygo: EditionLink[]
+  saas: EditionLink[]
+}
+
 export type ProductConfig = {
   slug: string
   name: string
@@ -17,11 +30,7 @@ export type ProductConfig = {
   blogUrl: string
   videosUrl: string
   downloadUrl: string
-  selfhostLinks?: Array<{
-    href: string
-    label_zh: string
-    label_en: string
-  }>
+  editions: Editions
 }
 
 export const PRODUCT_LIST: ProductConfig[] = [xstream, xscopehub, xcloudflow]

@@ -5,6 +5,7 @@ import { useEffect, useId, useMemo, useState, type KeyboardEvent } from 'react'
 
 import type { HeroSolution } from '@cms/content'
 import { useLanguage } from '@i18n/LanguageProvider'
+import { translations } from '@i18n/translations'
 
 const ROTATION_INTERVAL_MS = 8000
 
@@ -14,16 +15,31 @@ type HeroProductTabsProps = {
 
 export default function HeroProductTabs({ items }: HeroProductTabsProps) {
   const { language } = useLanguage()
-  const labels = TAB_LABELS[language]
+  const marketing = translations[language].marketing.home
   const [activeIndex, setActiveIndex] = useState(0)
   const tablistId = useId()
 
   const localizedItems = useMemo(() => {
-    return items.map((item) => ({
-      ...item,
-      features: item.features ?? [],
-    }))
-  }, [items])
+    const overrides = marketing.solutionOverrides ?? {}
+    return items.map((item) => {
+      const override = overrides[item.slug]
+      if (!override) {
+        return item
+      }
+      return {
+        ...item,
+        title: override.title ?? item.title,
+        tagline: override.tagline ?? item.tagline,
+        description: override.description ?? item.description,
+        features:
+          override.features && override.features.length ? override.features : item.features,
+        bodyHtml: override.bodyHtml ?? item.bodyHtml,
+        primaryCtaLabel: override.primaryCtaLabel ?? item.primaryCtaLabel,
+        secondaryCtaLabel: override.secondaryCtaLabel ?? item.secondaryCtaLabel,
+        tertiaryCtaLabel: override.tertiaryCtaLabel ?? item.tertiaryCtaLabel,
+      }
+    })
+  }, [items, marketing.solutionOverrides])
 
   useEffect(() => {
     if (localizedItems.length <= 1) {
@@ -74,11 +90,11 @@ export default function HeroProductTabs({ items }: HeroProductTabsProps) {
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-blue-100 bg-white p-6 text-slate-900 shadow-xl shadow-blue-200/60 sm:p-8">
-      <span className="text-xs font-semibold uppercase tracking-[0.35em] text-blue-700">{labels.tabs}</span>
+      <span className="text-xs font-semibold uppercase tracking-[0.35em] text-blue-700">{marketing.tabsLabel}</span>
       <div
         id={tablistId}
         role="tablist"
-        aria-label={labels.aria}
+        aria-label={marketing.tabsAriaLabel}
         className="mt-4 flex flex-wrap gap-2"
       >
         {localizedItems.map((item, index) => {
@@ -152,54 +168,40 @@ export default function HeroProductTabs({ items }: HeroProductTabsProps) {
             dangerouslySetInnerHTML={{ __html: activeItem.bodyHtml }}
           />
         ) : null}
-        {getResourceLinks(activeItem).length ? (
-          <div className="mt-6 space-y-2 text-sm text-slate-700">
-            <p className="font-semibold uppercase tracking-[0.25em] text-blue-700">{labels.resources}</p>
-            <ul className="space-y-1">
-              {getResourceLinks(activeItem).map(({ href, label }) => (
-                <li key={`${label}-${href}`}>
-                  <Link
-                    prefetch={false}
-                    href={href}
-                    className="text-blue-700 underline-offset-2 hover:underline"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        {(activeItem.primaryCtaLabel && activeItem.primaryCtaHref) ||
+        (activeItem.secondaryCtaLabel && activeItem.secondaryCtaHref) ||
+        (activeItem.tertiaryCtaLabel && activeItem.tertiaryCtaHref) ? (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {activeItem.primaryCtaLabel && activeItem.primaryCtaHref ? (
+              <Link
+                prefetch={false}
+                href={activeItem.primaryCtaHref}
+                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-300/50 transition hover:bg-blue-700"
+              >
+                {activeItem.primaryCtaLabel}
+              </Link>
+            ) : null}
+            {activeItem.secondaryCtaLabel && activeItem.secondaryCtaHref ? (
+              <Link
+                prefetch={false}
+                href={activeItem.secondaryCtaHref}
+                className="inline-flex items-center justify-center rounded-full border border-blue-200 px-5 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
+              >
+                {activeItem.secondaryCtaLabel}
+              </Link>
+            ) : null}
+            {activeItem.tertiaryCtaLabel && activeItem.tertiaryCtaHref ? (
+              <Link
+                prefetch={false}
+                href={activeItem.tertiaryCtaHref}
+                className="inline-flex items-center justify-center rounded-full border border-blue-100 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50/70"
+              >
+                {activeItem.tertiaryCtaLabel}
+              </Link>
+            ) : null}
           </div>
         ) : null}
       </div>
     </div>
   )
-}
-
-const TAB_LABELS = {
-  zh: {
-    tabs: '解决方案',
-    aria: '切换展示的解决方案',
-    resources: '相关链接',
-  },
-  en: {
-    tabs: 'Solutions',
-    aria: 'Switch between solution details',
-    resources: 'Reference links',
-  },
-} as const
-
-function getResourceLinks(solution: HeroSolution) {
-  const links = [
-    solution.primaryCtaLabel && solution.primaryCtaHref
-      ? { label: solution.primaryCtaLabel, href: solution.primaryCtaHref }
-      : null,
-    solution.secondaryCtaLabel && solution.secondaryCtaHref
-      ? { label: solution.secondaryCtaLabel, href: solution.secondaryCtaHref }
-      : null,
-    solution.tertiaryCtaLabel && solution.tertiaryCtaHref
-      ? { label: solution.tertiaryCtaLabel, href: solution.tertiaryCtaHref }
-      : null,
-  ]
-
-  return links.filter((link): link is { label: string; href: string } => Boolean(link?.label && link.href))
 }

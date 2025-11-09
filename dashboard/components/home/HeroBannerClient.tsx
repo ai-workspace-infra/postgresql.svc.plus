@@ -6,6 +6,7 @@ import { useMemo } from 'react'
 import type { HeroContent, HeroSolution } from '@cms/content'
 import HeroProductTabs from './HeroProductTabs'
 import { useLanguage } from '@i18n/LanguageProvider'
+import { translations } from '@i18n/translations'
 
 const gradientOverlay = 'absolute inset-0 bg-gradient-to-br from-white/95 via-white/90 to-blue-100/70'
 
@@ -14,25 +15,36 @@ type HeroBannerClientProps = {
   solutions: HeroSolution[]
 }
 
+function mergeHeroCopy(hero: HeroContent, override: MarketingHeroCopy) {
+  return {
+    ...hero,
+    eyebrow: override.eyebrow ?? hero.eyebrow,
+    title: override.title ?? hero.title,
+    subtitle: override.subtitle ?? hero.subtitle,
+    highlights:
+      override.highlights && override.highlights.length ? override.highlights : hero.highlights,
+    bodyHtml: override.bodyHtml ?? hero.bodyHtml,
+    primaryCtaLabel: override.primaryCtaLabel ?? hero.primaryCtaLabel,
+    secondaryCtaLabel: override.secondaryCtaLabel ?? hero.secondaryCtaLabel,
+  }
+}
+
+type MarketingHeroCopy = {
+  eyebrow?: string
+  title?: string
+  subtitle?: string
+  highlights?: string[]
+  bodyHtml?: string
+  primaryCtaLabel?: string
+  secondaryCtaLabel?: string
+}
+
 export default function HeroBannerClient({ hero, solutions }: HeroBannerClientProps) {
   const { language } = useLanguage()
-  const defaults = HERO_DEFAULTS[language]
+  const marketing = translations[language].marketing.home
 
-  const heroCopy = useMemo(() => {
-    const highlights = hero.highlights?.length ? hero.highlights : defaults.highlights
-    return {
-      eyebrow: hero.eyebrow ?? defaults.eyebrow,
-      title: hero.title || defaults.title,
-      subtitle: hero.subtitle ?? defaults.subtitle,
-      highlights,
-      bodyHtml: hero.bodyHtml || defaults.bodyHtml,
-      primaryCtaLabel: hero.primaryCtaLabel ?? defaults.primaryCtaLabel,
-      primaryCtaHref: hero.primaryCtaHref ?? defaults.primaryCtaHref,
-      secondaryCtaLabel: hero.secondaryCtaLabel ?? defaults.secondaryCtaLabel,
-      secondaryCtaHref: hero.secondaryCtaHref ?? defaults.secondaryCtaHref,
-    }
-  }, [defaults, hero])
-  const fallback = defaults.panelFallback
+  const heroCopy = useMemo(() => mergeHeroCopy(hero, marketing.hero), [hero, marketing.hero])
+  const fallback = marketing.heroFallback
   const highlightItems = heroCopy.highlights ?? []
 
   return (
@@ -73,22 +85,22 @@ export default function HeroBannerClient({ hero, solutions }: HeroBannerClientPr
             />
           ) : null}
           <div className="flex flex-wrap items-center gap-3 pt-2">
-            {heroCopy.primaryCtaHref ? (
+            {hero.primaryCtaLabel && hero.primaryCtaHref ? (
               <Link
                 prefetch={false}
-                href={heroCopy.primaryCtaHref}
-                className="inline-flex items-center justify-center rounded-full border border-blue-200 px-5 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
+                href={hero.primaryCtaHref}
+                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-300/60 transition hover:bg-blue-700"
               >
-                {heroCopy.primaryCtaLabel}
+                {heroCopy.primaryCtaLabel ?? hero.primaryCtaLabel}
               </Link>
             ) : null}
-            {heroCopy.secondaryCtaHref ? (
+            {hero.secondaryCtaLabel && hero.secondaryCtaHref ? (
               <Link
                 prefetch={false}
-                href={heroCopy.secondaryCtaHref}
+                href={hero.secondaryCtaHref}
                 className="inline-flex items-center justify-center rounded-full border border-blue-200 px-5 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
               >
-                {heroCopy.secondaryCtaLabel}
+                {heroCopy.secondaryCtaLabel ?? hero.secondaryCtaLabel}
               </Link>
             ) : null}
           </div>
@@ -116,61 +128,4 @@ export default function HeroBannerClient({ hero, solutions }: HeroBannerClientPr
     </section>
   )
 }
-
-const HERO_DEFAULTS = {
-  zh: {
-    eyebrow: '产品概览',
-    title: '统一的云原生控制台',
-    subtitle: '此页面汇总了下载、部署和文档入口，方便工程团队快速定位资源。',
-    highlights: [
-      '覆盖自部署与托管两种形态',
-      '支持多团队协作的权限模型',
-      '提供开箱即用的运维工具链',
-      '所有功能均可通过 API 集成',
-    ],
-    bodyHtml:
-      '<p>默认内容展示了平台的主要模块。结合下方的能力矩阵，可以快速比对各方案的适配范围，并跳转到更详细的技术文档。</p>',
-    primaryCtaLabel: '查看下载',
-    primaryCtaHref: '#download',
-    secondaryCtaLabel: '查看文档',
-    secondaryCtaHref: '#docs',
-    panelFallback: {
-      title: '方案概览',
-      description: '当前暂无具体方案卡片，可在 CMS 中启用后查看详细能力列表。',
-    },
-  },
-  en: {
-    eyebrow: 'Product overview',
-    title: 'Unified cloud-native console',
-    subtitle:
-      'Access downloads, deployment guidance, and documentation links from a single consolidated view.',
-    highlights: [
-      'Covers both self-hosted and managed delivery',
-      'Role-based access for collaborative teams',
-      'Operational tooling available out of the box',
-      'Every capability exposes an open API surface',
-    ],
-    bodyHtml:
-      '<p>The default copy outlines major building blocks of the platform. Use the capability matrix to compare solution coverage and navigate to deeper technical references.</p>',
-    primaryCtaLabel: 'Go to downloads',
-    primaryCtaHref: '#download',
-    secondaryCtaLabel: 'View docs',
-    secondaryCtaHref: '#docs',
-    panelFallback: {
-      title: 'Solution overview',
-      description: 'Solution cards are not enabled yet. Publish entries in the CMS to surface detailed capabilities.',
-    },
-  },
-} satisfies Record<'zh' | 'en', {
-  eyebrow: string
-  title: string
-  subtitle: string
-  highlights: string[]
-  bodyHtml: string
-  primaryCtaLabel: string
-  primaryCtaHref: string
-  secondaryCtaLabel: string
-  secondaryCtaHref: string
-  panelFallback: { title: string; description: string }
-}>
 

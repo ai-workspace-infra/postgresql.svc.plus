@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 
 import type { HomepagePost } from '@cms/content'
 import { useLanguage } from '@i18n/LanguageProvider'
+import { translations } from '@i18n/translations'
 
 type ArticleFeedClientProps = {
   posts: HomepagePost[]
@@ -25,37 +26,45 @@ function formatDate(value: string | undefined, locale: string) {
 
 export default function ArticleFeedClient({ posts }: ArticleFeedClientProps) {
   const { language } = useLanguage()
-  const copy = ARTICLE_TEXT[language]
+  const marketing = translations[language].marketing.home
+  const { articleFeed } = marketing
+  const articleOverrides = marketing.articleOverrides
 
   const mappedPosts = useMemo(
     () =>
       posts.map((post) => {
+        const override = articleOverrides?.[post.slug]
         return {
           ...post,
-          formattedDate: formatDate(post.date, copy.dateLocale),
+          title: override?.title ?? post.title,
+          author: override?.author ?? post.author,
+          readingTime: override?.readingTime ?? post.readingTime,
+          excerpt: override?.excerpt ?? post.excerpt,
+          tags: override?.tags ?? post.tags,
+          formattedDate: formatDate(post.date, articleFeed.dateLocale),
         }
       }),
-    [copy.dateLocale, posts],
+    [articleFeed.dateLocale, articleOverrides, posts],
   )
 
   return (
     <section className="space-y-8 text-brand-heading">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-brand">{copy.eyebrow}</p>
-          <h2 className="text-2xl font-semibold text-brand-navy sm:text-[26px]">{copy.title}</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-brand">{articleFeed.eyebrow}</p>
+          <h2 className="text-2xl font-semibold text-brand-navy sm:text-[26px]">{articleFeed.title}</h2>
         </div>
         <Link
           href="/docs"
           className="text-sm font-medium text-brand transition hover:text-brand-light"
         >
-          {copy.viewAll}
+          {articleFeed.viewAll}
         </Link>
       </header>
       <div className="space-y-8">
         {!mappedPosts.length ? (
           <p className="rounded-2xl border border-dashed border-brand-border bg-white p-8 text-center text-sm text-brand-heading/70">
-            {copy.empty}
+            {articleFeed.empty}
           </p>
         ) : null}
         {mappedPosts.map((post) => (
@@ -100,21 +109,4 @@ export default function ArticleFeedClient({ posts }: ArticleFeedClientProps) {
     </section>
   )
 }
-
-const ARTICLE_TEXT = {
-  zh: {
-    eyebrow: '最新更新',
-    title: '版本说明与技术文章',
-    viewAll: '查看全部文档 →',
-    empty: '暂无更新，稍后再来查看最新的发布与技术说明。',
-    dateLocale: 'zh-CN',
-  },
-  en: {
-    eyebrow: 'Latest updates',
-    title: 'Release notes and technical posts',
-    viewAll: 'Browse all docs →',
-    empty: 'No updates are available yet. Check back soon for the latest releases and deep dives.',
-    dateLocale: 'en-US',
-  },
-} as const
 
