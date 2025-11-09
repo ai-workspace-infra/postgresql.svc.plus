@@ -334,7 +334,7 @@ export default function Navbar() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-brand-border bg-white py-2 text-sm text-brand-heading opacity-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100">
+                  <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-brand-border bg-white py-2 text-sm text-brand-heading opacity-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100 group-focus-within:block group-focus-within:translate-y-2 group-focus-within:opacity-100">
                     {openSourceProjects.map((project) => (
                       <Link
                         key={project.key}
@@ -361,7 +361,7 @@ export default function Navbar() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-brand-border bg-white py-2 text-sm text-brand-heading opacity-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100">
+                    <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-brand-border bg-white py-2 text-sm text-brand-heading opacity-0 shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100 group-focus-within:block group-focus-within:translate-y-2 group-focus-within:opacity-100">
                       {serviceItems.map((child) => {
                         const isExternal = child.href.startsWith('http')
                         if (isExternal) {
