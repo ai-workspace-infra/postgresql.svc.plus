@@ -4,11 +4,11 @@ import ComposeForm from '../../../../components/mail/ComposeForm'
 
 type PageProps = {
   params: Promise<{
-    tenantId: string
+    slug: string
   }>
 }
 
 export default async function ComposePage({ params }: PageProps) {
-  const { tenantId } = await params
+  const { slug: tenantId } = await params
   return <ComposeForm tenantId={tenantId} />
 }

@@ -4,11 +4,11 @@ import MailSettings from '../../../../components/mail/MailSettings'
 
 type PageProps = {
   params: Promise<{
-    tenantId: string
+    slug: string
   }>
 }
 
 export default async function MailSettingsPage({ params }: PageProps) {
-  const { tenantId } = await params
+  const { slug: tenantId } = await params
   return <MailSettings tenantId={tenantId} />
 }
