@@ -12,6 +12,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'dl.svc.plus',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.svc.plus',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
 
@@ -50,5 +58,30 @@ const nextConfig = {
     root: path.resolve(__dirname),
   },
 };
+
+export async function redirects() {
+  return [
+    {
+      source: '/XStream',
+      destination: '/xstream',
+      permanent: true,
+    },
+    {
+      source: '/Xstream',
+      destination: '/xstream',
+      permanent: true,
+    },
+    {
+      source: '/XScopeHub',
+      destination: '/xscopehub',
+      permanent: true,
+    },
+    {
+      source: '/XCloudFlow',
+      destination: '/xcloudflow',
+      permanent: true,
+    },
+  ];
+}
 
 export default nextConfig;

@@ -30,7 +30,7 @@
       "@templates/*": ["src/templates/*"],
       "@src/*": ["src/*"]
     },
-    "types": ["node"],
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
     "plugins": [{ "name": "next" }]
   },
   "include": [
