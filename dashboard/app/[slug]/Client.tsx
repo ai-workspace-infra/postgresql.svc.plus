@@ -2,7 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import html2canvas from 'html2canvas'
+
+type Html2CanvasFn = typeof import('html2canvas')['default']
+let html2canvasLoader: Promise<Html2CanvasFn> | null = null
+
+const loadHtml2Canvas = async (): Promise<Html2CanvasFn> => {
+  if (!html2canvasLoader) {
+    html2canvasLoader = import('html2canvas').then((module) => module.default)
+  }
+
+  return html2canvasLoader
+}
 type QRCodeToCanvas = (
   canvas: HTMLCanvasElement,
   text: string,
@@ -56,6 +66,7 @@ const exportPoster = async (node: HTMLElement | null, slug: string) => {
     return
   }
 
+  const html2canvas = await loadHtml2Canvas()
   const canvas = await html2canvas(node, {
     backgroundColor: '#ffffff',
     scale: 2,
