@@ -4,11 +4,11 @@ import MailDashboard from '../../../components/mail/MailDashboard'
 
 type PageProps = {
   params: Promise<{
-    slug: string
+    tenantId: string
   }>
 }
 
 export default async function TenantMailPage({ params }: PageProps) {
-  const { slug } = await params
-  return <MailDashboard tenantId={slug} tenantName={slug} />
+  const { tenantId } = await params
+  return <MailDashboard tenantId={tenantId} tenantName={tenantId} />
 }
