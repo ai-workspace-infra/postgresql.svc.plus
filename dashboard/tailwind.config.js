@@ -18,6 +18,10 @@ module.exports = {
           navy: '#1E2E55',
           heading: '#2E3A59',
         },
+        border: '#D6E0FF',
+      },
+      boxShadow: {
+        soft: '0 35px 80px -45px rgba(37, 78, 219, 0.35), 0 25px 60px -40px rgba(15, 23, 42, 0.25)',
       },
     },
   },

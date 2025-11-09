@@ -1,6 +1,9 @@
 'use client'
+import clsx from 'clsx'
+
 import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
+import { designTokens, type PageVariant } from '@theme/designTokens'
 
 const projects = [
   {
@@ -53,24 +56,42 @@ const projects = [
   },
 ]
 
-export default function OpenSource() {
+type OpenSourceProps = {
+  variant?: PageVariant
+}
+
+export default function OpenSource({ variant = 'homepage' }: OpenSourceProps) {
   const { language } = useLanguage()
   const t = translations[language]
 
   return (
-    <section id="open-sources" className="py-20 bg-gray-100 text-gray-900">
-      <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">{t.openSourceTitle}</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section
+      id="open-sources"
+      className={clsx(
+        'relative',
+        designTokens.spacing.section[variant],
+        variant === 'homepage' ? 'bg-transparent' : 'bg-brand-surface/40'
+      )}
+    >
+      <div className={clsx(designTokens.layout.container, 'flex flex-col gap-12')}>
+        <h2 className="text-3xl font-bold text-center text-slate-900 sm:text-4xl">{t.openSourceTitle}</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (
-            <div key={p.name} className="bg-white rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-2">{p.name}</h3>
-              <p className="text-gray-600 mb-4">{p.desc[language]}</p>
+            <div
+              key={p.name}
+              className={clsx(
+                designTokens.cards.base,
+                designTokens.transitions[variant],
+                'flex flex-col gap-4 p-6'
+              )}
+            >
+              <h3 className="text-xl font-semibold text-slate-900">{p.name}</h3>
+              <p className="text-sm text-slate-600 sm:text-base">{p.desc[language]}</p>
               <a
                 href={p.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-blue-600 underline hover:text-blue-500"
+                className="text-sm font-medium text-brand transition hover:text-brand-dark"
               >
                 GitHub →
               </a>

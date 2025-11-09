@@ -1,6 +1,9 @@
 'use client'
+import clsx from 'clsx'
+
 import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
+import { designTokens, type PageVariant } from '@theme/designTokens'
 
 const downloads = [
   { name: 'XCloudFlow', links: ['macOS', 'Windows', 'Linux'] },
@@ -24,29 +27,65 @@ const downloads = [
   },
 ]
 
-export default function DownloadSection() {
+type DownloadSectionProps = {
+  variant?: PageVariant
+}
+
+export default function DownloadSection({ variant = 'homepage' }: DownloadSectionProps) {
   const { language } = useLanguage()
   const t = translations[language]
 
   return (
-    <section id="download" className="py-20 bg-gray-50 text-gray-900">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-2">{t.downloadTitle}</h2>
-          <p className="text-gray-600">{t.downloadSubtitle}</p>
+    <section
+      id="download"
+      className={clsx(
+        'relative',
+        designTokens.spacing.section[variant],
+        variant === 'homepage' ? 'bg-transparent' : 'bg-brand-surface/30'
+      )}
+    >
+      <div className={clsx(designTokens.layout.container, 'flex flex-col gap-12')}>
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">{t.downloadTitle}</h2>
+          <p className="mt-4 text-base text-slate-600 sm:text-lg">{t.downloadSubtitle}</p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {downloads.map((item) => (
-            <div key={item.name} className="bg-white rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-4">{item.name}</h3>
-              <div className="flex flex-wrap gap-2">
+            <div
+              key={item.name}
+              className={clsx(
+                designTokens.cards.base,
+                designTokens.transitions[variant],
+                'flex flex-col gap-4 p-6'
+              )}
+            >
+              <h3 className="text-xl font-semibold text-slate-900">{item.name}</h3>
+              <div className="flex flex-wrap gap-3">
                 {item.links.map((link) =>
                   typeof link === 'string' ? (
-                    <a key={link} href="#" className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-500 text-sm">
+                    <a
+                      key={link}
+                      href="#"
+                      className={clsx(
+                        designTokens.buttons.base,
+                        designTokens.buttons.palette.primary,
+                        designTokens.buttons.shape[variant],
+                        designTokens.transitions[variant]
+                      )}
+                    >
                       {link}
                     </a>
                   ) : (
-                    <a key={link[0]} href={link[1]} className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-500 text-sm">
+                    <a
+                      key={link[0]}
+                      href={link[1]}
+                      className={clsx(
+                        designTokens.buttons.base,
+                        designTokens.buttons.palette.primary,
+                        designTokens.buttons.shape[variant],
+                        designTokens.transitions[variant]
+                      )}
+                    >
                       {link[0]}
                     </a>
                   )
