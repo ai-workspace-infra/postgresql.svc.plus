@@ -54,6 +54,7 @@ const nextConfig = {
     return config;
   },
   reactStrictMode: true,
+  typedRoutes: false,
   turbopack: {
     root: path.resolve(__dirname),
   },
