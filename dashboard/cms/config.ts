@@ -42,12 +42,6 @@ export const cmsConfig: CmsConfig = {
         type: 'filesystem',
         root: 'cms/content/docs',
       },
-      marketing: {
-        type: 'git',
-        root: 'cms/content/marketing',
-        repository: 'git@github.com:example/xcontrol-marketing.git',
-        ref: 'main',
-      },
     },
   },
 }

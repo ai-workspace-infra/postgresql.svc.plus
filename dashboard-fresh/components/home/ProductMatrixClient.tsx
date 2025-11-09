@@ -6,7 +6,6 @@ import clsx from 'clsx'
 
 import type { HeroSolution } from '@cms/content'
 import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
 
 type ProductMatrixClientProps = {
   solutions: HeroSolution[]
@@ -14,30 +13,17 @@ type ProductMatrixClientProps = {
 
 export default function ProductMatrixClient({ solutions }: ProductMatrixClientProps) {
   const { language } = useLanguage()
-  const marketing = translations[language].marketing.home
+  const copy = MATRIX_TEXT[language]
   const [activeIndex, setActiveIndex] = useState(0)
 
-  const localizedSolutions = useMemo(() => {
-    const overrides = marketing.solutionOverrides ?? {}
-    return solutions.map((solution) => {
-      const override = overrides[solution.slug]
-      if (!override) {
-        return solution
-      }
-      return {
+  const localizedSolutions = useMemo(
+    () =>
+      solutions.map((solution) => ({
         ...solution,
-        title: override.title ?? solution.title,
-        tagline: override.tagline ?? solution.tagline,
-        description: override.description ?? solution.description,
-        features:
-          override.features && override.features.length ? override.features : solution.features,
-        bodyHtml: override.bodyHtml ?? solution.bodyHtml,
-        primaryCtaLabel: override.primaryCtaLabel ?? solution.primaryCtaLabel,
-        secondaryCtaLabel: override.secondaryCtaLabel ?? solution.secondaryCtaLabel,
-        tertiaryCtaLabel: override.tertiaryCtaLabel ?? solution.tertiaryCtaLabel,
-      }
-    })
-  }, [marketing.solutionOverrides, solutions])
+        features: solution.features ?? [],
+      })),
+    [solutions],
+  )
 
   const activeSolution = useMemo(
     () => localizedSolutions[activeIndex] ?? localizedSolutions[0],
@@ -48,32 +34,19 @@ export default function ProductMatrixClient({ solutions }: ProductMatrixClientPr
     return null
   }
 
-  const { productMatrix } = marketing
-  const overviewHighlights = productMatrix.highlights
-
-  const ctas = [
-    activeSolution.primaryCtaLabel && activeSolution.primaryCtaHref
-      ? {
-          label: activeSolution.primaryCtaLabel,
-          href: activeSolution.primaryCtaHref,
-          variant: 'primary' as const,
+  const overviewHighlights = useMemo(() => {
+    const collected = new Set<string>()
+    for (const solution of localizedSolutions) {
+      for (const feature of solution.features.slice(0, 2)) {
+        if (collected.size >= 6) {
+          break
         }
-      : null,
-    activeSolution.secondaryCtaLabel && activeSolution.secondaryCtaHref
-      ? {
-          label: activeSolution.secondaryCtaLabel,
-          href: activeSolution.secondaryCtaHref,
-          variant: 'secondary' as const,
-        }
-      : null,
-    activeSolution.tertiaryCtaLabel && activeSolution.tertiaryCtaHref
-      ? {
-          label: activeSolution.tertiaryCtaLabel,
-          href: activeSolution.tertiaryCtaHref,
-          variant: 'ghost' as const,
-        }
-      : null,
-  ].filter(Boolean) as Array<{ label: string; href: string; variant: 'primary' | 'secondary' | 'ghost' }>
+        collected.add(feature)
+      }
+    }
+    const result = Array.from(collected)
+    return result.length ? result : copy.highlights
+  }, [copy.highlights, localizedSolutions])
 
   return (
     <section className="space-y-8">
@@ -82,30 +55,23 @@ export default function ProductMatrixClient({ solutions }: ProductMatrixClientPr
           <div className="space-y-8">
             <header className="space-y-4">
               <span className="inline-flex items-center rounded-full border border-brand-border bg-brand-surface px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-brand">
-                {productMatrix.badge}
+                {copy.badge}
               </span>
               <h1 className="text-[30px] font-bold leading-tight text-brand sm:text-[34px] md:text-[36px]">
-                {productMatrix.title}
+                {copy.title}
               </h1>
-              <p className="text-sm text-brand-heading/80 sm:text-base lg:text-lg">
-                {productMatrix.description}
-              </p>
+              <p className="text-sm text-brand-heading/80 sm:text-base lg:text-lg">{copy.description}</p>
             </header>
             <ul className="grid gap-2 text-sm text-brand-heading/80 sm:grid-cols-2 lg:grid-cols-3">
               {overviewHighlights.map((highlight) => (
-                <li
-                  key={highlight}
-                  className="flex items-start gap-2"
-                >
+                <li key={highlight} className="flex items-start gap-2">
                   <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-brand" aria-hidden />
                   <span className="leading-relaxed">{highlight}</span>
                 </li>
               ))}
             </ul>
             <div className="rounded-2xl border border-brand-border bg-brand-surface p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand">
-                {productMatrix.topicsLabel}
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-brand">{copy.topicsLabel}</p>
               <div className="mt-4 flex flex-wrap gap-3">
                 {localizedSolutions.map((solution, index) => {
                   const isActive = index === activeIndex
@@ -139,9 +105,7 @@ export default function ProductMatrixClient({ solutions }: ProductMatrixClientPr
           <div className="flex flex-col gap-6 rounded-2xl border border-brand-border bg-white p-6 shadow-[0_4px_20px_rgba(0,0,0,0.04)] lg:p-8">
             <div className="space-y-4">
               {activeSolution.tagline ? (
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-brand">
-                  {activeSolution.tagline}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-brand">{activeSolution.tagline}</p>
               ) : null}
               <h2 className="text-2xl font-semibold text-brand-navy sm:text-[26px]">{activeSolution.title}</h2>
               {activeSolution.description ? (
@@ -156,15 +120,10 @@ export default function ProductMatrixClient({ solutions }: ProductMatrixClientPr
             </div>
             {activeSolution.features.length ? (
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-brand">
-                  {productMatrix.capabilitiesLabel}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-brand">{copy.capabilitiesLabel}</p>
                 <ul className="grid gap-2 text-sm text-brand-heading/80 sm:grid-cols-2">
                   {activeSolution.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-start gap-2"
-                    >
+                    <li key={feature} className="flex items-start gap-2">
                       <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-brand" aria-hidden />
                       <span className="leading-relaxed">{feature}</span>
                     </li>
@@ -172,25 +131,18 @@ export default function ProductMatrixClient({ solutions }: ProductMatrixClientPr
                 </ul>
               </div>
             ) : null}
-            {ctas.length ? (
-              <div className="flex flex-wrap gap-3 pt-2">
-                {ctas.map(({ href, label, variant }) => (
-                  <Link
-                    key={label}
-                    prefetch={false}
-                    href={href}
-                    className={clsx(
-                      'inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand/30',
-                      variant === 'primary'
-                        ? 'bg-brand text-white shadow-[0_4px_20px_rgba(51,102,255,0.25)] hover:bg-brand-light'
-                        : variant === 'secondary'
-                        ? 'border border-brand-border text-brand hover:border-brand hover:bg-brand-surface'
-                        : 'border border-brand-border text-brand-heading/80 hover:border-brand hover:bg-brand-surface',
-                    )}
-                  >
-                    {label}
-                  </Link>
-                ))}
+            {getResourceLinks(activeSolution).length ? (
+              <div className="space-y-2 pt-2 text-sm text-brand-heading/80">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-brand">{copy.resourcesLabel}</p>
+                <ul className="space-y-1">
+                  {getResourceLinks(activeSolution).map(({ href, label }) => (
+                    <li key={`${label}-${href}`}>
+                      <Link prefetch={false} href={href} className="text-brand underline-offset-2 hover:underline">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : null}
           </div>
@@ -198,4 +150,55 @@ export default function ProductMatrixClient({ solutions }: ProductMatrixClientPr
       </div>
     </section>
   )
+}
+
+const MATRIX_TEXT = {
+  zh: {
+    badge: '能力矩阵',
+    title: '各方案的适用场景与特性',
+    description: '对比主要方案的核心能力，快速定位到适合的部署与集成路径。',
+    highlights: [
+      '统一访问控制与审计',
+      '全栈观测与告警通道',
+      '声明式交付与自动化运维',
+      '开放的 API 与集成接口',
+      '按需启用的模块化组件',
+      '覆盖多云与本地环境',
+    ],
+    topicsLabel: '方案列表',
+    capabilitiesLabel: '关键能力',
+    resourcesLabel: '参考资料',
+  },
+  en: {
+    badge: 'Capability matrix',
+    title: 'Compare solution coverage and focus areas',
+    description: 'Review key capabilities across solutions to pick the right deployment and integration path.',
+    highlights: [
+      'Unified access control and auditing',
+      'End-to-end observability and alerting',
+      'Declarative delivery with automated operations',
+      'Open APIs for integrations',
+      'Modular components activated on demand',
+      'Support for multi-cloud and on-prem environments',
+    ],
+    topicsLabel: 'Solution list',
+    capabilitiesLabel: 'Key capabilities',
+    resourcesLabel: 'Reference material',
+  },
+} as const
+
+function getResourceLinks(solution: HeroSolution) {
+  const links = [
+    solution.primaryCtaLabel && solution.primaryCtaHref
+      ? { label: solution.primaryCtaLabel, href: solution.primaryCtaHref }
+      : null,
+    solution.secondaryCtaLabel && solution.secondaryCtaHref
+      ? { label: solution.secondaryCtaLabel, href: solution.secondaryCtaHref }
+      : null,
+    solution.tertiaryCtaLabel && solution.tertiaryCtaHref
+      ? { label: solution.tertiaryCtaLabel, href: solution.tertiaryCtaHref }
+      : null,
+  ]
+
+  return links.filter((link): link is { label: string; href: string } => Boolean(link?.label && link.href))
 }

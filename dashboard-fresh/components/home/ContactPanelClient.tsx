@@ -17,7 +17,6 @@ import clsx from 'clsx'
 
 import type { ContactPanelContent, ContactItemContent } from '@cms/content'
 import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
 
 const iconMap: Record<string, LucideIcon> = {
   mail: Mail,
@@ -170,32 +169,18 @@ function InfoCard({ item }: { item: ContactItemContent }) {
 
 export default function ContactPanelClient({ panel, className }: ContactPanelClientProps) {
   const { language } = useLanguage()
-  const contactMarketing = translations[language].marketing.home.contactPanel
+  const copy = PANEL_TEXT[language]
   const [collapsed, setCollapsed] = useState(false)
 
-  const localizedPanel = useMemo(() => {
-    const overrides = contactMarketing.items ?? {}
-    const localizedItems = panel.items.map((item) => {
-      const override = overrides[item.slug]
-      if (!override) {
-        return item
-      }
-      return {
-        ...item,
-        title: override.title ?? item.title,
-        description: override.description ?? item.description,
-        bodyHtml: override.bodyHtml ?? item.bodyHtml,
-        ctaLabel: override.ctaLabel ?? item.ctaLabel,
-      }
-    })
-
-    return {
+  const localizedPanel = useMemo(
+    () => ({
       ...panel,
-      title: contactMarketing.title ?? panel.title,
-      subtitle: contactMarketing.subtitle ?? panel.subtitle,
-      items: localizedItems,
-    }
-  }, [contactMarketing.items, contactMarketing.subtitle, contactMarketing.title, panel])
+      title: panel.title || copy.title,
+      subtitle: panel.subtitle ?? copy.subtitle,
+      items: panel.items,
+    }),
+    [copy.subtitle, copy.title, panel],
+  )
 
   if (!localizedPanel.items.length) {
     return null
@@ -209,9 +194,9 @@ export default function ContactPanelClient({ panel, className }: ContactPanelCli
             type="button"
             onClick={() => setCollapsed(false)}
             className="group inline-flex items-center gap-2 rounded-full border border-brand-border bg-white px-4 py-2 text-sm font-semibold text-brand shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition hover:border-brand hover:text-brand-light"
-            aria-label={contactMarketing.expandLabel}
+            aria-label={copy.expand}
           >
-            <span>{contactMarketing.buttonLabel}</span>
+            <span>{copy.toggle}</span>
             <ChevronLeft className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
           </button>
         </div>
@@ -229,7 +214,7 @@ export default function ContactPanelClient({ panel, className }: ContactPanelCli
               type="button"
               onClick={() => setCollapsed(true)}
               className="rounded-full border border-brand-border bg-white p-1 text-brand-heading/60 transition hover:border-brand hover:text-brand"
-              aria-label={contactMarketing.collapseLabel}
+              aria-label={copy.collapse}
             >
               <X className="h-4 w-4" aria-hidden />
             </button>
@@ -246,7 +231,7 @@ export default function ContactPanelClient({ panel, className }: ContactPanelCli
                 if (item.type === 'qr') {
                   return (
                     <div key={item.slug} className="sm:flex sm:flex-col">
-                      <QrPreview item={item} qrAltSuffix={contactMarketing.qrAltSuffix} />
+                      <QrPreview item={item} qrAltSuffix={copy.qrAltSuffix} />
                     </div>
                   )
                 }
@@ -263,3 +248,22 @@ export default function ContactPanelClient({ panel, className }: ContactPanelCli
     </div>
   )
 }
+
+const PANEL_TEXT = {
+  zh: {
+    title: '支持与反馈',
+    subtitle: '从以下渠道获取帮助或提交改进建议。',
+    toggle: '查看支持信息',
+    expand: '展开支持信息面板',
+    collapse: '收起支持信息面板',
+    qrAltSuffix: '二维码',
+  },
+  en: {
+    title: 'Support & feedback',
+    subtitle: 'Reach the team or community through the available channels.',
+    toggle: 'View support info',
+    expand: 'Expand support information panel',
+    collapse: 'Collapse support information panel',
+    qrAltSuffix: ' QR code',
+  },
+} as const

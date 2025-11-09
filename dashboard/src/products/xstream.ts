@@ -5,8 +5,8 @@ const xstream: ProductConfig = {
   name: 'Xstream',
   title: 'Xstream — 全球网络加速器',
   title_en: 'Xstream — Global Network Accelerator',
-  tagline_zh: '极速连接｜安全加密｜AI 路径优化｜实时监控。',
-  tagline_en: 'Fast connect | Secure encryption | AI path optimization | Live metrics.',
+  tagline_zh: '提供跨区域连接、加密传输、路径优化与运行状态监测能力。',
+  tagline_en: 'Delivers cross-region connectivity, encrypted transport, path optimization, and live monitoring capabilities.',
   ogImage: 'https://www.svc.plus/assets/og/xstream.png',
   repoUrl: 'https://github.com/Cloud-Neutral/Xstream',
   docsQuickstart: 'https://github.com/Cloud-Neutral/Xstream#readme',
@@ -15,41 +15,13 @@ const xstream: ProductConfig = {
   blogUrl: 'https://www.svc.plus/blog',
   videosUrl: 'https://www.svc.plus/videos',
   downloadUrl: 'https://github.com/Cloud-Neutral/Xstream/releases',
-  editions: {
-    selfhost: [
-      {
-        label: 'GitHub 仓库',
-        href: 'https://github.com/Cloud-Neutral/Xstream',
-        external: true,
-      },
-      {
-        label: '部署指南',
-        href: 'https://github.com/Cloud-Neutral/Xstream#deployment',
-        external: true,
-      },
-    ],
-    managed: [
-      {
-        label: '联系咨询',
-        href: 'https://www.svc.plus/contact',
-        external: true,
-      },
-    ],
-    paygo: [
-      {
-        label: '价格与账单',
-        href: 'https://www.svc.plus/pricing',
-        external: true,
-      },
-    ],
-    saas: [
-      {
-        label: '注册与订阅',
-        href: 'https://www.svc.plus/xstream/signup',
-        external: true,
-      },
-    ],
-  },
+  selfhostLinks: [
+    {
+      label_zh: '部署指南',
+      label_en: 'Deployment guide',
+      href: 'https://github.com/Cloud-Neutral/Xstream#deployment',
+    },
+  ],
 }
 
 export default xstream

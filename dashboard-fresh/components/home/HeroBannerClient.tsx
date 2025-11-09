@@ -6,7 +6,6 @@ import { useMemo } from 'react'
 import type { HeroContent, HeroSolution } from '@cms/content'
 import HeroProductTabs from './HeroProductTabs'
 import { useLanguage } from '@i18n/LanguageProvider'
-import { translations } from '@i18n/translations'
 
 const gradientOverlay = 'absolute inset-0 bg-gradient-to-br from-white/95 via-white/90 to-blue-100/70'
 
@@ -15,36 +14,25 @@ type HeroBannerClientProps = {
   solutions: HeroSolution[]
 }
 
-function mergeHeroCopy(hero: HeroContent, override: MarketingHeroCopy) {
-  return {
-    ...hero,
-    eyebrow: override.eyebrow ?? hero.eyebrow,
-    title: override.title ?? hero.title,
-    subtitle: override.subtitle ?? hero.subtitle,
-    highlights:
-      override.highlights && override.highlights.length ? override.highlights : hero.highlights,
-    bodyHtml: override.bodyHtml ?? hero.bodyHtml,
-    primaryCtaLabel: override.primaryCtaLabel ?? hero.primaryCtaLabel,
-    secondaryCtaLabel: override.secondaryCtaLabel ?? hero.secondaryCtaLabel,
-  }
-}
-
-type MarketingHeroCopy = {
-  eyebrow?: string
-  title?: string
-  subtitle?: string
-  highlights?: string[]
-  bodyHtml?: string
-  primaryCtaLabel?: string
-  secondaryCtaLabel?: string
-}
-
 export default function HeroBannerClient({ hero, solutions }: HeroBannerClientProps) {
   const { language } = useLanguage()
-  const marketing = translations[language].marketing.home
+  const defaults = HERO_DEFAULTS[language]
 
-  const heroCopy = useMemo(() => mergeHeroCopy(hero, marketing.hero), [hero, marketing.hero])
-  const fallback = marketing.heroFallback
+  const heroCopy = useMemo(() => {
+    const highlights = hero.highlights?.length ? hero.highlights : defaults.highlights
+    return {
+      eyebrow: hero.eyebrow ?? defaults.eyebrow,
+      title: hero.title || defaults.title,
+      subtitle: hero.subtitle ?? defaults.subtitle,
+      highlights,
+      bodyHtml: hero.bodyHtml || defaults.bodyHtml,
+      primaryCtaLabel: hero.primaryCtaLabel ?? defaults.primaryCtaLabel,
+      primaryCtaHref: hero.primaryCtaHref ?? defaults.primaryCtaHref,
+      secondaryCtaLabel: hero.secondaryCtaLabel ?? defaults.secondaryCtaLabel,
+      secondaryCtaHref: hero.secondaryCtaHref ?? defaults.secondaryCtaHref,
+    }
+  }, [defaults, hero])
+  const fallback = defaults.panelFallback
   const highlightItems = heroCopy.highlights ?? []
 
   return (
@@ -85,22 +73,22 @@ export default function HeroBannerClient({ hero, solutions }: HeroBannerClientPr
             />
           ) : null}
           <div className="flex flex-wrap items-center gap-3 pt-2">
-            {hero.primaryCtaLabel && hero.primaryCtaHref ? (
+            {heroCopy.primaryCtaHref ? (
               <Link
                 prefetch={false}
-                href={hero.primaryCtaHref}
-                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-300/60 transition hover:bg-blue-700"
-              >
-                {heroCopy.primaryCtaLabel ?? hero.primaryCtaLabel}
-              </Link>
-            ) : null}
-            {hero.secondaryCtaLabel && hero.secondaryCtaHref ? (
-              <Link
-                prefetch={false}
-                href={hero.secondaryCtaHref}
+                href={heroCopy.primaryCtaHref}
                 className="inline-flex items-center justify-center rounded-full border border-blue-200 px-5 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
               >
-                {heroCopy.secondaryCtaLabel ?? hero.secondaryCtaLabel}
+                {heroCopy.primaryCtaLabel}
+              </Link>
+            ) : null}
+            {heroCopy.secondaryCtaHref ? (
+              <Link
+                prefetch={false}
+                href={heroCopy.secondaryCtaHref}
+                className="inline-flex items-center justify-center rounded-full border border-blue-200 px-5 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
+              >
+                {heroCopy.secondaryCtaLabel}
               </Link>
             ) : null}
           </div>
@@ -128,4 +116,60 @@ export default function HeroBannerClient({ hero, solutions }: HeroBannerClientPr
     </section>
   )
 }
+
+const HERO_DEFAULTS = {
+  zh: {
+    eyebrow: '产品概览',
+    title: '统一的云原生控制台',
+    subtitle: '此页面集中展示下载、部署和文档入口，便于快速查找技术资源。',
+    highlights: [
+      '覆盖自部署与托管两种交付方式',
+      '权限模型支持多团队协作',
+      '内置运维与可观测工具链',
+      '所有能力均提供开放 API',
+    ],
+    bodyHtml:
+      '<p>默认内容概述了平台的主要模块。结合下方的能力矩阵，可迅速了解每个方案的适配范围并跳转到详细文档。</p>',
+    primaryCtaLabel: '查看下载',
+    primaryCtaHref: '#download',
+    secondaryCtaLabel: '查看文档',
+    secondaryCtaHref: '#docs',
+    panelFallback: {
+      title: '方案概览',
+      description: '当前尚未发布方案卡片，可在 CMS 中启用后查看详细能力列表。',
+    },
+  },
+  en: {
+    eyebrow: 'Product overview',
+    title: 'Unified cloud-native console',
+    subtitle: 'Access downloads, deployment guidance, and documentation links from one place.',
+    highlights: [
+      'Supports both self-hosted and managed delivery',
+      'Role-based access for collaborative teams',
+      'Operational tooling is available out of the box',
+      'Every capability exposes open APIs for integration',
+    ],
+    bodyHtml:
+      '<p>The default copy highlights core components of the platform. Combine it with the capability matrix to compare coverage and open relevant technical references.</p>',
+    primaryCtaLabel: 'Go to downloads',
+    primaryCtaHref: '#download',
+    secondaryCtaLabel: 'View docs',
+    secondaryCtaHref: '#docs',
+    panelFallback: {
+      title: 'Solution overview',
+      description: 'Solution cards are not published yet. Enable entries in the CMS to review detailed capabilities.',
+    },
+  },
+} satisfies Record<'zh' | 'en', {
+  eyebrow: string
+  title: string
+  subtitle: string
+  highlights: string[]
+  bodyHtml: string
+  primaryCtaLabel: string
+  primaryCtaHref: string
+  secondaryCtaLabel: string
+  secondaryCtaHref: string
+  panelFallback: { title: string; description: string }
+}>
 
