@@ -6,16 +6,16 @@ import { PRODUCT_MAP, getAllSlugs } from '@src/products/registry'
 
 type PageProps = {
   params: {
-    product: string
+    slug: string
   }
 }
 
 export async function generateStaticParams() {
-  return getAllSlugs().map((slug) => ({ product: slug }))
+  return getAllSlugs().map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const config = PRODUCT_MAP.get(params.product)
+  const config = PRODUCT_MAP.get(params.slug)
 
   if (!config) {
     return {}
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default function ProductPage({ params }: PageProps) {
-  const config = PRODUCT_MAP.get(params.product)
+  const config = PRODUCT_MAP.get(params.slug)
 
   if (!config) {
     notFound()
