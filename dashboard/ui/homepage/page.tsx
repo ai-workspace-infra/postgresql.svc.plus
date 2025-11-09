@@ -2,7 +2,6 @@
 
 import clsx from 'clsx'
 
-import Hero from '@components/Hero'
 import Features from '@components/Features'
 import OpenSource from '@components/OpenSource'
 import DownloadSection from '@components/DownloadSection'
@@ -11,75 +10,112 @@ import { designTokens } from '@theme/designTokens'
 
 import { useLanguage } from '../../i18n/LanguageProvider'
 
-const heroCopy = {
+const heroContent = {
   zh: {
     eyebrow: 'Cloud-Neutral',
-    title: '云原生套件',
-    description: '构建一体化的云原生工具集，让 DevOps、观测与 AI 协作拥有更轻盈的体验。',
-    highlights: ['多云 IaC 与 GitOps 统一编排', '全链路观测与事件驱动的自动化响应', 'AI Copilot 嵌入日常运维', '企业级身份、合规与安全防护'],
-    primaryCta: { label: '产品体验', href: '/demo?product=xcloudflow' },
-    secondaryCta: { label: '了解方案', href: '/docs' },
+    title: '构建一体化的 Cloud-Neutral 云原生生态',
+    description:
+      '通过统一治理、自动化与可观测能力，连接团队、工具与环境，让企业以更简洁的方式管理复杂的多云栈。',
+    focusAreas: ['跨云统一治理', '安全与合规自动化', '可观测与智能协同'],
+    products: [
+      {
+        label: 'XCloudFlow',
+        headline: '多云自动化与 GitOps 编排',
+        description: '以声明式 IaC 驱动跨云交付流程，内建审批、审计与合规校验，保障变更可控。',
+      },
+      {
+        label: 'XScoveHub',
+        headline: '可观测与智能协同',
+        description: '统一指标、日志、链路与事件流，AI 助理联动诊断与响应，缩短故障恢复时间。',
+      },
+      {
+        label: 'XStream',
+        headline: '安全与合规自动化',
+        description: '策略即代码将安全基线嵌入流水线，持续评估风险并生成可追溯的合规报告。',
+      },
+      {
+        label: 'XBoard',
+        headline: '平台体验与工作流',
+        description: '统一门户连接角色、权限、成本与协作，帮助平台团队构建一致的交付体验。',
+      },
+    ],
   },
   en: {
     eyebrow: 'Cloud-Neutral',
-    title: 'Cloud-Native Suite',
-    description: 'A unified toolkit for DevOps, observability, and AI workflows with room to breathe.',
-    highlights: ['Orchestrate multi-cloud IaC and GitOps', 'Streaming observability with automated responses', 'AI copilots embedded in platform operations', 'Enterprise-grade identity, compliance, and security'],
-    primaryCta: { label: 'Try the product', href: '/demo?product=xcloudflow' },
-    secondaryCta: { label: 'Explore docs', href: '/docs' },
+    title: 'Build a Cloud-Neutral cloud operations fabric',
+    description:
+      'Unify governance, automation, and observability so teams can manage complex multi-cloud estates with clarity.',
+    focusAreas: ['Unified multi-cloud governance', 'Automated security & compliance', 'Observability with intelligent workflows'],
+    products: [
+      {
+        label: 'XCloudFlow',
+        headline: 'Multi-cloud automation & GitOps orchestration',
+        description: 'Drive declarative IaC workflows with approvals, audit trails, and guardrails built in from day one.',
+      },
+      {
+        label: 'XScoveHub',
+        headline: 'Observability & intelligent collaboration',
+        description: 'Correlate metrics, logs, traces, and events while AI copilots coordinate diagnosis and remediation.',
+      },
+      {
+        label: 'XStream',
+        headline: 'Security & compliance automation',
+        description: 'Embed policy-as-code controls into every release to surface risks early and keep evidence auditable.',
+      },
+      {
+        label: 'XBoard',
+        headline: 'Platform experience & workflows',
+        description: 'Connect roles, permissions, costs, and collaboration in a unified workspace for platform teams.',
+      },
+    ],
   },
-}
-
-function HeroMedia() {
-  return (
-    <div className="relative w-full max-w-xl">
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand/20 via-transparent to-transparent blur-3xl" aria-hidden />
-      <div
-        className={clsx(
-          'relative overflow-hidden backdrop-blur-lg',
-          designTokens.effects.radii.xl,
-          designTokens.effects.shadows.soft,
-          'border border-brand-border bg-white/80 p-8'
-        )}
-      >
-        <div className="flex flex-col gap-6">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-brand-dark/80">Stack Snapshot</p>
-            <p className="mt-2 text-sm text-slate-600">Terraform · Pulumi · Helm · ArgoCD</p>
-          </div>
-          <dl className="grid gap-4 sm:grid-cols-2">
-            {[{ label: 'Clusters', value: '38' }, { label: 'Pipelines', value: '126' }, { label: 'Playbooks', value: '42' }, { label: 'Latency', value: '99.9% SLA' }].map((item) => (
-              <div key={item.label} className="rounded-xl border border-brand-border/60 bg-white/70 p-4 shadow-sm">
-                <dt className="text-xs uppercase tracking-wide text-slate-500">{item.label}</dt>
-                <dd className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-          <div className="rounded-2xl border border-brand-border/60 bg-gradient-to-r from-brand-surface/60 to-white px-5 py-4 text-sm text-slate-600">
-            <p>AI Copilot routed <span className="font-semibold text-brand-dark">12</span> incidents to automation in the last 24 hours.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
 }
 
 export default function Homepage() {
   const { language } = useLanguage()
-  const copy = heroCopy[language]
+  const content = heroContent[language]
 
   return (
-    <main className="relative flex min-h-screen flex-col bg-gradient-to-b from-white via-brand-surface/20 to-white text-slate-900">
-      <Hero
-        variant="homepage"
-        eyebrow={copy.eyebrow}
-        title={copy.title}
-        description={copy.description}
-        highlights={copy.highlights}
-        primaryCta={copy.primaryCta}
-        secondaryCta={copy.secondaryCta}
-        media={<HeroMedia />}
-      />
+    <main className="relative flex min-h-screen flex-col bg-slate-50 text-slate-900">
+      <section className="relative isolate overflow-hidden border-b border-slate-200 bg-white/90 py-20 shadow-sm sm:py-28">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-64 max-w-5xl rounded-full bg-gradient-to-r from-sky-50 via-indigo-50 to-sky-50 blur-3xl" />
+        <div className={clsx('relative', designTokens.layout.container)}>
+          <div className="grid gap-14 lg:grid-cols-[1.05fr_1fr]">
+            <div className="space-y-8">
+              <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                {content.eyebrow}
+              </span>
+              <div className="space-y-6">
+                <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">{content.title}</h1>
+                <p className="max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">{content.description}</p>
+              </div>
+              <ul className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+                {content.focusAreas.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                  >
+                    <span className="h-2 w-2 rounded-full bg-sky-500" aria-hidden />
+                    <span className="font-medium text-slate-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="grid gap-4">
+              {content.products.map((product) => (
+                <article
+                  key={product.label}
+                  className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:border-sky-200 hover:shadow-md"
+                >
+                  <span className="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">{product.label}</span>
+                  <h3 className="text-lg font-semibold text-slate-900">{product.headline}</h3>
+                  <p className="text-sm leading-relaxed text-slate-600">{product.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
       <Features variant="homepage" />
       <CommunityFeed />
       <OpenSource variant="homepage" />

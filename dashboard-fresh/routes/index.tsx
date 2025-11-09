@@ -71,6 +71,76 @@ const SECTION_PATHS: Record<Language, Record<string, string>> = {
 
 const DEFAULT_LANGUAGE: Language = 'zh'
 
+const HERO_COPY: Record<
+  Language,
+  {
+    eyebrow: string
+    title: string
+    description: string
+    focusAreas: string[]
+    products: { label: string; headline: string; description: string }[]
+  }
+> = {
+  zh: {
+    eyebrow: 'Cloud-Neutral',
+    title: '构建一体化的 Cloud-Neutral 云原生生态',
+    description:
+      '通过统一治理、自动化与可观测能力，连接团队、工具与环境，让企业以更简洁的方式管理复杂的多云栈。',
+    focusAreas: ['跨云统一治理', '安全与合规自动化', '可观测与智能协同'],
+    products: [
+      {
+        label: 'XCloudFlow',
+        headline: '多云自动化与 GitOps 编排',
+        description: '以声明式 IaC 推动跨云交付，内置审批、审计与合规校验，帮助团队稳健演进。',
+      },
+      {
+        label: 'XScoveHub',
+        headline: '可观测与智能协同',
+        description: '统一指标、日志、链路与事件流，AI 助理协同诊断、响应与知识沉淀。',
+      },
+      {
+        label: 'XStream',
+        headline: '安全与合规自动化',
+        description: '策略即代码守护交付流水线，持续评估风险并生成可追溯的合规证据。',
+      },
+      {
+        label: 'XBoard',
+        headline: '平台体验与工作流',
+        description: '统一门户连接角色、权限、成本与协作，让平台团队交付一致体验。',
+      },
+    ],
+  },
+  en: {
+    eyebrow: 'Cloud-Neutral',
+    title: 'Build a Cloud-Neutral cloud operations fabric',
+    description:
+      'Bring governance, automation, and observability together so every team can manage multi-cloud complexity with clarity.',
+    focusAreas: ['Unified multi-cloud governance', 'Automated security & compliance', 'Observability with intelligent workflows'],
+    products: [
+      {
+        label: 'XCloudFlow',
+        headline: 'Multi-cloud automation & GitOps orchestration',
+        description: 'Power declarative delivery with built-in approvals, audit history, and policy checks across environments.',
+      },
+      {
+        label: 'XScoveHub',
+        headline: 'Observability & intelligent collaboration',
+        description: 'Connect metrics, logs, traces, and events while AI copilots assist incident diagnosis and resolution.',
+      },
+      {
+        label: 'XStream',
+        headline: 'Security & compliance automation',
+        description: 'Embed policy-as-code guardrails into every release to surface risk early and simplify evidence collection.',
+      },
+      {
+        label: 'XBoard',
+        headline: 'Platform experience & workflows',
+        description: 'Unify roles, permissions, costs, and collaboration inside a single workspace for platform teams.',
+      },
+    ],
+  },
+}
+
 // DOM Node type constants for deno_dom compatibility
 const ELEMENT_NODE = 1
 const TEXT_NODE = 3
@@ -231,11 +301,8 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
   const supportHighlights = extractListHighlights(sections.support.html)
   const communityHighlights = extractListHighlights(sections.community.html)
   const resourcesHighlights = extractListHighlights(sections.resources.html)
-  const operationsUpdated =
-    typeof sections.operations.meta.updated === 'string' ? sections.operations.meta.updated : null
   const shouldFallbackHero = heroContent.paragraphs.length === 0 && heroContent.highlights.length === 0
-  const primaryCtaLabel = language === 'zh' ? '立即体验' : 'Explore Demo'
-  const secondaryCtaLabel = language === 'zh' ? '下载发布包' : 'Download Suite'
+  const hero = HERO_COPY[language]
 
   return (
     <>
@@ -252,104 +319,56 @@ export default function HomePage({ data }: PageProps<HomePageData>) {
 
       {/* Main Content with offset for fixed navbar */}
       <main
-        class="relative flex flex-col bg-gradient-to-br from-sky-50 via-indigo-50/30 to-white text-slate-900"
+        class="relative flex flex-col bg-slate-50 text-slate-900"
         style="padding-top: var(--app-shell-nav-offset, 4rem)"
       >
-        {/* Hero Section - Improved Design */}
-        <header class="relative isolate overflow-hidden pt-16 pb-20 md:pt-24 md:pb-32">
-          {/* Decorative blur elements for 2C visual appeal */}
-          <div class="pointer-events-none absolute inset-0 overflow-hidden">
-            <div class="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-sky-200/30 blur-3xl" />
-            <div class="absolute top-1/2 -left-40 h-96 w-96 rounded-full bg-indigo-200/20 blur-3xl" />
-            <div class="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-purple-200/20 blur-3xl" />
-          </div>
+        {/* Hero Section - Minimal Cloud-Neutral presentation */}
+        <header class="relative isolate overflow-hidden border-b border-slate-200 bg-white/90 py-20 shadow-sm sm:py-28">
+          <div class="pointer-events-none absolute inset-x-0 top-0 mx-auto h-64 max-w-5xl rounded-full bg-gradient-to-r from-sky-50 via-indigo-50 to-sky-50 blur-3xl" aria-hidden />
 
           <div class="relative px-4 sm:px-6 lg:px-8">
             <div class="mx-auto w-full max-w-6xl">
-              <div class="rounded-3xl border border-sky-200/50 bg-white/80 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.08)] backdrop-blur-lg sm:p-10 lg:p-12">
-                {shouldFallbackHero ? (
-                  <div
-                    class="prose prose-slate max-w-none"
-                    dangerouslySetInnerHTML={{ __html: sections.operations.html }}
-                  />
-                ) : (
-                  <div class="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-12">
+              {shouldFallbackHero ? (
+                <div
+                  class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-[0_25px_70px_rgba(15,23,42,0.08)] sm:p-10 lg:p-12 prose prose-slate max-w-none"
+                  dangerouslySetInnerHTML={{ __html: sections.operations.html }}
+                />
+              ) : (
+                <div class="grid gap-12 rounded-3xl border border-slate-200 bg-white/95 p-10 shadow-[0_25px_70px_rgba(15,23,42,0.08)] sm:p-12 lg:grid-cols-[1.05fr_1fr]">
+                  <div class="space-y-8">
+                    <span class="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
+                      {hero.eyebrow}
+                    </span>
                     <div class="space-y-6">
-                      <div class="flex flex-wrap items-center gap-3">
-                        <span class="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.35em] text-sky-700 shadow-sm">
-                          <span class="flex h-2 w-2">
-                            <span class="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-sky-400 opacity-75" />
-                            <span class="relative inline-flex h-2 w-2 rounded-full bg-sky-500" />
-                          </span>
-                          Cloud-Neutral
-                        </span>
-                        {operationsUpdated && (
-                          <span class="text-xs text-slate-600">
-                            {language === 'zh'
-                              ? `最近更新 · ${operationsUpdated}`
-                              : `Last updated · ${operationsUpdated}`}
-                          </span>
-                        )}
-                      </div>
-                      {heroContent.heading && (
-                        <h1 class="text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-                          {heroContent.heading}
-                        </h1>
-                      )}
-                      <div class="max-w-[70ch] space-y-4 text-lg text-slate-600">
-                        {heroContent.paragraphs.map((paragraph, index) => (
-                          <p
-                            key={index}
-                            class="leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: paragraph }}
-                          />
-                        ))}
-                      </div>
-                      <div class="flex flex-wrap gap-4 pt-2">
-                        <a
-                          href="/demo"
-                          class="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-100"
-                        >
-                          <span class="absolute inset-0 bg-gradient-to-r from-sky-700 to-indigo-700 opacity-0 transition-opacity group-hover:opacity-100" />
-                          <span class="relative">{primaryCtaLabel}</span>
-                          <svg class="relative h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
-                        </a>
-                        <a
-                          href="/download"
-                          class="group inline-flex items-center justify-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-8 py-4 font-semibold text-slate-900 shadow-sm transition-all hover:border-sky-400 hover:bg-slate-50 hover:shadow-md active:scale-95"
-                        >
-                          <span>{secondaryCtaLabel}</span>
-                          <svg class="h-5 w-5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </a>
-                      </div>
+                      <h1 class="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">{hero.title}</h1>
+                      <p class="max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">{hero.description}</p>
                     </div>
-                    {heroContent.highlights.length > 0 && (
-                      <div class="space-y-4 rounded-2xl border border-sky-200/50 bg-sky-50/50 p-6 shadow-lg backdrop-blur-sm">
-                        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-sky-700">
-                          {language === 'zh' ? '核心能力' : 'Key Capabilities'}
-                        </p>
-                        <ul class="space-y-3 text-sm">
-                          {heroContent.highlights.map((item, index) => (
-                            <li key={index} class="flex items-start gap-3 text-slate-700">
-                              <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                              </svg>
-                              <span
-                                class="leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: item.html }}
-                              />
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <ul class="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+                      {hero.focusAreas.map((item) => (
+                        <li
+                          key={item}
+                          class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                        >
+                          <span class="h-2 w-2 rounded-full bg-sky-500" aria-hidden />
+                          <span class="font-medium text-slate-700">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                )}
-              </div>
+                  <div class="grid gap-4">
+                    {hero.products.map((product) => (
+                      <article
+                        key={product.label}
+                        class="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition duration-200 hover:border-sky-200 hover:shadow-md"
+                      >
+                        <span class="text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">{product.label}</span>
+                        <h2 class="text-lg font-semibold text-slate-900">{product.headline}</h2>
+                        <p class="text-sm leading-relaxed text-slate-600">{product.description}</p>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>
