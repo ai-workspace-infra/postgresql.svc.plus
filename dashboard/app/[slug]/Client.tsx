@@ -7,6 +7,10 @@ type Html2CanvasFn = typeof import('html2canvas')['default']
 let html2canvasLoader: Promise<Html2CanvasFn> | null = null
 
 const loadHtml2Canvas = async (): Promise<Html2CanvasFn> => {
+  if (typeof window === 'undefined') {
+    throw new Error('html2canvas can only be loaded in the browser')
+  }
+
   if (!html2canvasLoader) {
     html2canvasLoader = import('html2canvas').then((module) => module.default)
   }
@@ -62,7 +66,7 @@ const drawQR = async (
 }
 
 const exportPoster = async (node: HTMLElement | null, slug: string) => {
-  if (!node) {
+  if (!node || typeof window === 'undefined') {
     return
   }
 
