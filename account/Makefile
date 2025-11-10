@@ -40,7 +40,7 @@ export PATH := /usr/local/go/bin:$(PATH)
 
 .PHONY: all init build clean start stop restart dev test help \
 	init-db-core init-db-replication init-db-pglogical \
-	reinit-pglogical account-sync-push account-sync-pull account-sync-mirror
+	reinit-pglogical account-sync-push account-sync-pull account-sync-mirror create-db-user db-reset
 
 all: build
 
@@ -48,6 +48,8 @@ help:
 	@echo "🧭 XControl Account Service Makefile"
 	@echo "make init               初始化 Go 环境与数据库"
 	@echo "make init-db            执行数据库 schema（支持 REPLICATION_MODE=pgsync|pglogical）"
+	@echo "make create-db-user     创建数据库用户并授权"
+	@echo "make db-reset           重置整个 PostgreSQL 集群 (危险操作!)"
 	@echo "make migrate-db         执行数据库迁移"
 	@echo "make dump-schema        导出数据库 schema"
 	@echo "make account-export     导出账号数据为 YAML"
@@ -148,6 +150,14 @@ init-pglogical-region-global:
 # 📦 数据库迁移与管理
 # =========================================
 
+create-db-user:
+	@echo ">>> 创建数据库用户 $(DB_USER)"
+	@command -v psql >/dev/null || (echo "❌ 未检测到 psql，请安装 PostgreSQL 客户端" && exit 1)
+	@echo "正在以 postgres 超级用户身份创建用户..."
+	@sudo -u postgres psql -c "CREATE USER $(DB_USER) WITH PASSWORD '$(DB_PASS)';" || echo "⚠️ 用户可能已存在"
+	@sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $(DB_NAME) TO $(DB_USER);"
+	@echo "✓ 数据库用户创建完成"
+
 migrate-db:
 	@echo ">>> 执行数据库迁移"
 	@go run ./cmd/migratectl/main.go migrate --dsn "$(DB_URL)" --dir sql/migrations
@@ -155,6 +165,25 @@ migrate-db:
 dump-schema:
 	@echo ">>> 导出 schema 到 $(SCHEMA_FILE)"
 	@pg_dump -s -O -x "$(DB_URL)" > $(SCHEMA_FILE)
+
+db-reset:
+	@echo "⚠️ 即将重置整个 PostgreSQL 数据库集群 ..."
+	@read -p "确定要重置数据库集群? 这将删除所有数据! [y/N] " confirm && \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		echo ">>> 停止 PostgreSQL 服务 ..."; \
+		sudo systemctl stop postgresql; \
+		echo ">>> 删除数据库集群 16 main ..."; \
+		sudo pg_dropcluster --stop 16 main; \
+		echo ">>> 清理数据目录 ..."; \
+		sudo rm -rf /var/lib/postgresql/16/main; \
+		echo ">>> 清理配置目录 ..."; \
+		sudo rm -rf /etc/postgresql/16/main; \
+		echo ">>> 创建新的数据库集群 ..."; \
+		sudo pg_createcluster 16 main --start; \
+		echo "✓ PostgreSQL 集群重置完成"; \
+	else \
+		echo "取消重置"; \
+	fi
 
 drop-db:
 	@echo "⚠️  即将删除数据库 $(DB_NAME) ..."
