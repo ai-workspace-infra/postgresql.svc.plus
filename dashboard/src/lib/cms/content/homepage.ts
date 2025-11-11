@@ -3,7 +3,7 @@ import path from 'path'
 
 import { readMarkdownDirectory, readMarkdownFile } from '../../lib/markdown'
 import { resolveContentSource } from './source'
-import { isFeatureEnabled } from '../../lib/featureToggles'
+import { isFeatureEnabled } from '../../../lib/featureToggles'
 
 export interface HeroContent {
   eyebrow?: string
