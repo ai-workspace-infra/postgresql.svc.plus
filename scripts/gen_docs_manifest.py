@@ -17,7 +17,7 @@ Usage example::
     python3 scripts/gen_docs_manifest.py \
         --root /data/update-server/docs \
         --base-url-prefix https://dl.svc.plus/docs \
-        --include docs
+        --output /data/update-server/dl-index
 
 The command is idempotent and safe to rerun. Hidden files/directories (prefixed
 with ``.``) are ignored. Only ``.pdf`` and ``.html`` assets are considered for
@@ -291,10 +291,10 @@ def write_manifest(output_path: Path, entries: Sequence[DocEntry]) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate documentation manifest (all.json)")
+    parser = argparse.ArgumentParser(description="Generate documentation manifest (docs-manifest.json)")
     parser.add_argument("--root", required=True, help="Root directory of the docs tree (e.g. /data/update-server/docs)")
     parser.add_argument("--base-url-prefix", default="/docs", help="URL prefix to prepend to asset paths")
-    parser.add_argument("--output", default="all.json", help="Output filename (default: all.json)")
+    parser.add_argument("--output", default="dl-index/", help="Output directory (default: dl-index/)")
     parser.add_argument("--quiet", action="store_true", help="Suppress progress output")
     parser.add_argument(
         "--include",
@@ -316,7 +316,17 @@ def main() -> None:
     if not args.quiet:
         print(f"Discovered {len(entries)} documentation entries under {root}")
 
-    output_path = root / args.output
+    # Handle output as either file or directory
+    output_arg = Path(args.output)
+    if output_arg.is_dir() or (not output_arg.exists() and str(output_arg).endswith('/')):
+        # It's a directory - create the file inside it
+        output_path = output_arg / "docs-manifest.json"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        # It's a file - use as-is
+        output_path = output_arg
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
     write_manifest(output_path, entries)
 
     if not args.quiet:

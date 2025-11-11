@@ -8,10 +8,12 @@ import {
   findListing,
   formatSegmentLabel,
 } from '../../../lib/download-data'
-import { DOWNLOAD_LISTINGS, getDownloadListings } from '../../../lib/download-manifest'
+import { getDownloadListings } from '../../../lib/download/dl-index-data-artifacts'
 import type { DirListing } from '@lib/download/types'
 
-const allListings = getDownloadListings()
+async function getAllListings(): Promise<DirListing[]> {
+  return getDownloadListings()
+}
 
 function collectDownloadParams(listings: DirListing[]): { segments: string[] }[] {
   const params: { segments: string[] }[] = []
@@ -52,8 +54,9 @@ function collectDownloadParams(listings: DirListing[]): { segments: string[] }[]
   return params
 }
 
-export function generateStaticParams() {
-  return collectDownloadParams(DOWNLOAD_LISTINGS)
+export async function generateStaticParams() {
+  const allListings = await getAllListings()
+  return collectDownloadParams(allListings)
 }
 
 export const dynamicParams = false
@@ -77,6 +80,8 @@ export default async function DownloadListing({
   const segments = rawSegments
     .map((segment) => segment.trim().replace(/\/+$/g, ''))
     .filter((segment) => segment.length > 0)
+
+  const allListings = await getAllListings()
 
   if (segments.length === 0) {
     return (

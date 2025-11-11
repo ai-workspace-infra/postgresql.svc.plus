@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import DownloadBrowser from '../../components/download/DownloadBrowser'
 import DownloadSummary from '../../components/download/DownloadSummary'
 import { buildDownloadSections, countFiles, findListing } from '../../lib/download-data'
-import { getDownloadListings } from '../../lib/download-manifest'
+import { getDownloadListings } from '../../lib/download/dl-index-data-artifacts'
 import { getOfflinePackageSections, getOfflinePackageFileCount } from '../../lib/download/dl-index-data-offline-package'
 import type { DirEntry } from '../../../../types/download'
 import { isFeatureEnabled } from '@lib/featureToggles'
@@ -16,7 +16,7 @@ export default async function DownloadHome() {
   }
 
   // Get data from multiple sources
-  const allListings = getDownloadListings()
+  const allListings = await getDownloadListings()
   const offlinePackageSections = await getOfflinePackageSections()
 
   // Merge sections - offline-package takes priority

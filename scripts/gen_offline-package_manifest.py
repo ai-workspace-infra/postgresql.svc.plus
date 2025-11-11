@@ -256,10 +256,10 @@ def main():
     output_path = Path(args.output)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # Write manifest.json to output directory
-    write_json(output_path / "manifest.json", listings)
+    # Write artifacts-manifest.json to output directory
+    write_json(output_path / "artifacts-manifest.json", listings)
     if not args.quiet:
-        print(f"Wrote {output_path / 'manifest.json'}")
+        print(f"Wrote {output_path / 'artifacts-manifest.json'}")
 
     # Create offline-package.json specifically for offline-package directory
     offline_package_listings = [

@@ -1,11 +1,12 @@
 import 'server-only'
 
 import { isFeatureEnabled } from '@lib/featureToggles'
-// import docsManifest from '../../../public/dl-index/docs-manifest.json'
 import fallbackDocsIndex from '../../../public/_build/docs_index.json'
 
 import { buildAbsoluteDocUrl } from './utils'
 import type { DocCollection, DocResource, DocVersionOption } from './types'
+
+const DOCS_MANIFEST_URL = 'https://dl.svc.plus/dl-index/docs-manifest.json'
 
 interface RawDocResource {
   slug?: unknown
@@ -28,14 +29,68 @@ interface RawDocResource {
   collectionLabel?: unknown
 }
 
-// const manifestDocs = Array.isArray(docsManifest) ? (docsManifest as RawDocResource[]) : []
-const fallbackDocs = Array.isArray(fallbackDocsIndex) ? (fallbackDocsIndex as RawDocResource[]) : []
+async function fetchDocs(): Promise<RawDocResource[]> {
+  try {
+    const response = await fetch(DOCS_MANIFEST_URL, {
+      cache: 'no-cache',
+    })
 
-const RAW_DOCS = fallbackDocs
+    if (!response.ok) {
+      throw new Error(`Failed to fetch docs manifest: ${response.statusText}`)
+    }
 
-export const DOCS_DATASET = RAW_DOCS.map((item) => normalizeResource(item as RawDocResource)).filter(
-  (item): item is DocResource => item !== null,
-)
+    const data = await response.json()
+    return Array.isArray(data) ? (data as RawDocResource[]) : []
+  } catch (error) {
+    console.error('Error fetching docs manifest:', error)
+    return []
+  }
+}
+
+async function loadDocs(): Promise<RawDocResource[]> {
+  const manifestDocs = await fetchDocs()
+
+  if (manifestDocs.length > 0) {
+    return manifestDocs
+  }
+
+  const fallbackDocs = Array.isArray(fallbackDocsIndex) ? (fallbackDocsIndex as RawDocResource[]) : []
+  return fallbackDocs
+}
+
+let cachedDocs: RawDocResource[] | null = null
+
+async function getRawDocs(): Promise<RawDocResource[]> {
+  if (cachedDocs) {
+    return cachedDocs
+  }
+
+  cachedDocs = await loadDocs()
+  return cachedDocs
+}
+
+async function buildDocsDataset(): Promise<DocResource[]> {
+  const rawDocs = await getRawDocs()
+  return rawDocs.map((item) => normalizeResource(item as RawDocResource)).filter(
+    (item): item is DocResource => item !== null,
+  )
+}
+
+let cachedDocsDataset: DocResource[] | null = null
+
+export async function getDocsDataset(): Promise<DocResource[]> {
+  if (cachedDocsDataset) {
+    return cachedDocsDataset
+  }
+
+  cachedDocsDataset = await buildDocsDataset()
+  return cachedDocsDataset
+}
+
+export function clearDocsCache(): void {
+  cachedDocs = null
+  cachedDocsDataset = null
+}
 
 
 function slugifySegment(value: string): string {
@@ -198,7 +253,26 @@ function buildCollections(docs: DocResource[]): DocCollection[] {
   return collections.sort((a, b) => parseUpdatedAt(b.updatedAt) - parseUpdatedAt(a.updatedAt))
 }
 
-export const DOC_COLLECTIONS = buildCollections(DOCS_DATASET)
+async function buildDocsCollections(): Promise<DocCollection[]> {
+  const docs = await getDocsDataset()
+  return buildCollections(docs)
+}
+
+let cachedCollections: DocCollection[] | null = null
+
+export async function getDocCollections(): Promise<DocCollection[]> {
+  if (cachedCollections) {
+    return cachedCollections
+  }
+
+  cachedCollections = await buildDocsCollections()
+  return cachedCollections
+}
+
+export function clearCollectionsCache(): void {
+  clearDocsCache()
+  cachedCollections = null
+}
 
 function normalizeResource(item: RawDocResource): DocResource | null {
   if (!item || typeof item !== 'object') {
@@ -299,7 +373,7 @@ export async function getDocResources(): Promise<DocCollection[]> {
     return []
   }
 
-  return DOC_COLLECTIONS
+  return getDocCollections()
 }
 
 export async function getDocResource(slug: string): Promise<DocCollection | undefined> {
@@ -307,5 +381,6 @@ export async function getDocResource(slug: string): Promise<DocCollection | unde
     return undefined
   }
 
-  return DOC_COLLECTIONS.find((doc) => doc.slug === slug)
+  const collections = await getDocCollections()
+  return collections.find((doc) => doc.slug === slug)
 }

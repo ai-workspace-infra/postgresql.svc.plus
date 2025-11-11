@@ -1,6 +1,9 @@
-// DEPRECATED: This file is a compatibility alias
-// Use dl-index-data-artifacts.ts instead
-export { getDownloadListings, clearDownloadListingsCache } from './dl-index-data-artifacts'
+import 'server-only'
+
+import type { DirListing } from '@lib/download/types'
+
+const ARTIFACTS_MANIFEST_URL = 'https://dl.svc.plus/dl-index/artifacts-manifest.json'
+const FALLBACK_LISTINGS_URL = 'https://dl.svc.plus/dl-index/offline-package.json'
 
 async function fetchListings(url: string): Promise<DirListing[]> {
   try {

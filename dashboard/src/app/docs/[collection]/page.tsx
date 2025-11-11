@@ -2,17 +2,18 @@ export const dynamic = 'error'
 
 import { notFound, redirect } from 'next/navigation'
 
-import { DOC_COLLECTIONS, getDocResource } from '../resources.server'
+import { getDocCollections, getDocResource } from '../resources.server'
 import { isFeatureEnabled } from '@lib/featureToggles'
 
 export const dynamicParams = false
 
-export const generateStaticParams = () => {
+export const generateStaticParams = async () => {
   if (!isFeatureEnabled('appModules', '/docs')) {
     return []
   }
 
-  return DOC_COLLECTIONS.map((doc) => ({ collection: doc.slug }))
+  const collections = await getDocCollections()
+  return collections.map((doc) => ({ collection: doc.slug }))
 }
 
 export default async function CollectionPage({

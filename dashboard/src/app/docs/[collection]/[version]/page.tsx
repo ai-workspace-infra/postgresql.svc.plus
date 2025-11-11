@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import Breadcrumbs, { type Crumb } from '../../../../components/download/Breadcrumbs'
-import { DOC_COLLECTIONS, getDocResource } from '../../resources.server'
+import { getDocCollections, getDocResource } from '../../resources.server'
 import { isFeatureEnabled } from '@lib/featureToggles'
 import DocCollectionView from './DocCollectionView'
 
@@ -24,13 +24,14 @@ function buildBreadcrumbs(
   return crumbs
 }
 
-export const generateStaticParams = () => {
+export const generateStaticParams = async () => {
   if (!isFeatureEnabled('appModules', '/docs')) {
     return []
   }
 
+  const collections = await getDocCollections()
   const params: { collection: string; version: string }[] = []
-  for (const doc of DOC_COLLECTIONS) {
+  for (const doc of collections) {
     for (const version of doc.versions) {
       params.push({ collection: doc.slug, version: version.slug })
     }
