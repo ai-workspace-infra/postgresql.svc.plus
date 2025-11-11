@@ -73,7 +73,7 @@ export function createCommonHomeTemplate(
           <div className={clsx(config.hero.containerClassName)}>
             <div className={clsx(config.hero.contentClassName)}>
               {SidebarComponent ? (
-                <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-stretch">
+                <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-10 lg:items-stretch">
                   <div className="min-h-full">{heroContent}</div>
                   <div className="lg:sticky lg:top-0 lg:h-fit lg:w-[360px]">
                     <SidebarComponent />
@@ -93,7 +93,7 @@ export function createCommonHomeTemplate(
             <div className={clsx(config.content.contentClassName)}>
               {hasSidebar ? (
                 // Match hero section grid width for consistent layout
-                <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
+                <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-10">
                   <div className="lg:col-span-1">
                     {config.content.slots.map((slotConfig) => {
                       const SlotComponent = (slots[slotConfig.key] ?? fallbacks[slotConfig.key]) as

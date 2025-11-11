@@ -79,7 +79,7 @@ export default function Homepage() {
       <section className="relative isolate overflow-hidden border-b border-slate-200 bg-white/90 py-20 shadow-sm sm:py-28">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-64 max-w-5xl rounded-full bg-gradient-to-r from-sky-50 via-indigo-50 to-sky-50 blur-3xl" />
         <div className={clsx('relative', designTokens.layout.container)}>
-          <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-stretch">
+          <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-10 lg:items-stretch">
             <div className="min-h-full space-y-8">
               <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-slate-50/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
                 {content.eyebrow}
