@@ -36,11 +36,11 @@ export const cmsConfig: CmsConfig = {
     sources: {
       homepage: {
         type: 'filesystem',
-        root: 'cms/content/homepage',
+        root: 'src/lib/cms/content/homepage',
       },
       docs: {
         type: 'filesystem',
-        root: 'cms/content/docs',
+        root: 'src/lib/cms/content/docs',
       },
       marketing: {
         type: 'git',
