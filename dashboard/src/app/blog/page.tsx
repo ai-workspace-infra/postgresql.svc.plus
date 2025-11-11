@@ -34,8 +34,9 @@ type PageProps = {
 
 export default async function BlogPage({ searchParams }: PageProps) {
   const posts = await getHomepagePosts()
+  const { page } = await searchParams
   const postsPerPage = 10
-  const currentPage = parseInt(searchParams.page || '1', 10)
+  const currentPage = parseInt(page || '1', 10)
   const totalPages = Math.ceil(posts.length / postsPerPage)
 
   if (currentPage < 1 || currentPage > totalPages) {
