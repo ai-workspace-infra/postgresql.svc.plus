@@ -1,0 +1,27 @@
+# 配置文件清理总结
+
+## 删除的文件
+❌ package.new.json (144B) - 临时文件
+❌ tailwind.config.yaml (1.0K) - 备用方案
+❌ postcss.config.yaml (158B) - 备用方案
+
+## 保留的文件
+✅ package.json (2.0K) - 项目配置
+✅ package-lock.json (369K) - 锁文件
+✅ tsconfig.json (1.3K) - TypeScript 配置
+✅ next.config.mjs (2.1K) - ES Module
+✅ tailwind.config.js (824B) - CommonJS 版本
+✅ tailwind.config.mjs (1.2K) - ES Module 版本
+✅ postcss.config.js (83B) - CommonJS 版本
+✅ postcss.config.mjs (215B) - ES Module 版本
+
+## 当前状态
+- 总计: 8 个核心配置文件
+- ES Module: 3 个 (next.config.mjs, tailwind.config.mjs, postcss.config.mjs)
+- CommonJS: 2 个 (tailwind.config.js, postcss.config.js)
+- JSON: 3 个 (package.json, package-lock.json, tsconfig.json)
+
+## 下一步行动
+1. 选择使用 CommonJS 版本 (.js) 还是 ES Module 版本 (.mjs)
+2. 如果使用 .mjs 版本，删除对应的 .js 文件
+3. 运行 npm run build 验证配置
