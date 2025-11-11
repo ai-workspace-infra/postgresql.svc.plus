@@ -19,7 +19,6 @@ export const defaultHomeLayoutConfig: CommonHomeLayoutConfig = {
     gridClassName: 'grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-12',
     slots: [
       { key: 'CommunityFeed' },
-      { key: 'Sidebar' },
     ],
   },
 }

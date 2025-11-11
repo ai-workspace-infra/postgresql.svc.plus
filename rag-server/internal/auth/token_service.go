@@ -34,8 +34,46 @@ type TokenService struct {
 	refreshExpiry  time.Duration
 }
 
+// AuthClient wraps TokenService for compatibility
+type AuthClient struct {
+	*TokenService
+	authURL    string
+	publicToken string
+}
+
+// DefaultConfig returns a default configuration for auth
+func DefaultConfig() *TokenConfig {
+	return &TokenConfig{
+		AccessExpiry:  time.Hour,
+		RefreshExpiry: 24 * time.Hour * 7, // 7 days
+	}
+}
+
+// NewAuthClient creates a new auth client
+func NewAuthClient(config *TokenConfig) *AuthClient {
+	return &AuthClient{
+		TokenService: NewTokenService(*config),
+		publicToken:  config.PublicToken,
+	}
+}
+
+// MiddlewareConfig holds middleware configuration
+type MiddlewareConfig struct {
+	SkipPaths []string
+	CacheTTL  time.Duration
+}
+
+// DefaultMiddlewareConfig creates default middleware configuration
+func DefaultMiddlewareConfig(client *AuthClient) *MiddlewareConfig {
+	return &MiddlewareConfig{
+		SkipPaths: []string{},
+		CacheTTL:  time.Minute * 5,
+	}
+}
+
 // TokenConfig holds configuration for token service
 type TokenConfig struct {
+	AuthURL         string
 	PublicToken     string
 	RefreshSecret   string
 	AccessSecret    string

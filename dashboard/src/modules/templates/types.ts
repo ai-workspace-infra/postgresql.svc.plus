@@ -14,10 +14,9 @@ export type TemplateComponent<TSlots extends TemplateSlots = TemplateSlots> = Co
 export interface HomePageTemplateSlots extends TemplateSlots {
   ProductMatrix: ComponentType
   CommunityFeed: ComponentType
-  Sidebar: ComponentType
 }
 
-export type HomePageSlotKey = 'ProductMatrix' | 'CommunityFeed' | 'Sidebar'
+export type HomePageSlotKey = 'ProductMatrix' | 'CommunityFeed'
 
 export type HomePageTemplateProps = TemplateRenderProps<HomePageTemplateSlots>
 

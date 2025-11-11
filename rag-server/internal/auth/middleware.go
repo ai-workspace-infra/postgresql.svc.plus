@@ -133,3 +133,20 @@ func GetRoles(c *gin.Context) []string {
 	}
 	return roles.([]string)
 }
+
+// VerifyTokenMiddleware creates a middleware that verifies JWT tokens
+func VerifyTokenMiddleware(config *MiddlewareConfig) gin.HandlerFunc {
+	// For now, just return the basic auth middleware
+	// The config parameters (SkipPaths, CacheTTL) can be used for optimization
+	return (&TokenService{}).AuthMiddleware()
+}
+
+// HealthCheckHandler returns a health check handler
+func HealthCheckHandler(client *AuthClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+			"auth":   "enabled",
+		})
+	}
+}
