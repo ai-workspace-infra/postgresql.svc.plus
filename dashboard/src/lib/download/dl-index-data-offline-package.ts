@@ -1,5 +1,5 @@
 import type { DirListing } from './types'
-import { buildDownloadSections, countFiles, findListing, formatSegmentLabel, type DownloadSection } from './download-data'
+import { buildDownloadSections, countFiles, findListing, formatSegmentLabel, type DownloadSection } from '../download-data'
 
 const OFFLINE_PACKAGE_URL = 'https://dl.svc.plus/dl-index/offline-package.json'
 
