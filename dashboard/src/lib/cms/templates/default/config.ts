@@ -18,7 +18,6 @@ export const defaultHomeLayoutConfig: CommonHomeLayoutConfig = {
     contentClassName: 'mx-auto w-full max-w-6xl',
     gridClassName: 'grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-12',
     slots: [
-      { key: 'ArticleFeed' },
       { key: 'CommunityFeed' },
       { key: 'Sidebar' },
     ],

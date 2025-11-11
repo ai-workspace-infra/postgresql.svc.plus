@@ -1,4 +1,3 @@
-import ArticleFeed from '@components/home/ArticleFeed'
 import ProductMatrix from '@components/home/ProductMatrix'
 import Sidebar from '@components/home/Sidebar'
 
@@ -9,7 +8,6 @@ import type { TemplateDefinition } from '../types'
 
 const DefaultHomePageTemplate = createCommonHomeTemplate(defaultHomeLayoutConfig, {
   ProductMatrix,
-  ArticleFeed,
   Sidebar,
 })
 

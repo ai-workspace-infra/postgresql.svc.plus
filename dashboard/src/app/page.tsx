@@ -1,6 +1,5 @@
 export const dynamic = 'error'
 
-import ArticleFeed from '@components/home/ArticleFeed'
 import ProductMatrix from '@components/home/ProductMatrix'
 import Sidebar from '@components/home/Sidebar'
 import CommunityFeedServer from '@components/home/CommunityFeedServer'
@@ -21,7 +20,6 @@ export default function HomePage() {
     <HomePageTemplate
       slots={{
         ProductMatrix,
-        ArticleFeed: ArticleFeed,
         CommunityFeed: CommunityFeedServer,
         Sidebar,
       }}
