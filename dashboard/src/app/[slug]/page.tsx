@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import Client from './Client'
-import { PRODUCT_MAP, getAllSlugs } from '../../../../modules/products/registry'
+import { PRODUCT_MAP, getAllSlugs } from '../../../modules/products/registry'
 
 type PageProps = {
   params: Promise<{
