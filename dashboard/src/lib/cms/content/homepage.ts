@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 
-import { readMarkdownDirectory, readMarkdownFile } from '../../lib/markdown'
+import { readMarkdownDirectory, readMarkdownFile } from '../../../lib/markdown'
 import { resolveContentSource } from './source'
 import { isFeatureEnabled } from '../../../lib/featureToggles'
 
