@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { Search } from 'lucide-react'
 
 import { AskAIDialog } from '../AskAIDialog'
-import { useLanguage } from '../i18n/LanguageProvider'
+import { useLanguage } from '../../i18n/LanguageProvider'
 
 type SearchComponentProps = {
   className?: string
