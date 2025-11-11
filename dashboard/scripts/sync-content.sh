@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd "${SCRIPT_DIR}/.." && pwd)
-CONTENT_DIR="${REPO_ROOT}/content"
+CONTENT_DIR="${REPO_ROOT}/src/content"
 REMOTE_REPO="${CONTENT_REMOTE_REPO:-}"
 REMOTE_BRANCH="${CONTENT_REMOTE_BRANCH:-main}"
 REMOTE_SUBDIR="${CONTENT_REMOTE_SUBDIR:-content}"

@@ -17,34 +17,31 @@
     "jsx": "react-jsx",
     "baseUrl": ".",             // 👈 根路径基准
     "paths": {
-      "@cms": ["cms/index.ts"], // 👈 增加这行以兼容 import "@cms"
-      "@cms/*": ["cms/*"],
+      "@cms": ["src/lib/cms/index.ts"], // 👈 增加这行以兼容 import "@cms"
+      "@cms/*": ["src/lib/cms/*"],
 
-      "@components/*": ["components/*"],
-      "@i18n/*": ["i18n/*"],
-      "@lib/*": ["lib/*"],
+      "@components/*": ["src/components/*"],
+      "@i18n/*": ["src/i18n/*"],
+      "@lib/*": ["src/lib/*"],
       "@types/*": ["types/*"],
-      "@server/*": ["server/*"],
-      "@extensions/*": ["src/extensions/*"],
-      "@theme/*": ["src/theme/*"],
-      "@templates/*": ["src/templates/*"],
+      "@server/*": ["src/server/*"],
+      "@modules/*": ["src/modules/*"],
+      "@extensions/*": ["src/modules/extensions/*"],
+      "@theme/*": ["src/components/theme/*"],
+      "@templates/*": ["src/modules/templates/*"],
       "@src/*": ["src/*"]
     },
     "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
     "plugins": [{ "name": "next" }]
   },
   "include": [
-    "app",
-    "cms",
-    "components",
-    "i18n",
-    "lib",
-    "ui",
+    "next-env.d.ts",
     "src",
-    "server",
+    "tests",
+    "scripts",
     "types",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "config"]
+  "exclude": ["node_modules"]
 }

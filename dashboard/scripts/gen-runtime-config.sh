@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG_DIR="${ROOT_DIR}/config"
+CONFIG_DIR="${ROOT_DIR}/src/config"
 BASE_FILE="${CONFIG_DIR}/runtime-service-config.base.yaml"
 SIT_FILE="${CONFIG_DIR}/runtime-service-config.sit.yaml"
 PROD_FILE="${CONFIG_DIR}/runtime-service-config.prod.yaml"
@@ -18,7 +18,7 @@ Usage: scripts/gen-runtime-config.sh [--hostname <hostname>] [--env <env>] [--ou
 Options:
   --hostname    Override the hostname used for environment detection.
   --env         Explicitly set the environment (prod|sit). Overrides hostname detection.
-  --output      Output path for the merged runtime configuration. Defaults to config/runtime-service-config.yaml.
+  --output      Output path for the merged runtime configuration. Defaults to src/config/runtime-service-config.yaml.
   -h, --help    Show this help message.
 USAGE
 }

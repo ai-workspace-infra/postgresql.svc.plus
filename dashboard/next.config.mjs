@@ -33,14 +33,16 @@ const nextConfig = {
     // 显式 alias，保证 Turbopack 也能解析
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
-      "@cms": path.join(__dirname, "cms"),
-      "@components": path.join(__dirname, "components"),
-      "@i18n": path.join(__dirname, "i18n"),
-      "@lib": path.join(__dirname, "lib"),
+      "@cms": path.join(__dirname, "src", "lib", "cms"),
+      "@components": path.join(__dirname, "src", "components"),
+      "@i18n": path.join(__dirname, "src", "i18n"),
+      "@lib": path.join(__dirname, "src", "lib"),
       "@types": path.join(__dirname, "types"),
-      "@server": path.join(__dirname, "server"),
-      "@theme": path.join(__dirname, "src", "theme"),
-      "@templates": path.join(__dirname, "src", "templates"),
+      "@server": path.join(__dirname, "src", "server"),
+      "@modules": path.join(__dirname, "src", "modules"),
+      "@extensions": path.join(__dirname, "src", "modules", "extensions"),
+      "@theme": path.join(__dirname, "src", "components", "theme"),
+      "@templates": path.join(__dirname, "src", "modules", "templates"),
       "@src": path.join(__dirname, "src"),
     };
 
