@@ -59,13 +59,25 @@ export function createCommonHomeTemplate(
 
     const heroContent = HeroComponent ? <HeroComponent {...(heroSlotConfig.props ?? {})} /> : null
 
+    // Check if Sidebar is available in hero section
+    const SidebarComponent = (slots['Sidebar'] ?? fallbacks['Sidebar']) as
+      | ComponentType<any>
+      | undefined
+
     return (
       <main className={clsx(config.rootClassName)}>
         <section className={clsx(config.hero.sectionClassName)}>
           {renderOverlays(config.hero.overlays)}
           <div className={clsx(config.hero.containerClassName)}>
             <div className={clsx(config.hero.contentClassName)}>
-              {heroSlotConfig.wrapperClassName ? (
+              {SidebarComponent ? (
+                <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+                  <div>{heroContent}</div>
+                  <div className="lg:sticky lg:top-0 lg:h-fit lg:w-[360px]">
+                    <SidebarComponent />
+                  </div>
+                </div>
+              ) : heroSlotConfig.wrapperClassName ? (
                 <div className={clsx(heroSlotConfig.wrapperClassName)}>{heroContent}</div>
               ) : (
                 heroContent

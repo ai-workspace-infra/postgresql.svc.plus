@@ -1,6 +1,7 @@
 export const dynamic = 'error'
 
 import ProductMatrix from '@components/home/ProductMatrix'
+import Sidebar from '@components/home/Sidebar'
 import CommunityFeedServer from '@components/home/CommunityFeedServer'
 import HomepageLanding from '@modules/homepage/page'
 import { isFeatureEnabled } from '@lib/featureToggles'
@@ -20,6 +21,7 @@ export default function HomePage() {
       slots={{
         ProductMatrix,
         CommunityFeed: CommunityFeedServer,
+        Sidebar,
       }}
     />
   )

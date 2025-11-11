@@ -1,4 +1,5 @@
 import ProductMatrix from '@components/home/ProductMatrix'
+import Sidebar from '@components/home/Sidebar'
 
 import { defaultHomeLayoutConfig } from '@cms/templates/default/config'
 
@@ -7,6 +8,7 @@ import type { TemplateDefinition } from '../types'
 
 const DefaultHomePageTemplate = createCommonHomeTemplate(defaultHomeLayoutConfig, {
   ProductMatrix,
+  Sidebar,
 })
 
 const defaultTemplate: TemplateDefinition = {
