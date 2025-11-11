@@ -7,7 +7,7 @@ import ServiceDetailView from '@components/iac/ServiceDetailView'
 import { CATALOG, PROVIDERS } from '@lib/iac/catalog'
 import type { CatalogItem, ProviderKey } from '@lib/iac/types'
 
-import cloudIacIndex from '../../../../public/_build/cloud_iac_index.json'
+import cloudIacIndex from '../../../../../public/_build/cloud_iac_index.json'
 import { isFeatureEnabled } from '@lib/featureToggles'
 
 type PageParams = {

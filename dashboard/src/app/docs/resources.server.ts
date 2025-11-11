@@ -1,8 +1,8 @@
 import 'server-only'
 
 import { isFeatureEnabled } from '@lib/featureToggles'
-import docsManifest from '../../public/dl-index/docs-manifest.json'
-import fallbackDocsIndex from '../../public/_build/docs_index.json'
+import docsManifest from '../../../public/dl-index/docs-manifest.json'
+import fallbackDocsIndex from '../../../public/_build/docs_index.json'
 
 import { buildAbsoluteDocUrl } from './utils'
 import type { DocCollection, DocResource, DocVersionOption } from './types'
