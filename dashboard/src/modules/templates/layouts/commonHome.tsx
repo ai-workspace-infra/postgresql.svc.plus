@@ -92,33 +92,29 @@ export function createCommonHomeTemplate(
           <div className={clsx(config.content.containerClassName)}>
             <div className={clsx(config.content.contentClassName)}>
               {hasSidebar ? (
-                // Match hero section grid width for consistent layout
-                <div className="grid grid-cols-[minmax(0,1fr)_360px] gap-10">
-                  <div className="lg:col-span-1">
-                    {config.content.slots.map((slotConfig) => {
-                      const SlotComponent = (slots[slotConfig.key] ?? fallbacks[slotConfig.key]) as
-                        | ComponentType<any>
-                        | undefined
+                // Full-width content section to match hero total width
+                <div>
+                  {config.content.slots.map((slotConfig) => {
+                    const SlotComponent = (slots[slotConfig.key] ?? fallbacks[slotConfig.key]) as
+                      | ComponentType<any>
+                      | undefined
 
-                      if (!SlotComponent) {
-                        return null
-                      }
+                    if (!SlotComponent) {
+                      return null
+                    }
 
-                      const slotElement = <SlotComponent {...(slotConfig.props ?? {})} />
+                    const slotElement = <SlotComponent {...(slotConfig.props ?? {})} />
 
-                      if (slotConfig.wrapperClassName) {
-                        return (
-                          <div key={slotConfig.key} className={clsx(slotConfig.wrapperClassName)}>
-                            {slotElement}
-                          </div>
-                        )
-                      }
+                    if (slotConfig.wrapperClassName) {
+                      return (
+                        <div key={slotConfig.key} className={clsx(slotConfig.wrapperClassName)}>
+                          {slotElement}
+                        </div>
+                      )
+                    }
 
-                      return <Fragment key={slotConfig.key}>{slotElement}</Fragment>
-                    })}
-                  </div>
-                  {/* Spacer to match hero section width */}
-                  <div className="hidden lg:block" />
+                    return <Fragment key={slotConfig.key}>{slotElement}</Fragment>
+                  })}
                 </div>
               ) : (
                 <div className={clsx(config.content.gridClassName)}>
