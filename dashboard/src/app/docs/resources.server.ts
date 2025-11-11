@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { isFeatureEnabled } from '@lib/featureToggles'
-import docsManifest from '../../../public/dl-index/docs-manifest.json'
+// import docsManifest from '../../../public/dl-index/docs-manifest.json'
 import fallbackDocsIndex from '../../../public/_build/docs_index.json'
 
 import { buildAbsoluteDocUrl } from './utils'
@@ -28,10 +28,10 @@ interface RawDocResource {
   collectionLabel?: unknown
 }
 
-const manifestDocs = Array.isArray(docsManifest) ? (docsManifest as RawDocResource[]) : []
+// const manifestDocs = Array.isArray(docsManifest) ? (docsManifest as RawDocResource[]) : []
 const fallbackDocs = Array.isArray(fallbackDocsIndex) ? (fallbackDocsIndex as RawDocResource[]) : []
 
-const RAW_DOCS = manifestDocs.length > 0 ? manifestDocs : fallbackDocs
+const RAW_DOCS = fallbackDocs
 
 export const DOCS_DATASET = RAW_DOCS.map((item) => normalizeResource(item as RawDocResource)).filter(
   (item): item is DocResource => item !== null,

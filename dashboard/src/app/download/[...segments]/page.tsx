@@ -9,7 +9,7 @@ import {
   formatSegmentLabel,
 } from '../../../lib/download-data'
 import { DOWNLOAD_LISTINGS, getDownloadListings } from '../../../lib/download-manifest'
-import type { DirListing } from '../../../types/download'
+import type { DirListing } from '../../../../types/download'
 
 const allListings = getDownloadListings()
 
@@ -97,7 +97,7 @@ export default function DownloadListing({
   }
 
   const subdirectorySections = buildSectionsForListing(listing, allListings, segments)
-  const fileEntries = listing.entries.filter((entry) => entry.type === 'file')
+  const fileEntries = listing.entries.filter((entry: DirListing['entries'][number]) => entry.type === 'file')
   const fileListing: DirListing = { path: listing.path, entries: fileEntries }
 
   const totalFiles = countFiles(listing, allListings)

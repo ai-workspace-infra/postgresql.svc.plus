@@ -6,6 +6,7 @@ import DownloadBrowser from '../../components/download/DownloadBrowser'
 import DownloadSummary from '../../components/download/DownloadSummary'
 import { buildDownloadSections, countFiles, findListing } from '../../lib/download-data'
 import { getDownloadListings } from '../../lib/download-manifest'
+import type { DirEntry } from '../../../../types/download'
 import { isFeatureEnabled } from '@lib/featureToggles'
 
 export default function DownloadHome() {
@@ -16,7 +17,7 @@ export default function DownloadHome() {
   const allListings = getDownloadListings()
   const sectionsMap = buildDownloadSections(allListings)
   const rootListing = findListing(allListings, [])
-  const topLevelDirectories = rootListing?.entries.filter((entry) => entry.type === 'dir') ?? []
+  const topLevelDirectories = rootListing?.entries.filter((entry: DirEntry) => entry.type === 'dir') ?? []
 
   const totalCollections = Object.values(sectionsMap).reduce((total, sections) => total + sections.length, 0)
   const totalFiles = topLevelDirectories.reduce((total, entry) => {

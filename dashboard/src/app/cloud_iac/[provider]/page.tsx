@@ -7,7 +7,7 @@ import CloudIacCatalog from '@components/iac/CloudIacCatalog'
 import { CATALOG, PROVIDERS } from '@lib/iac/catalog'
 import type { ProviderKey } from '@lib/iac/types'
 
-import cloudIacIndex from '../../../../../public/_build/cloud_iac_index.json'
+import cloudIacIndex from '../../../../public/_build/cloud_iac_index.json'
 import { isFeatureEnabled } from '@lib/featureToggles'
 
 type PageParams = {

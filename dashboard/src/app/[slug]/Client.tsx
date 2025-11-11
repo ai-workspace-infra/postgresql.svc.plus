@@ -31,7 +31,7 @@ import ProductFaq from '@components/marketing/ProductFaq'
 import ProductFeatures from '@components/marketing/ProductFeatures'
 import ProductHero from '@components/marketing/ProductHero'
 import ProductScenarios from '@components/marketing/ProductScenarios'
-import type { ProductConfig } from '@src/products/registry'
+import type { ProductConfig } from '@modules/products/registry'
 
 export type Lang = 'zh' | 'en'
 
