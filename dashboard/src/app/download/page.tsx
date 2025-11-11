@@ -20,7 +20,7 @@ export default function DownloadHome() {
   const topLevelDirectories = rootListing?.entries.filter((entry: DirEntry) => entry.type === 'dir') ?? []
 
   const totalCollections = Object.values(sectionsMap).reduce((total, sections) => total + sections.length, 0)
-  const totalFiles = topLevelDirectories.reduce((total, entry) => {
+  const totalFiles = topLevelDirectories.reduce((total: number, entry: DirEntry) => {
     const listing = findListing(allListings, [entry.name])
     return total + (listing ? countFiles(listing, allListings) : 0)
   }, 0)
