@@ -261,5 +261,15 @@ def main():
     if not args.quiet:
         print(f"Wrote {output_path / 'manifest.json'}")
 
+    # Create offline-package.json specifically for offline-package directory
+    offline_package_listings = [
+        listing for listing in listings
+        if listing.get('path', '').startswith('offline-package/') or listing.get('path', '') == 'offline-package/'
+    ]
+    if offline_package_listings:
+        write_json(output_path / "offline-package.json", offline_package_listings)
+        if not args.quiet:
+            print(f"Wrote {output_path / 'offline-package.json'}")
+
 if __name__ == "__main__":
     main()

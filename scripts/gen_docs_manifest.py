@@ -16,7 +16,8 @@ Usage example::
 
     python3 scripts/gen_docs_manifest.py \
         --root /data/update-server/docs \
-        --base-url-prefix https://dl.svc.plus/docs
+        --base-url-prefix https://dl.svc.plus/docs \
+        --include docs
 
 The command is idempotent and safe to rerun. Hidden files/directories (prefixed
 with ``.``) are ignored. Only ``.pdf`` and ``.html`` assets are considered for
@@ -239,8 +240,9 @@ def create_entry(parts: Tuple[str, ...]) -> DocEntry:
     )
 
 
-def collect_docs(root: Path, base_prefix: str) -> List[DocEntry]:
+def collect_docs(root: Path, base_prefix: str, include: List[str]) -> List[DocEntry]:
     entries: Dict[Tuple[str, ...], DocEntry] = {}
+    include_set = set(include)
 
     for file_path in root.rglob("*"):
         if not file_path.is_file():
@@ -249,6 +251,10 @@ def collect_docs(root: Path, base_prefix: str) -> List[DocEntry]:
             continue
         rel = file_path.relative_to(root)
         if should_skip(rel):
+            continue
+
+        # Check if file is in an included directory
+        if rel.parts and rel.parts[0] not in include_set:
             continue
 
         parts = rel.parts[:-1] + (file_path.stem,)
@@ -290,6 +296,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-url-prefix", default="/docs", help="URL prefix to prepend to asset paths")
     parser.add_argument("--output", default="all.json", help="Output filename (default: all.json)")
     parser.add_argument("--quiet", action="store_true", help="Suppress progress output")
+    parser.add_argument(
+        "--include",
+        default=["docs"],
+        action="append",
+        help="Directory names to include in the manifest. Can be provided multiple times. (default: docs)",
+    )
     return parser.parse_args()
 
 
@@ -299,7 +311,7 @@ def main() -> None:
     if not root.exists() or not root.is_dir():
         raise SystemExit(f"Root path does not exist or is not a directory: {root}")
 
-    entries = collect_docs(root, args.base_url_prefix)
+    entries = collect_docs(root, args.base_url_prefix, args.include)
 
     if not args.quiet:
         print(f"Discovered {len(entries)} documentation entries under {root}")
