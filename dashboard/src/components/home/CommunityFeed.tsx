@@ -88,7 +88,14 @@ export default function CommunityFeed({ posts = [] }: CommunityFeedProps) {
                 <span className="text-xs text-slate-500">{formatDate(post.date, language)}</span>
               </div>
               <div className="space-y-3">
-                <h3 className="text-xl font-semibold text-slate-900 sm:text-2xl">{post.title}</h3>
+                <h3 className="text-xl font-semibold text-slate-900 sm:text-2xl">
+                  <Link
+                    href={`/blog/${post.slug}`}
+                    className="hover:text-brand transition-colors"
+                  >
+                    {post.title}
+                  </Link>
+                </h3>
                 <p className="text-sm text-slate-600 sm:text-base">{post.excerpt}</p>
                 {post.author && (
                   <p className="text-xs text-slate-500">
@@ -97,7 +104,7 @@ export default function CommunityFeed({ posts = [] }: CommunityFeedProps) {
                 )}
               </div>
               <Link
-                href="/blog"
+                href={`/blog/${post.slug}`}
                 className={clsx(
                   designTokens.buttons.base,
                   designTokens.buttons.palette.secondary,
