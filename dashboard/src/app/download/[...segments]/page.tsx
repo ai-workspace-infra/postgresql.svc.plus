@@ -68,12 +68,12 @@ function getLatestModified(listing: DirListing): string | undefined {
   return latest
 }
 
-export default function DownloadListing({
+export default async function DownloadListing({
   params,
 }: {
-  params: { segments: string[] }
+  params: Promise<{ segments: string[] }>
 }) {
-  const rawSegments = params.segments ?? []
+  const { segments: rawSegments } = await params
   const segments = rawSegments
     .map((segment) => segment.trim().replace(/\/+$/g, ''))
     .filter((segment) => segment.length > 0)
