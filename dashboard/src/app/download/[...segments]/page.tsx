@@ -9,7 +9,7 @@ import {
   formatSegmentLabel,
 } from '../../../lib/download-data'
 import { DOWNLOAD_LISTINGS, getDownloadListings } from '../../../lib/download-manifest'
-import type { DirListing } from '../../../../types/download'
+import type { DirListing } from '@lib/download/types'
 
 const allListings = getDownloadListings()
 

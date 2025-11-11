@@ -1,4 +1,4 @@
-import type { DirListing } from '../types/download'
+import type { DirListing } from '@lib/download/types'
 
 export interface DownloadSection {
   key: string

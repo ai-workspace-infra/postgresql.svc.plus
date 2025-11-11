@@ -8,7 +8,7 @@ import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { formatDate } from '@lib/format'
 import { formatSegmentLabel, type DownloadSection } from '@lib/download-data'
-import type { DirListing } from '../../types/download'
+import type { DirListing } from '@lib/download/types'
 
 type DownloadListingContentProps = {
   segments: string[]

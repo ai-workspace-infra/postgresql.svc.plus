@@ -6,7 +6,7 @@ import CopyButton from './CopyButton'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { formatBytes, formatDate } from '../../lib/format'
-import type { DirListing } from '../../types/download'
+import type { DirListing } from '@lib/download/types'
 
 interface FileTableProps {
   listing: DirListing

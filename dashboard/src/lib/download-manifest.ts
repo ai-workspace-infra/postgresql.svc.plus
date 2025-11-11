@@ -3,7 +3,7 @@ import 'server-only'
 import fs from 'node:fs'
 import path from 'node:path'
 
-import type { DirListing } from '../types/download'
+import type { DirListing } from '@lib/download/types'
 
 const readListings = (relativePath: string): DirListing[] => {
   try {
