@@ -2,15 +2,15 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { Mail, Search } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Mail } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
 import LanguageToggle from './LanguageToggle'
 import ReleaseChannelSelector, { ReleaseChannel } from './ReleaseChannelSelector'
 import { getFeatureToggleInfo } from '@lib/featureToggles'
 import { useUser } from '@lib/userStore'
-import { AskAIDialog } from './AskAIDialog'
+import SearchComponent from './search'
 
 const CHANNEL_ORDER: ReleaseChannel[] = ['stable', 'beta', 'develop']
 const DEFAULT_CHANNELS: ReleaseChannel[] = ['stable']
@@ -231,12 +231,7 @@ export default function Navbar() {
     download: isChinese ? '下载' : 'Download',
     openSource: isChinese ? '开源项目' : 'Open source',
     moreServices: isChinese ? '更多服务' : 'More services',
-    searchPlaceholder: isChinese ? '请输入关键字搜索内容' : 'Ask anything about your docs',
   }
-
-  const [searchValue, setSearchValue] = useState('')
-  const [askDialogOpen, setAskDialogOpen] = useState(false)
-  const [pendingQuestion, setPendingQuestion] = useState<{ key: number; text: string } | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -280,15 +275,6 @@ export default function Navbar() {
     { key: 'xcloudflow', label: 'XCloudFlow', href: '/xcloudflow' },
     { key: 'xscopehub', label: 'XScopeHub', href: '/xscopehub' },
   ]
-
-  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const trimmed = searchValue.trim()
-    if (!trimmed) return
-    setPendingQuestion({ key: Date.now(), text: trimmed })
-    setAskDialogOpen(true)
-    setSearchValue('')
-  }
 
   if (isHiddenRoute) {
     return null
@@ -397,22 +383,7 @@ export default function Navbar() {
             </div>
 
             <div className="hidden flex-1 items-center justify-end gap-4 lg:flex">
-              <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs">
-                <input
-                  type="search"
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  placeholder={labels.searchPlaceholder}
-                  className="w-full rounded-full border border-brand-border bg-brand-surface/60 py-2 pl-4 pr-10 text-sm text-brand-heading transition focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-brand text-white transition hover:bg-brand-light"
-                  aria-label="Ask AI"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
-              </form>
+              <SearchComponent className="relative w-full max-w-xs" />
               {user ? (
                 <div className="relative" ref={accountMenuRef}>
                   <button
@@ -501,22 +472,11 @@ export default function Navbar() {
 
           {menuOpen ? (
             <div className="flex flex-col gap-4 border-t border-gray-200 py-4 lg:hidden">
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <input
-                  type="search"
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  placeholder={labels.searchPlaceholder}
-                  className="w-full rounded-full border border-brand-border bg-brand-surface/60 py-2 pl-4 pr-10 text-sm text-brand-heading transition focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-brand text-white transition hover:bg-brand-light"
-                  aria-label="Ask AI"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
-              </form>
+              <SearchComponent
+                className="relative"
+                buttonClassName="h-8 w-8"
+                inputClassName="py-2 pr-12"
+              />
               <div className="flex flex-col gap-2 text-sm font-medium text-gray-700">
                 {mainLinks.map((link) => (
                   <Link key={link.key} href={link.href} className="py-2" onClick={() => setMenuOpen(false)}>
@@ -632,15 +592,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <AskAIDialog
-        open={askDialogOpen}
-        onMinimize={() => setAskDialogOpen(false)}
-        onEnd={() => {
-          setAskDialogOpen(false)
-          setPendingQuestion(null)
-        }}
-        initialQuestion={pendingQuestion ?? undefined}
-      />
     </>
   )
 }

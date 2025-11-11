@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
+import SearchComponent from '@components/search'
 import { getHomepagePosts } from '@cms/content'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -31,12 +32,13 @@ function formatDate(dateStr: string | undefined, language: 'zh' | 'en'): string 
 }
 
 type PageProps = {
-  searchParams: { page?: string }
+  searchParams?: { page?: string } | Promise<{ page?: string }>
 }
 
 export default async function BlogPage({ searchParams }: PageProps) {
   const posts = await getHomepagePosts()
-  const { page } = searchParams ?? {}
+  const resolvedSearchParams = await Promise.resolve(searchParams ?? {})
+  const { page } = resolvedSearchParams ?? {}
   const postsPerPage = 10
   const currentPage = parseInt(page || '1', 10)
   const totalPages = Math.max(1, Math.ceil(posts.length / postsPerPage))
@@ -57,6 +59,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
           <p className="text-lg text-slate-600">
             Latest updates, releases, and insights from the Cloud-Neutral community.
           </p>
+          <SearchComponent variant="hero" className="mt-6" />
         </div>
 
         {posts.length === 0 ? (
