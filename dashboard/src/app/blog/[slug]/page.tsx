@@ -26,9 +26,10 @@ function formatDate(dateStr: string, language: 'zh' | 'en'): string {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
   try {
     const blogContentRoot = process.cwd() + '/src/content/blog'
-    const file = await readMarkdownFile(`${params.slug}.md`, { baseDir: blogContentRoot })
+    const file = await readMarkdownFile(`${slug}.md`, { baseDir: blogContentRoot })
 
     const title = file.metadata.title as string
     const excerpt = (file.metadata.excerpt as string) || ''
@@ -45,11 +46,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
+  const { slug } = await params
   try {
     const blogContentRoot = process.cwd() + '/src/content/blog'
-    const file = await readMarkdownFile(`${params.slug}.md`, { baseDir: blogContentRoot })
+    const file = await readMarkdownFile(`${slug}.md`, { baseDir: blogContentRoot })
 
-    const title = (file.metadata.title as string) || params.slug
+    const title = (file.metadata.title as string) || slug
     const author = file.metadata.author as string | undefined
     const date = file.metadata.date as string | undefined
     const tags = file.metadata.tags as string[] | undefined
