@@ -75,7 +75,7 @@ export default function Sidebar() {
   const data = sidebarContent[language]
 
   return (
-    <aside className="w-full space-y-6 rounded-2xl border border-brand-border bg-white p-6 text-brand-heading shadow-[0_4px_20px_rgba(0,0,0,0.04)] lg:sticky lg:top-0 lg:h-fit lg:w-[360px]">
+    <aside className="flex h-full w-full flex-col space-y-6 rounded-2xl border border-brand-border bg-white p-6 text-brand-heading shadow-[0_4px_20px_rgba(0,0,0,0.04)] lg:sticky lg:top-0 lg:h-fit lg:w-[360px]">
       {data.sections.map((section) => (
         <div key={section.slug} className="space-y-3">
           <h3 className="text-sm font-semibold text-slate-900">{section.title}</h3>

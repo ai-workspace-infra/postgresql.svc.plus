@@ -64,6 +64,8 @@ export function createCommonHomeTemplate(
       | ComponentType<any>
       | undefined
 
+    const hasSidebar = Boolean(SidebarComponent)
+
     return (
       <main className={clsx(config.rootClassName)}>
         <section className={clsx(config.hero.sectionClassName)}>
@@ -71,8 +73,8 @@ export function createCommonHomeTemplate(
           <div className={clsx(config.hero.containerClassName)}>
             <div className={clsx(config.hero.contentClassName)}>
               {SidebarComponent ? (
-                <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-                  <div>{heroContent}</div>
+                <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-stretch">
+                  <div className="min-h-full">{heroContent}</div>
                   <div className="lg:sticky lg:top-0 lg:h-fit lg:w-[360px]">
                     <SidebarComponent />
                   </div>
@@ -89,29 +91,60 @@ export function createCommonHomeTemplate(
           {renderOverlays(config.content.overlays)}
           <div className={clsx(config.content.containerClassName)}>
             <div className={clsx(config.content.contentClassName)}>
-              <div className={clsx(config.content.gridClassName)}>
-                {config.content.slots.map((slotConfig) => {
-                  const SlotComponent = (slots[slotConfig.key] ?? fallbacks[slotConfig.key]) as
-                    | ComponentType<any>
-                    | undefined
+              {hasSidebar ? (
+                // Match hero section grid width for consistent layout
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
+                  <div className="lg:col-span-1">
+                    {config.content.slots.map((slotConfig) => {
+                      const SlotComponent = (slots[slotConfig.key] ?? fallbacks[slotConfig.key]) as
+                        | ComponentType<any>
+                        | undefined
 
-                  if (!SlotComponent) {
-                    return null
-                  }
+                      if (!SlotComponent) {
+                        return null
+                      }
 
-                  const slotElement = <SlotComponent {...(slotConfig.props ?? {})} />
+                      const slotElement = <SlotComponent {...(slotConfig.props ?? {})} />
 
-                  if (slotConfig.wrapperClassName) {
-                    return (
-                      <div key={slotConfig.key} className={clsx(slotConfig.wrapperClassName)}>
-                        {slotElement}
-                      </div>
-                    )
-                  }
+                      if (slotConfig.wrapperClassName) {
+                        return (
+                          <div key={slotConfig.key} className={clsx(slotConfig.wrapperClassName)}>
+                            {slotElement}
+                          </div>
+                        )
+                      }
 
-                  return <Fragment key={slotConfig.key}>{slotElement}</Fragment>
-                })}
-              </div>
+                      return <Fragment key={slotConfig.key}>{slotElement}</Fragment>
+                    })}
+                  </div>
+                  {/* Spacer to match hero section width */}
+                  <div className="hidden lg:block" />
+                </div>
+              ) : (
+                <div className={clsx(config.content.gridClassName)}>
+                  {config.content.slots.map((slotConfig) => {
+                    const SlotComponent = (slots[slotConfig.key] ?? fallbacks[slotConfig.key]) as
+                      | ComponentType<any>
+                      | undefined
+
+                    if (!SlotComponent) {
+                      return null
+                    }
+
+                    const slotElement = <SlotComponent {...(slotConfig.props ?? {})} />
+
+                    if (slotConfig.wrapperClassName) {
+                      return (
+                        <div key={slotConfig.key} className={clsx(slotConfig.wrapperClassName)}>
+                          {slotElement}
+                        </div>
+                      )
+                    }
+
+                    return <Fragment key={slotConfig.key}>{slotElement}</Fragment>
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </section>
