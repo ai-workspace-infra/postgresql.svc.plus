@@ -1,5 +1,6 @@
 import type { DirListing } from './types'
 import { buildDownloadSections, countFiles, findListing, formatSegmentLabel, type DownloadSection } from '../download-data'
+import fallbackOfflinePackage from '../../../public/_build/offline-package.json'
 
 const OFFLINE_PACKAGE_URL = 'https://dl.svc.plus/dl-index/offline-package.json'
 
@@ -20,7 +21,8 @@ export async function fetchOfflinePackageListings(): Promise<DirListing[]> {
     return data
   } catch (error) {
     console.error('Error fetching offline-package listings:', error)
-    return []
+    // Return local fallback data
+    return fallbackOfflinePackage as DirListing[]
   }
 }
 

@@ -1,6 +1,8 @@
 import 'server-only'
 
 import type { DirListing } from '@lib/download/types'
+import fallbackArtifacts from '../../../public/_build/artifacts-manifest.json'
+import fallbackOfflinePackage from '../../../public/_build/offline-package.json'
 
 const ARTIFACTS_MANIFEST_URL = 'https://dl.svc.plus/dl-index/artifacts-manifest.json'
 const FALLBACK_LISTINGS_URL = 'https://dl.svc.plus/dl-index/offline-package.json'
@@ -31,7 +33,12 @@ async function loadDownloadListings(): Promise<DirListing[]> {
   }
 
   const fallbackListings = await fetchListings(FALLBACK_LISTINGS_URL)
-  return fallbackListings
+  if (fallbackListings.length > 0) {
+    return fallbackListings
+  }
+
+  // Last resort: use local fallback data
+  return fallbackArtifacts as DirListing[]
 }
 
 let cachedListings: DirListing[] | null = null

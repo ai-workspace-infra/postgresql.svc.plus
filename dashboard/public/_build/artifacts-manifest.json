@@ -1,0 +1,36 @@
+[
+  {
+    "path": "",
+    "entries": [
+      {
+        "name": "offline-package/",
+        "href": "/offline-package/",
+        "type": "dir",
+        "lastModified": "2025-09-19T00:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "path": "offline-package/",
+    "entries": [
+      {
+        "name": "sample-package/",
+        "href": "/offline-package/sample-package/",
+        "type": "dir",
+        "lastModified": "2025-09-19T00:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "path": "offline-package/sample-package/",
+    "entries": [
+      {
+        "name": "v1.0.0.tar.gz",
+        "href": "/offline-package/sample-package/v1.0.0.tar.gz",
+        "type": "file",
+        "size": 1024,
+        "lastModified": "2025-09-19T00:00:00.000Z"
+      }
+    ]
+  }
+]
