@@ -27,7 +27,11 @@ type NavSubItem = {
 
 export default function Navbar() {
   const pathname = usePathname()
-  const isHiddenRoute = pathname ? ['/login', '/register'].some((prefix) => pathname.startsWith(prefix)) : false
+  const isHiddenRoute = pathname
+    ? ['/login', '/register', '/xstream', '/xcloudflow', '/xscopehub'].some((prefix) =>
+        pathname.startsWith(prefix),
+      )
+    : false
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false)
   const [selectedChannels, setSelectedChannels] = useState<ReleaseChannel[]>(['stable'])
