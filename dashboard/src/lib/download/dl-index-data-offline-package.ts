@@ -2,7 +2,7 @@ import type { DirListing } from './types'
 import { buildDownloadSections, countFiles, findListing, formatSegmentLabel, type DownloadSection } from '../download-data'
 import fallbackOfflinePackage from '../../../public/_build/offline-package.json'
 
-const OFFLINE_PACKAGE_URL = 'https://dl.svc.plus/dl-index/offline-package.json'
+const OFFLINE_PACKAGE_URL = 'https://dl.svc.plus/dl-index/offline-package-manifest.json'
 
 /**
  * Fetch the offline-package download listings
