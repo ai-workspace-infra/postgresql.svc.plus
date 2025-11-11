@@ -1,79 +1,53 @@
 import clsx from 'clsx'
 import Link from 'next/link'
+import { getHomepagePosts } from '@cms/content'
 
 import { useLanguage } from '../../i18n/LanguageProvider'
 import { designTokens } from '@theme/designTokens'
 
-type FeedItem = {
-  title: string
-  excerpt: string
-  href: string
-  category: string
-  time: string
-}
-
-const feed: Record<'zh' | 'en', { title: string; subtitle: string; items: FeedItem[]; cta: string }> = {
+const feed: Record<'zh' | 'en', { title: string; subtitle: string; cta: string }> = {
   zh: {
-    title: '社区与动态',
+    title: '产品与社区快讯',
     subtitle: '来自用户群、社区活动与版本发布的实时更新。',
-    cta: '查看全部动态',
-    items: [
-      {
-        title: 'KubeGuard v2.0 Beta 发布',
-        excerpt: '新增集群恢复编排、AI 漏洞巡检以及跨区域容灾演练流程模板。',
-        href: '/docs/releases/kubeguard-v2',
-        category: 'Release',
-        time: '2 小时前',
-      },
-      {
-        title: 'Cloud-Native Meetup · 深圳站回顾',
-        excerpt: '分享 XScopeHub 如何在 2000+ 节点场景下实现可观测性弹性扩展。',
-        href: '/community/events/shenzhen-meetup',
-        category: 'Event',
-        time: '昨天',
-      },
-      {
-        title: 'Navi Copilot Workflow Library',
-        excerpt: '社区贡献 18 个常用运维自动化场景，支持一键导入平台。',
-        href: '/docs/navi-workflows',
-        category: 'Community',
-        time: '本周热点',
-      },
-    ],
+    cta: '浏览全部更新',
   },
   en: {
-    title: 'Community Pulse',
+    title: 'Product & Community Pulse',
     subtitle: 'Stories from user groups, release notes, and field events.',
     cta: 'View all updates',
-    items: [
-      {
-        title: 'KubeGuard v2.0 beta ships',
-        excerpt: 'Disaster recovery playbooks, AI-driven drift detection, and region failover drills.',
-        href: '/docs/releases/kubeguard-v2',
-        category: 'Release',
-        time: '2 hours ago',
-      },
-      {
-        title: 'Cloud-Native Meetup · Shenzhen recap',
-        excerpt: 'How XScopeHub scales observability to 2K+ nodes with streaming ETL.',
-        href: '/community/events/shenzhen-meetup',
-        category: 'Event',
-        time: 'Yesterday',
-      },
-      {
-        title: 'Navi Copilot workflow library',
-        excerpt: '18 automation recipes contributed by the community, ready to import.',
-        href: '/docs/navi-workflows',
-        category: 'Community',
-        time: 'Trending',
-      },
-    ],
   },
 }
 
-export default function CommunityFeed() {
+function formatDate(dateStr: string | undefined, language: 'zh' | 'en'): string {
+  if (!dateStr) return ''
+
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+
+  if (language === 'zh') {
+    if (diffHours < 1) return '刚刚'
+    if (diffHours < 24) return `${diffHours} 小时前`
+    if (diffDays < 7) return `${diffDays} 天前`
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} 周前`
+    return date.toLocaleDateString('zh-CN')
+  } else {
+    if (diffHours < 1) return 'just now'
+    if (diffHours < 24) return `${diffHours} hours ago`
+    if (diffDays < 7) return `${diffDays} days ago`
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+    return date.toLocaleDateString('en-US')
+  }
+}
+
+export default async function CommunityFeed() {
   const { language } = useLanguage()
   const data = feed[language]
+
+  const posts = await getHomepagePosts()
+  const recentPosts = posts.slice(0, 3)
 
   return (
     <section
@@ -95,9 +69,9 @@ export default function CommunityFeed() {
           <p className="text-base text-slate-600 sm:text-lg">{data.subtitle}</p>
         </div>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          {data.items.map((item) => (
+          {recentPosts.map((post) => (
             <article
-              key={item.title}
+              key={post.slug}
               className={clsx(
                 designTokens.cards.base,
                 designTokens.transitions.homepage,
@@ -105,15 +79,20 @@ export default function CommunityFeed() {
               )}
             >
               <div className="flex items-center justify-between text-sm font-semibold text-brand">
-                <span>{item.category}</span>
-                <span className="text-xs text-slate-500">{item.time}</span>
+                <span>Blog</span>
+                <span className="text-xs text-slate-500">{formatDate(post.date, language)}</span>
               </div>
               <div className="space-y-3">
-                <h3 className="text-xl font-semibold text-slate-900 sm:text-2xl">{item.title}</h3>
-                <p className="text-sm text-slate-600 sm:text-base">{item.excerpt}</p>
+                <h3 className="text-xl font-semibold text-slate-900 sm:text-2xl">{post.title}</h3>
+                <p className="text-sm text-slate-600 sm:text-base">{post.excerpt}</p>
+                {post.author && (
+                  <p className="text-xs text-slate-500">
+                    {language === 'zh' ? '作者' : 'By'} {post.author}
+                  </p>
+                )}
               </div>
               <Link
-                href={item.href}
+                href="/blog"
                 className={clsx(
                   designTokens.buttons.base,
                   designTokens.buttons.palette.secondary,
@@ -126,6 +105,12 @@ export default function CommunityFeed() {
               </Link>
             </article>
           ))}
+
+          {recentPosts.length === 0 && (
+            <div className="col-span-2 flex flex-col items-center justify-center py-20">
+              <p className="text-slate-500">暂无博客更新</p>
+            </div>
+          )}
         </div>
       </div>
     </section>
