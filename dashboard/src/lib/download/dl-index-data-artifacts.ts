@@ -2,15 +2,14 @@ import 'server-only'
 
 import type { DirListing } from '@lib/download/types'
 import fallbackArtifacts from '../../../public/_build/artifacts-manifest.json'
-import fallbackOfflinePackage from '../../../public/_build/offline-package.json'
 
 const ARTIFACTS_MANIFEST_URL = 'https://dl.svc.plus/dl-index/artifacts-manifest.json'
-const FALLBACK_LISTINGS_URL = 'https://dl.svc.plus/dl-index/offline-package.json'
+const FALLBACK_LISTINGS_URL = 'https://dl.svc.plus/dl-index/offline-package-manifest.json'
 
 async function fetchListings(url: string): Promise<DirListing[]> {
   try {
     const response = await fetch(url, {
-      cache: 'no-cache',
+      cache: 'no-store',
     })
 
     if (!response.ok) {
@@ -41,17 +40,10 @@ async function loadDownloadListings(): Promise<DirListing[]> {
   return fallbackArtifacts as DirListing[]
 }
 
-let cachedListings: DirListing[] | null = null
-
 export async function getDownloadListings(): Promise<DirListing[]> {
-  if (cachedListings) {
-    return cachedListings
-  }
-
-  cachedListings = await loadDownloadListings()
-  return cachedListings
+  return loadDownloadListings()
 }
 
 export function clearDownloadListingsCache(): void {
-  cachedListings = null
+  // Intentionally left blank. Runtime fetches always return fresh data.
 }

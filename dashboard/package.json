@@ -10,7 +10,7 @@
     "prebuild": "tsx ../scripts/export-slugs.ts && tsx ../scripts/scan-md.ts && tsx ../scripts/fetch-dl-index.ts && node ../scripts/copy-manifests.js",
     "build": "next build",
     "build:static": "npm run prebuild && next build",
-    "start": "next start",
+    "start": "node ./scripts/start.js",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",

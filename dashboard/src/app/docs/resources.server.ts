@@ -32,7 +32,7 @@ interface RawDocResource {
 async function fetchDocs(): Promise<RawDocResource[]> {
   try {
     const response = await fetch(DOCS_MANIFEST_URL, {
-      cache: 'no-cache',
+      cache: 'no-store',
     })
 
     if (!response.ok) {
@@ -58,15 +58,8 @@ async function loadDocs(): Promise<RawDocResource[]> {
   return fallbackDocs
 }
 
-let cachedDocs: RawDocResource[] | null = null
-
 async function getRawDocs(): Promise<RawDocResource[]> {
-  if (cachedDocs) {
-    return cachedDocs
-  }
-
-  cachedDocs = await loadDocs()
-  return cachedDocs
+  return loadDocs()
 }
 
 async function buildDocsDataset(): Promise<DocResource[]> {
@@ -76,20 +69,12 @@ async function buildDocsDataset(): Promise<DocResource[]> {
   )
 }
 
-let cachedDocsDataset: DocResource[] | null = null
-
 export async function getDocsDataset(): Promise<DocResource[]> {
-  if (cachedDocsDataset) {
-    return cachedDocsDataset
-  }
-
-  cachedDocsDataset = await buildDocsDataset()
-  return cachedDocsDataset
+  return buildDocsDataset()
 }
 
 export function clearDocsCache(): void {
-  cachedDocs = null
-  cachedDocsDataset = null
+  // Intentionally left blank. Runtime fetches always return fresh data.
 }
 
 
@@ -258,20 +243,12 @@ async function buildDocsCollections(): Promise<DocCollection[]> {
   return buildCollections(docs)
 }
 
-let cachedCollections: DocCollection[] | null = null
-
 export async function getDocCollections(): Promise<DocCollection[]> {
-  if (cachedCollections) {
-    return cachedCollections
-  }
-
-  cachedCollections = await buildDocsCollections()
-  return cachedCollections
+  return buildDocsCollections()
 }
 
 export function clearCollectionsCache(): void {
   clearDocsCache()
-  cachedCollections = null
 }
 
 function normalizeResource(item: RawDocResource): DocResource | null {

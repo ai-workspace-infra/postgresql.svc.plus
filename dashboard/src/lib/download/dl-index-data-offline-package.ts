@@ -10,7 +10,7 @@ const OFFLINE_PACKAGE_URL = 'https://dl.svc.plus/dl-index/offline-package-manife
 export async function fetchOfflinePackageListings(): Promise<DirListing[]> {
   try {
     const response = await fetch(OFFLINE_PACKAGE_URL, {
-      cache: 'no-cache',
+      cache: 'no-store',
     })
 
     if (!response.ok) {
@@ -27,18 +27,11 @@ export async function fetchOfflinePackageListings(): Promise<DirListing[]> {
 }
 
 /**
- * Get cached offline-package listings
- * This is a simple in-memory cache - in production you might want to use a more robust solution
+ * Retrieve offline-package listings on demand.
+ * Data is fetched dynamically so updates are reflected without a deploy.
  */
-let cachedListings: DirListing[] | null = null
-
 export async function getOfflinePackageListings(): Promise<DirListing[]> {
-  if (cachedListings) {
-    return cachedListings
-  }
-
-  cachedListings = await fetchOfflinePackageListings()
-  return cachedListings
+  return fetchOfflinePackageListings()
 }
 
 /**
@@ -78,5 +71,5 @@ export async function getOfflinePackageFileCount(): Promise<number> {
  * Clear the cache (useful for testing or when data might have changed)
  */
 export function clearOfflinePackageCache(): void {
-  cachedListings = null
+  // Intentionally left blank. Runtime fetches always return fresh data.
 }
