@@ -4,7 +4,7 @@
 """
 Generate manifest metadata for the ui/dl static download portal.
 
-- Writes <root>/manifest.json aggregating directory listings (formerly all.json)
+- Writes <output>/manifest.json aggregating directory listings (formerly all.json)
 
 Paths in JSON use leading "/" (URL-style) and directory hrefs end with "/".
 `sha256` for an item is set if a sibling "<file>.sha256sum" exists, or if the
@@ -14,6 +14,8 @@ Usage:
   python3 scripts/gen_mirror_manifest.py \
     --root /data/update-server \
     --base-url-prefix / \
+    --include offline-package \
+    --output dl-index/ \
     [--exclude docs --exclude xray-core]
 
 This script is idempotent and safe to re-run.
@@ -175,7 +177,7 @@ def write_json(path: Path, data: Dict):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--root", required=True, help="Filesystem root of the mirror (e.g., /data/update-server)")
+    ap.add_argument("--root", default="/data/update-server/", help="Filesystem root of the mirror (default: /data/update-server/)")
     ap.add_argument("--base-url-prefix", default="/", help="URL prefix (default '/')")
     ap.add_argument("--quiet", action="store_true")
     ap.add_argument(
@@ -183,6 +185,17 @@ def main():
         action="append",
         default=[],
         help="Relative paths (from root) to exclude from the manifest. Can be provided multiple times.",
+    )
+    ap.add_argument(
+        "--include",
+        default=["offline-package"],
+        action="append",
+        help="Directory names to include in the manifest. Can be provided multiple times. (default: offline-package)",
+    )
+    ap.add_argument(
+        "--output",
+        default="dl-index/",
+        help="Output directory for the manifest file (default: dl-index/)",
     )
     args = ap.parse_args()
 
@@ -192,6 +205,9 @@ def main():
         sys.exit(2)
 
     excluded = normalize_excludes(args.exclude, root)
+
+    # Create set of included directories
+    include_set = set(args.include)
 
     # Build listings for every directory that is not excluded
     listings: List[Dict] = []
@@ -205,11 +221,27 @@ def main():
             subdirs[:] = []
             continue
 
-        pruned_subdirs = [
-            d
-            for d in subdirs
-            if not is_hidden(d) and not should_exclude(dir_path / d, excluded)
-        ]
+        # Filter based on include parameter
+        if dir_path == root:
+            # At root, only process subdirs that are in include list
+            pruned_subdirs = [
+                d
+                for d in subdirs
+                if d in include_set and not is_hidden(d) and not should_exclude(dir_path / d, excluded)
+            ]
+        else:
+            # For non-root dirs, check if any parent is in include list
+            rel_path = dir_path.relative_to(root)
+            is_included = any(part in include_set for part in rel_path.parts)
+            if not is_included:
+                subdirs[:] = []
+                continue
+            pruned_subdirs = [
+                d
+                for d in subdirs
+                if not is_hidden(d) and not should_exclude(dir_path / d, excluded)
+            ]
+
         pruned_subdirs.sort()
         subdirs[:] = pruned_subdirs
 
@@ -220,10 +252,14 @@ def main():
             rel_display = "." if dir_path == root else str(dir_path.relative_to(root))
             print(f"Indexed {rel_display}")
 
-    # Write manifest.json containing directory listings (previously all.json)
-    write_json(root / "manifest.json", listings)
+    # Create output directory if it doesn't exist
+    output_path = Path(args.output)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # Write manifest.json to output directory
+    write_json(output_path / "manifest.json", listings)
     if not args.quiet:
-        print(f"Wrote {root / 'manifest.json'}")
+        print(f"Wrote {output_path / 'manifest.json'}")
 
 if __name__ == "__main__":
     main()
