@@ -1,14 +1,18 @@
 'use client'
 
 import clsx from 'clsx'
+import dynamic from 'next/dynamic'
 
 import Features from '@components/Features'
 import OpenSource from '@components/OpenSource'
 import DownloadSection from '@components/DownloadSection'
-import CommunityFeed from '@components/home/CommunityFeed'
 import { designTokens } from '@theme/designTokens'
 
 import { useLanguage } from '../../i18n/LanguageProvider'
+
+const CommunityFeed = dynamic(() => import('@components/home/CommunityFeed'), {
+  ssr: true,
+})
 
 const heroContent = {
   zh: {
