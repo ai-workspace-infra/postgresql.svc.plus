@@ -5,7 +5,7 @@ import type { CmsExtension, CmsTheme } from './types'
 import { appShellExtension } from './extensions/appShell'
 import { markdownSyncExtension } from './extensions/markdownSync'
 import defaultTheme from './themes/default'
-import { AppShellBypass } from '../lib/appShellBypass'
+import { AppShellBypass } from '../appShellBypass'
 
 const themeRegistry: Record<ThemeName, CmsTheme> = {
   default: defaultTheme,
