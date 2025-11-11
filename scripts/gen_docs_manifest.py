@@ -240,8 +240,15 @@ def create_entry(parts: Tuple[str, ...]) -> DocEntry:
     )
 
 
-def collect_docs(root: Path, base_prefix: str, include: List[str]) -> List[DocEntry]:
+def collect_docs(root: Path, base_prefix: str, include: List[str], quiet: bool = False) -> List[DocEntry]:
     entries: Dict[Tuple[str, ...], DocEntry] = {}
+
+    # Auto-discover directories if include is not specified or only contains default
+    if not include or include == ["docs"]:
+        include = [d.name for d in root.iterdir() if d.is_dir() and not should_skip(d)]
+        if not quiet:
+            print(f"Auto-discovered directories: {', '.join(include)}")
+
     include_set = set(include)
 
     for file_path in root.rglob("*"):
@@ -311,7 +318,7 @@ def main() -> None:
     if not root.exists() or not root.is_dir():
         raise SystemExit(f"Root path does not exist or is not a directory: {root}")
 
-    entries = collect_docs(root, args.base_url_prefix, args.include)
+    entries = collect_docs(root, args.base_url_prefix, args.include, args.quiet)
 
     if not args.quiet:
         print(f"Discovered {len(entries)} documentation entries under {root}")

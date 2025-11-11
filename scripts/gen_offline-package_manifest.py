@@ -176,8 +176,8 @@ def write_json(path: Path, data: Dict):
     tmp.replace(path)
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--root", default="/data/update-server/", help="Filesystem root of the mirror (default: /data/update-server/)")
+    ap = argparse.ArgumentParser(description="Generate offline-package manifest")
+    ap.add_argument("--root", help="Filesystem root of the mirror. If not specified, will be auto-derived from --output")
     ap.add_argument("--base-url-prefix", default="https://dl.svc.plus/offline-package", help="URL prefix (default: https://dl.svc.plus/offline-package)")
     ap.add_argument("--quiet", action="store_true")
     ap.add_argument(
@@ -188,9 +188,8 @@ def main():
     )
     ap.add_argument(
         "--include",
-        default=["offline-package"],
         action="append",
-        help="Directory names to include in the manifest. Can be provided multiple times. (default: offline-package)",
+        help="Directory names to include in the manifest. Can be provided multiple times. If not specified, auto-discovers all subdirectories.",
     )
     ap.add_argument(
         "--output",
@@ -199,12 +198,35 @@ def main():
     )
     args = ap.parse_args()
 
+    # Auto-derive root from output if not specified
+    if not args.root:
+        output_path = Path(args.output).resolve()
+        # Try to derive root from common patterns
+        # If output is /data/update-server/dl-index, root could be /data/update-server or /data/update-server/offline-package
+        if str(output_path).endswith('/dl-index'):
+            # Try parent / offline-package first
+            candidate = output_path.parent / "offline-package"
+            if candidate.exists() and candidate.is_dir():
+                args.root = str(candidate)
+            else:
+                # Fall back to parent
+                args.root = str(output_path.parent)
+        else:
+            # Default fallback
+            args.root = str(output_path.parent)
+
     root = Path(args.root).resolve()
     if not root.exists():
         print(f"Root does not exist: {root}", file=sys.stderr)
         sys.exit(2)
 
     excluded = normalize_excludes(args.exclude, root)
+
+    # Auto-discover directories if include is not specified
+    if not args.include:
+        args.include = [d.name for d in root.iterdir() if d.is_dir() and not is_hidden(d.name)]
+        if not args.quiet:
+            print(f"Auto-discovered directories: {', '.join(args.include)}")
 
     # Create set of included directories
     include_set = set(args.include)
@@ -256,20 +278,10 @@ def main():
     output_path = Path(args.output)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # Write artifacts-manifest.json to output directory
-    write_json(output_path / "artifacts-manifest.json", listings)
+    # Write offline-package-manifest.json to output directory
+    write_json(output_path / "offline-package-manifest.json", listings)
     if not args.quiet:
-        print(f"Wrote {output_path / 'artifacts-manifest.json'}")
-
-    # Create offline-package.json specifically for offline-package directory
-    offline_package_listings = [
-        listing for listing in listings
-        if listing.get('path', '').startswith('offline-package/') or listing.get('path', '') == 'offline-package/'
-    ]
-    if offline_package_listings:
-        write_json(output_path / "offline-package.json", offline_package_listings)
-        if not args.quiet:
-            print(f"Wrote {output_path / 'offline-package.json'}")
+        print(f"Wrote {output_path / 'offline-package-manifest.json'}")
 
 if __name__ == "__main__":
     main()
