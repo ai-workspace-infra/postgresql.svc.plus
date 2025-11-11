@@ -198,35 +198,39 @@ export async function getHeroSolutions(): Promise<HeroSolution[]> {
 }
 
 export async function getHomepagePosts(): Promise<HomepagePost[]> {
-  if (!isCmsHomepageEnabled()) {
-    return []
+  const blogContentRoot = path.join(process.cwd(), 'src', 'content', 'blog')
+
+  let posts: HomepagePost[] = []
+  try {
+    const files = await readMarkdownDirectory('', { baseDir: blogContentRoot })
+
+    posts = files.map((file) => {
+      const title = ensureString(file.metadata.title) ?? file.slug
+      const author = ensureString(file.metadata.author)
+      const date = ensureString(file.metadata.date)
+      const readingTime = ensureString(file.metadata.readingTime)
+      const tags = ensureStringArray(file.metadata.tags)
+      const excerptMetadata = ensureString(file.metadata.excerpt)
+      const excerpt = excerptMetadata ?? extractExcerpt(file.content)
+
+      return {
+        slug: file.slug,
+        title,
+        author,
+        date,
+        readingTime,
+        tags,
+        excerpt,
+        contentHtml: file.html,
+      }
+    })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error
+    }
   }
 
-  const postsDir = path.join('posts')
-  const posts = await readMarkdownDirectory(postsDir, { baseDir: HOMEPAGE_CONTENT_ROOT })
-
-  const enriched = posts.map((post) => {
-    const title = ensureString(post.metadata.title) ?? post.slug
-    const author = ensureString(post.metadata.author)
-    const date = ensureString(post.metadata.date)
-    const readingTime = ensureString(post.metadata.readingTime)
-    const tags = ensureStringArray(post.metadata.tags)
-    const excerptMetadata = ensureString(post.metadata.excerpt)
-    const excerpt = excerptMetadata ?? extractExcerpt(post.content)
-
-    return {
-      slug: post.slug,
-      title,
-      author,
-      date,
-      readingTime,
-      tags,
-      excerpt,
-      contentHtml: post.html,
-    }
-  })
-
-  const withParsedDates = enriched.map((post) => ({
+  const withParsedDates = posts.map((post) => ({
     ...post,
     dateValue: post.date ? new Date(post.date) : undefined,
   }))
