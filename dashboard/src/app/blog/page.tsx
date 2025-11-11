@@ -36,12 +36,12 @@ type PageProps = {
 
 export default async function BlogPage({ searchParams }: PageProps) {
   const posts = await getHomepagePosts()
-  const { page } = await searchParams
+  const { page } = searchParams ?? {}
   const postsPerPage = 10
   const currentPage = parseInt(page || '1', 10)
-  const totalPages = Math.ceil(posts.length / postsPerPage)
+  const totalPages = Math.max(1, Math.ceil(posts.length / postsPerPage))
 
-  if (currentPage < 1 || currentPage > totalPages) {
+  if ((posts.length > 0 && currentPage > totalPages) || currentPage < 1) {
     notFound()
   }
 
