@@ -13,7 +13,7 @@ directory contains "SHA256SUMS" (then that path is referenced).
 Usage:
   python3 scripts/gen_mirror_manifest.py \
     --root /data/update-server \
-    --base-url-prefix / \
+    --base-url-prefix https://dl.svc.plus/offline-package \
     --include offline-package \
     --output dl-index/ \
     [--exclude docs --exclude xray-core]
@@ -178,7 +178,7 @@ def write_json(path: Path, data: Dict):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="/data/update-server/", help="Filesystem root of the mirror (default: /data/update-server/)")
-    ap.add_argument("--base-url-prefix", default="/", help="URL prefix (default '/')")
+    ap.add_argument("--base-url-prefix", default="https://dl.svc.plus/offline-package", help="URL prefix (default: https://dl.svc.plus/offline-package)")
     ap.add_argument("--quiet", action="store_true")
     ap.add_argument(
         "--exclude",
