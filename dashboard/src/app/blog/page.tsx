@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { getHomepagePosts } from '@cms/content'
-import { useLanguage } from '@/i18n/LanguageProvider'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {

@@ -1,9 +1,11 @@
+'use client'
+
 import clsx from 'clsx'
 import Link from 'next/link'
-import { getHomepagePosts } from '@cms/content'
 
 import { useLanguage } from '../../i18n/LanguageProvider'
 import { designTokens } from '@theme/designTokens'
+import type { HomepagePost } from '@cms/content'
 
 const feed: Record<'zh' | 'en', { title: string; subtitle: string; cta: string }> = {
   zh: {
@@ -42,11 +44,14 @@ function formatDate(dateStr: string | undefined, language: 'zh' | 'en'): string 
   }
 }
 
-export default async function CommunityFeed() {
+type CommunityFeedProps = {
+  posts?: HomepagePost[]
+}
+
+export default function CommunityFeed({ posts = [] }: CommunityFeedProps) {
   const { language } = useLanguage()
   const data = feed[language]
 
-  const posts = await getHomepagePosts()
   const recentPosts = posts.slice(0, 3)
 
   return (

@@ -3,6 +3,7 @@ export const dynamic = 'error'
 import ArticleFeed from '@components/home/ArticleFeed'
 import ProductMatrix from '@components/home/ProductMatrix'
 import Sidebar from '@components/home/Sidebar'
+import CommunityFeedServer from '@components/home/CommunityFeedServer'
 import HomepageLanding from '@modules/homepage/page'
 import { isFeatureEnabled } from '@lib/featureToggles'
 
@@ -20,7 +21,8 @@ export default function HomePage() {
     <HomePageTemplate
       slots={{
         ProductMatrix,
-        ArticleFeed,
+        ArticleFeed: ArticleFeed,
+        CommunityFeed: CommunityFeedServer,
         Sidebar,
       }}
     />
