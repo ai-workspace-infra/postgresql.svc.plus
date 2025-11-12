@@ -52,15 +52,29 @@ export default async function BlogPage({ searchParams }: PageProps) {
   const paginatedPosts = posts.slice(startIndex, endIndex)
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-50">
-      <div className="mx-auto w-full max-w-6xl px-4 py-16">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">Blog</h1>
-          <p className="text-lg text-slate-600">
-            Latest updates, releases, and insights from the Cloud-Neutral community.
-          </p>
-          <SearchComponent variant="hero" className="mt-6" />
+    <div className="bg-white text-slate-900">
+      {/* Sticky Navigation Header */}
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
+            <span className="text-slate-500">SVC.plus</span>
+            <span className="text-slate-400">/</span>
+            <span className="text-brand-dark">blog</span>
+          </Link>
+          <div className="flex items-center gap-3">
+            <SearchComponent className="relative w-full max-w-xs" />
+          </div>
         </div>
+      </header>
+
+      <main className="flex min-h-screen flex-col bg-slate-50">
+        <div className="mx-auto w-full max-w-6xl px-4 py-16">
+          <div className="mb-12">
+            <h1 className="text-4xl font-bold text-slate-900 mb-4">Blog</h1>
+            <p className="text-lg text-slate-600">
+              Latest updates, releases, and insights from the Cloud-Neutral community.
+            </p>
+          </div>
 
         {posts.length === 0 ? (
           <div className="text-center py-20">
@@ -154,7 +168,8 @@ export default async function BlogPage({ searchParams }: PageProps) {
             )}
           </>
         )}
-      </div>
-    </main>
+        </div>
+      </main>
+    </div>
   )
 }
