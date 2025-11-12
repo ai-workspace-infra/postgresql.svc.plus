@@ -2,7 +2,7 @@ export const dynamic = 'error'
 
 import { notFound, redirect } from 'next/navigation'
 
-import { getDocCollections, getDocResource } from '../resources.server'
+import { getDocCollections, getDocResource, getDocCollectionsForBuildTime } from '../resources.server'
 import { isFeatureEnabled } from '@lib/featureToggles'
 
 export const dynamicParams = false
@@ -12,7 +12,8 @@ export const generateStaticParams = async () => {
     return []
   }
 
-  const collections = await getDocCollections()
+  // 构建时优先使用本地 fallback 数据，避免外部API调用
+  const collections = await getDocCollectionsForBuildTime()
   return collections.map((doc) => ({ collection: doc.slug }))
 }
 

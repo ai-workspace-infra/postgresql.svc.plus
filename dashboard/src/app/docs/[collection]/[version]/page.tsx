@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import Breadcrumbs, { type Crumb } from '../../../../components/download/Breadcrumbs'
-import { getDocCollections, getDocResource } from '../../resources.server'
+import { getDocCollections, getDocResource, getDocCollectionsForBuildTime } from '../../resources.server'
 import { isFeatureEnabled } from '@lib/featureToggles'
 import DocCollectionView from './DocCollectionView'
 
@@ -29,7 +29,8 @@ export const generateStaticParams = async () => {
     return []
   }
 
-  const collections = await getDocCollections()
+  // 构建时优先使用本地 fallback 数据，避免外部API调用
+  const collections = await getDocCollectionsForBuildTime()
   const params: { collection: string; version: string }[] = []
   for (const doc of collections) {
     for (const version of doc.versions) {

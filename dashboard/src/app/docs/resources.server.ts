@@ -29,10 +29,11 @@ interface RawDocResource {
   collectionLabel?: unknown
 }
 
-async function fetchDocs(): Promise<RawDocResource[]> {
+async function fetchDocs(options?: { useCache?: boolean }): Promise<RawDocResource[]> {
   try {
     const response = await fetch(DOCS_MANIFEST_URL, {
-      cache: 'no-store',
+      // 运行时使用缓存策略，减少API调用
+      next: options?.useCache ? { revalidate: 3600 } : undefined,
     })
 
     if (!response.ok) {
@@ -47,8 +48,8 @@ async function fetchDocs(): Promise<RawDocResource[]> {
   }
 }
 
-async function loadDocs(): Promise<RawDocResource[]> {
-  const manifestDocs = await fetchDocs()
+async function loadDocs(options?: { useCache?: boolean }): Promise<RawDocResource[]> {
+  const manifestDocs = await fetchDocs(options)
 
   if (manifestDocs.length > 0) {
     return manifestDocs
@@ -58,12 +59,35 @@ async function loadDocs(): Promise<RawDocResource[]> {
   return fallbackDocs
 }
 
+// 构建时数据获取：优先使用本地 fallback，保证构建成功
+async function loadDocsForBuildTime(): Promise<RawDocResource[]> {
+  // 构建时优先使用本地数据，避免外部API调用导致构建失败
+  const fallbackDocs = Array.isArray(fallbackDocsIndex) ? (fallbackDocsIndex as RawDocResource[]) : []
+
+  if (fallbackDocs.length > 0) {
+    return fallbackDocs
+  }
+
+  // fallback为空时，再尝试获取远程数据
+  console.warn('Fallback docs not found, attempting to fetch remote docs manifest...')
+  const manifestDocs = await fetchDocs({ useCache: true })
+  return manifestDocs
+}
+
 async function getRawDocs(): Promise<RawDocResource[]> {
   return loadDocs()
 }
 
 async function buildDocsDataset(): Promise<DocResource[]> {
   const rawDocs = await getRawDocs()
+  return rawDocs.map((item) => normalizeResource(item as RawDocResource)).filter(
+    (item): item is DocResource => item !== null,
+  )
+}
+
+// 构建时数据集生成：优先使用本地 fallback 数据
+async function buildDocsDatasetForBuildTime(): Promise<DocResource[]> {
+  const rawDocs = await loadDocsForBuildTime()
   return rawDocs.map((item) => normalizeResource(item as RawDocResource)).filter(
     (item): item is DocResource => item !== null,
   )
@@ -238,13 +262,24 @@ function buildCollections(docs: DocResource[]): DocCollection[] {
   return collections.sort((a, b) => parseUpdatedAt(b.updatedAt) - parseUpdatedAt(a.updatedAt))
 }
 
-async function buildDocsCollections(): Promise<DocCollection[]> {
-  const docs = await getDocsDataset()
+async function buildDocsCollections(dataset?: DocResource[]): Promise<DocCollection[]> {
+  const docs = dataset ?? await getDocsDataset()
+  return buildCollections(docs)
+}
+
+// 构建时集合生成：优先使用本地数据
+async function buildDocsCollectionsForBuildTime(): Promise<DocCollection[]> {
+  const docs = await buildDocsDatasetForBuildTime()
   return buildCollections(docs)
 }
 
 export async function getDocCollections(): Promise<DocCollection[]> {
   return buildDocsCollections()
+}
+
+// 构建时获取集合：优先使用本地数据，保证构建成功
+export async function getDocCollectionsForBuildTime(): Promise<DocCollection[]> {
+  return buildDocsCollectionsForBuildTime()
 }
 
 export function clearCollectionsCache(): void {
