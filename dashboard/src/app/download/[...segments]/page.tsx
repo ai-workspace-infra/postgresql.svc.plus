@@ -8,11 +8,16 @@ import {
   findListing,
   formatSegmentLabel,
 } from '../../../lib/download-data'
-import { getDownloadListings } from '../../../lib/download/dl-index-data-artifacts'
+import { getDownloadListings, getDownloadListingsForBuildTime } from '../../../lib/download/dl-index-data-artifacts'
 import type { DirListing } from '@lib/download/types'
 
 async function getAllListings(): Promise<DirListing[]> {
   return getDownloadListings()
+}
+
+// 构建时获取：优先使用本地数据，保证构建成功
+async function getAllListingsForBuildTime(): Promise<DirListing[]> {
+  return getDownloadListingsForBuildTime()
 }
 
 function collectDownloadParams(listings: DirListing[]): { segments: string[] }[] {
@@ -55,7 +60,8 @@ function collectDownloadParams(listings: DirListing[]): { segments: string[] }[]
 }
 
 export async function generateStaticParams() {
-  const allListings = await getAllListings()
+  // 构建时优先使用本地 fallback 数据，避免外部API调用
+  const allListings = await getAllListingsForBuildTime()
   return collectDownloadParams(allListings)
 }
 
