@@ -28,7 +28,7 @@ type NavSubItem = {
 export default function Navbar() {
   const pathname = usePathname()
   const isHiddenRoute = pathname
-    ? ['/login', '/register', '/xstream', '/xcloudflow', '/xscopehub'].some((prefix) =>
+    ? ['/login', '/register', '/xstream', '/xcloudflow', '/xscopehub', '/blog'].some((prefix) =>
         pathname.startsWith(prefix),
       )
     : false
