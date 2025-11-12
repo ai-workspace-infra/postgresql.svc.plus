@@ -1,0 +1,64 @@
+{
+  "zh": {
+    "eyebrow": "Cloud-Neutral",
+    "title": "构建一体化的 Cloud-Neutral 云原生生态",
+    "description": "通过统一治理、自动化与可观测能力，连接团队、工具与环境，让企业以更简洁的方式管理复杂的多云栈。",
+    "focusAreas": [
+      "跨云统一治理",
+      "安全与合规自动化",
+      "可观测与智能协同"
+    ],
+    "ctaLabel": "了解产品详情",
+    "products": [
+      {
+        "label": "XCloudFlow",
+        "headline": "多云自动化与 GitOps 编排",
+        "description": "声明式 IaC 引擎连接 Terraform、Pulumi 与 GitOps 流水线，帮助平台团队统一变更治理。",
+        "href": "https://www.svc.plus/xcloudflow"
+      },
+      {
+        "label": "XScopeHub",
+        "headline": "可观测与智能协同",
+        "description": "统一指标、日志与链路拓扑，并结合 AI 协作完成事件诊断、知识沉淀与跨团队协同。",
+        "href": "https://www.svc.plus/xscopehub"
+      },
+      {
+        "label": "XStream",
+        "headline": "安全与合规自动化",
+        "description": "策略即代码守护交付流水线，为全球团队提供网络加速、合规审计与安全基线。",
+        "href": "https://www.svc.plus/xstream"
+      }
+    ]
+  },
+  "en": {
+    "eyebrow": "Cloud-Neutral",
+    "title": "Build a Cloud-Neutral cloud operations fabric",
+    "description": "Unify governance, automation, and observability so teams can manage complex multi-cloud estates with clarity.",
+    "focusAreas": [
+      "Unified multi-cloud governance",
+      "Automated security & compliance",
+      "Observability with intelligent workflows"
+    ],
+    "ctaLabel": "Explore product site",
+    "products": [
+      {
+        "label": "XCloudFlow",
+        "headline": "Multi-cloud automation & GitOps orchestration",
+        "description": "A declarative IaC engine that connects Terraform, Pulumi, and GitOps pipelines so platform teams govern change consistently.",
+        "href": "https://www.svc.plus/xcloudflow"
+      },
+      {
+        "label": "XScopeHub",
+        "headline": "Observability & intelligent collaboration",
+        "description": "Unify metrics, logs, and traces with AI-guided incident response, knowledge sharing, and cross-team coordination.",
+        "href": "https://www.svc.plus/xscopehub"
+      },
+      {
+        "label": "XStream",
+        "headline": "Security & compliance automation",
+        "description": "Policy-as-code guardrails with global acceleration that keep distributed releases fast, auditable, and compliant.",
+        "href": "https://www.svc.plus/xstream"
+      }
+    ]
+  }
+}

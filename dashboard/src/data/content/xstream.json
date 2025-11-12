@@ -1,0 +1,14 @@
+{
+  "zh": {
+    "eyebrow": "安全与合规",
+    "title": "XStream",
+    "tagline": "安全与合规自动化",
+    "description": "策略即代码守护交付流水线，为全球团队提供网络加速、合规审计与安全基线。"
+  },
+  "en": {
+    "eyebrow": "Security & Compliance",
+    "title": "XStream",
+    "tagline": "Security & compliance automation",
+    "description": "Policy-as-code guardrails with global acceleration that keep distributed releases fast, auditable, and compliant."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "zh": {
+    "eyebrow": "自动化与 GitOps",
+    "title": "XCloudFlow",
+    "tagline": "多云自动化与 GitOps 编排",
+    "description": "声明式 IaC 引擎连接 Terraform、Pulumi 与 GitOps 流水线，帮助平台团队统一变更治理。"
+  },
+  "en": {
+    "eyebrow": "Automation & GitOps",
+    "title": "XCloudFlow",
+    "tagline": "Multi-cloud automation & GitOps orchestration",
+    "description": "A declarative IaC engine that connects Terraform, Pulumi, and GitOps pipelines so platform teams govern change consistently."
+  }
+}

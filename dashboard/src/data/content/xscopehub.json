@@ -1,0 +1,14 @@
+{
+  "zh": {
+    "eyebrow": "可观测与智能",
+    "title": "XScopeHub",
+    "tagline": "可观测与智能协同",
+    "description": "统一指标、日志与链路拓扑，并结合 AI 协作完成事件诊断、知识沉淀与跨团队协同。"
+  },
+  "en": {
+    "eyebrow": "Observability & AI",
+    "title": "XScopeHub",
+    "tagline": "Observability & intelligent collaboration",
+    "description": "Unify metrics, logs, and traces with AI-guided incident response, knowledge sharing, and cross-team coordination."
+  }
+}
