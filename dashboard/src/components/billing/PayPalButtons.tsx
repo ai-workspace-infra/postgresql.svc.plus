@@ -16,6 +16,26 @@ type PayPalButtonsComponent = ReturnType<NonNullable<PayPalNamespace>['Buttons']
 
 type PayPalButtonsRenderOptions = Parameters<NonNullable<PayPalNamespace>['Buttons']>[0]
 
+type PayPalOrderActions = {
+  order: {
+    create: (config: {
+      purchase_units: Array<{
+        description: string
+        invoice_id?: string
+        custom_id?: string
+        amount: { currency_code: string; value: string }
+      }>
+    }) => Promise<string> | string
+    capture: () => Promise<Record<string, unknown>>
+  }
+}
+
+type PayPalSubscriptionActions = {
+  subscription: {
+    create: (config: { plan_id: string; custom_id?: string }) => Promise<string> | string
+  }
+}
+
 type PayPalPayGoButtonProps = {
   clientId?: string
   currency?: string
@@ -144,7 +164,7 @@ export function PayPalPayGoButton({
         shape: 'rect',
         label: 'pay',
       },
-      createOrder: (_, actions) => {
+      createOrder: (_data: Record<string, unknown>, actions: PayPalOrderActions) => {
         return actions.order.create({
           purchase_units: [
             {
@@ -159,7 +179,7 @@ export function PayPalPayGoButton({
           ],
         })
       },
-      onApprove: (data, actions) => {
+      onApprove: (data: { orderID?: string }, actions: Partial<PayPalOrderActions>) => {
         if (actions.order) {
           return actions.order.capture().then((details) => {
             onApprove?.(data.orderID ?? 'unknown', details as unknown as Record<string, unknown>)
@@ -201,13 +221,16 @@ export function PayPalSubscriptionButton({
         shape: 'rect',
         label: 'subscribe',
       },
-      createSubscription: (_, actions) => {
+      createSubscription: (_data: Record<string, unknown>, actions: PayPalSubscriptionActions) => {
         return actions.subscription.create({
           plan_id: planId,
           custom_id: productSlug,
         })
       },
-      onApprove: (data, _actions) => {
+      onApprove: (
+        data: { subscriptionID?: string; orderID?: string },
+        _actions: unknown,
+      ) => {
         onApprove?.(data.subscriptionID ?? data.orderID ?? 'unknown', data as unknown as Record<string, unknown>)
       },
     }
