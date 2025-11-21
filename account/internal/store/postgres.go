@@ -539,6 +539,248 @@ func (s *postgresStore) CountSuperAdmins(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+// UpsertSubscription creates or updates a subscription row.
+func (s *postgresStore) UpsertSubscription(ctx context.Context, subscription *Subscription) error {
+	if subscription == nil {
+		return errors.New("subscription is required")
+	}
+
+	normalizedUserID := strings.TrimSpace(subscription.UserID)
+	if normalizedUserID == "" {
+		return ErrUserNotFound
+	}
+
+	externalID := strings.TrimSpace(subscription.ExternalID)
+	if externalID == "" {
+		return errors.New("external id is required")
+	}
+
+	encodedMeta, err := json.Marshal(subscription.Meta)
+	if err != nil {
+		return err
+	}
+
+	var cancelledAt any
+	if subscription.CancelledAt != nil {
+		cancelledAt = subscription.CancelledAt.UTC()
+	}
+
+	const query = `INSERT INTO subscriptions (user_uuid, provider, kind, plan_id, external_id, status, meta, cancelled_at)
+VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, '{}'::jsonb), $8)
+ON CONFLICT (user_uuid, external_id) DO UPDATE SET
+  provider = EXCLUDED.provider,
+  kind = EXCLUDED.kind,
+  plan_id = EXCLUDED.plan_id,
+  status = EXCLUDED.status,
+  meta = EXCLUDED.meta,
+  cancelled_at = EXCLUDED.cancelled_at,
+  updated_at = now()
+RETURNING uuid, created_at, updated_at, cancelled_at`
+
+	var (
+		idValue   any
+		createdAt time.Time
+		updatedAt time.Time
+		cancelled sql.NullTime
+	)
+
+	err = s.db.QueryRowContext(
+		ctx,
+		query,
+		normalizedUserID,
+		strings.TrimSpace(subscription.Provider),
+		strings.TrimSpace(subscription.Kind),
+		strings.TrimSpace(subscription.PlanID),
+		externalID,
+		strings.TrimSpace(subscription.Status),
+		encodedMeta,
+		cancelledAt,
+	).Scan(&idValue, &createdAt, &updatedAt, &cancelled)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrSubscriptionNotFound
+		}
+		return err
+	}
+
+	identifier, err := formatIdentifier(idValue)
+	if err != nil {
+		return err
+	}
+
+	subscription.ID = identifier
+	subscription.UserID = normalizedUserID
+	subscription.ExternalID = externalID
+	subscription.CreatedAt = createdAt.UTC()
+	subscription.UpdatedAt = updatedAt.UTC()
+	subscription.Meta, _ = decodeSubscriptionMeta(encodedMeta)
+	if cancelled.Valid {
+		subscription.CancelledAt = &cancelled.Time
+	}
+
+	return nil
+}
+
+// ListSubscriptionsByUser returns all subscriptions for a user ordered by recency.
+func (s *postgresStore) ListSubscriptionsByUser(ctx context.Context, userID string) ([]Subscription, error) {
+	normalizedUserID := strings.TrimSpace(userID)
+	if normalizedUserID == "" {
+		return nil, ErrUserNotFound
+	}
+
+	const query = `SELECT uuid, user_uuid, provider, kind, plan_id, external_id, status, meta, created_at, updated_at, cancelled_at
+FROM subscriptions WHERE user_uuid = $1 ORDER BY created_at DESC`
+
+	rows, err := s.db.QueryContext(ctx, query, normalizedUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var subs []Subscription
+	for rows.Next() {
+		var (
+			idValue    any
+			provider   string
+			kind       string
+			planID     sql.NullString
+			externalID string
+			status     string
+			metaBytes  []byte
+			createdAt  time.Time
+			updatedAt  time.Time
+			cancelled  sql.NullTime
+		)
+		if err := rows.Scan(&idValue, &normalizedUserID, &provider, &kind, &planID, &externalID, &status, &metaBytes, &createdAt, &updatedAt, &cancelled); err != nil {
+			return nil, err
+		}
+
+		identifier, err := formatIdentifier(idValue)
+		if err != nil {
+			return nil, err
+		}
+
+		meta, err := decodeSubscriptionMeta(metaBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		sub := Subscription{
+			ID:         identifier,
+			UserID:     userID,
+			Provider:   provider,
+			Kind:       kind,
+			PlanID:     planID.String,
+			ExternalID: externalID,
+			Status:     status,
+			Meta:       meta,
+			CreatedAt:  createdAt.UTC(),
+			UpdatedAt:  updatedAt.UTC(),
+		}
+		if cancelled.Valid {
+			sub.CancelledAt = &cancelled.Time
+		}
+
+		subs = append(subs, sub)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return subs, nil
+}
+
+// CancelSubscription marks the subscription as cancelled.
+func (s *postgresStore) CancelSubscription(ctx context.Context, userID, externalID string, cancelledAt time.Time) (*Subscription, error) {
+	normalizedUserID := strings.TrimSpace(userID)
+	if normalizedUserID == "" {
+		return nil, ErrUserNotFound
+	}
+
+	key := strings.TrimSpace(externalID)
+	if key == "" {
+		return nil, ErrSubscriptionNotFound
+	}
+
+	const query = `UPDATE subscriptions
+SET status = 'cancelled', cancelled_at = $3, updated_at = now()
+WHERE user_uuid = $1 AND external_id = $2
+RETURNING uuid, provider, kind, plan_id, status, meta, created_at, updated_at, cancelled_at`
+
+	var (
+		idValue   any
+		provider  string
+		kind      string
+		planID    sql.NullString
+		status    string
+		metaBytes []byte
+		createdAt time.Time
+		updatedAt time.Time
+		cancelled sql.NullTime
+	)
+
+	err := s.db.QueryRowContext(ctx, query, normalizedUserID, key, cancelledAt.UTC()).Scan(
+		&idValue,
+		&provider,
+		&kind,
+		&planID,
+		&status,
+		&metaBytes,
+		&createdAt,
+		&updatedAt,
+		&cancelled,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrSubscriptionNotFound
+		}
+		return nil, err
+	}
+
+	identifier, err := formatIdentifier(idValue)
+	if err != nil {
+		return nil, err
+	}
+
+	meta, err := decodeSubscriptionMeta(metaBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	sub := &Subscription{
+		ID:         identifier,
+		UserID:     normalizedUserID,
+		Provider:   provider,
+		Kind:       kind,
+		PlanID:     planID.String,
+		ExternalID: key,
+		Status:     status,
+		Meta:       meta,
+		CreatedAt:  createdAt.UTC(),
+		UpdatedAt:  updatedAt.UTC(),
+	}
+	if cancelled.Valid {
+		sub.CancelledAt = &cancelled.Time
+	}
+
+	return sub, nil
+}
+
+func decodeSubscriptionMeta(raw []byte) (map[string]any, error) {
+	if len(raw) == 0 {
+		return map[string]any{}, nil
+	}
+	var meta map[string]any
+	if err := json.Unmarshal(raw, &meta); err != nil {
+		return nil, err
+	}
+	if meta == nil {
+		meta = map[string]any{}
+	}
+	return meta, nil
+}
+
 func nullForEmpty(value string) any {
 	if strings.TrimSpace(value) == "" {
 		return nil

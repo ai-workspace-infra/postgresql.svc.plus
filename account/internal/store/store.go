@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +30,21 @@ type User struct {
 	UpdatedAt         time.Time
 }
 
+// Subscription represents a recurring or usage-based billing relationship.
+type Subscription struct {
+	ID          string
+	UserID      string
+	Provider    string
+	Kind        string
+	PlanID      string
+	ExternalID  string
+	Status      string
+	Meta        map[string]any
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	CancelledAt *time.Time
+}
+
 // Store provides persistence operations for users.
 type Store interface {
 	CreateUser(ctx context.Context, user *User) error
@@ -36,6 +52,10 @@ type Store interface {
 	GetUserByID(ctx context.Context, id string) (*User, error)
 	GetUserByName(ctx context.Context, name string) (*User, error)
 	UpdateUser(ctx context.Context, user *User) error
+
+	UpsertSubscription(ctx context.Context, subscription *Subscription) error
+	ListSubscriptionsByUser(ctx context.Context, userID string) ([]Subscription, error)
+	CancelSubscription(ctx context.Context, userID, externalID string, cancelledAt time.Time) (*Subscription, error)
 }
 
 // Domain level errors returned by the store implementation.
@@ -46,6 +66,7 @@ var (
 	ErrUserNotFound               = errors.New("user not found")
 	ErrMFANotSupported            = errors.New("mfa is not supported by the current store schema")
 	ErrSuperAdminCountingDisabled = errors.New("super administrator counting is disabled")
+	ErrSubscriptionNotFound       = errors.New("subscription not found")
 )
 
 // memoryStore provides an in-memory implementation of Store. It is suitable for
@@ -57,6 +78,7 @@ type memoryStore struct {
 	byID                    map[string]*User
 	byEmail                 map[string]*User
 	byName                  map[string]*User
+	subscriptions           map[string]map[string]*Subscription
 }
 
 // NewMemoryStore creates a new in-memory store implementation with super
@@ -80,6 +102,7 @@ func newMemoryStore(allowSuperAdminCounting bool) Store {
 		byID:                    make(map[string]*User),
 		byEmail:                 make(map[string]*User),
 		byName:                  make(map[string]*User),
+		subscriptions:           make(map[string]map[string]*Subscription),
 	}
 }
 
@@ -254,6 +277,115 @@ func (s *memoryStore) UpdateUser(ctx context.Context, user *User) error {
 	return nil
 }
 
+// UpsertSubscription creates or updates a subscription for a user.
+func (s *memoryStore) UpsertSubscription(ctx context.Context, subscription *Subscription) error {
+	_ = ctx
+	if subscription == nil {
+		return errors.New("subscription is required")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	userID := strings.TrimSpace(subscription.UserID)
+	if userID == "" {
+		return ErrUserNotFound
+	}
+
+	if _, ok := s.byID[userID]; !ok {
+		return ErrUserNotFound
+	}
+
+	userSubs, ok := s.subscriptions[userID]
+	if !ok {
+		userSubs = make(map[string]*Subscription)
+		s.subscriptions[userID] = userSubs
+	}
+
+	key := strings.TrimSpace(subscription.ExternalID)
+	if key == "" {
+		return errors.New("external id is required")
+	}
+
+	now := time.Now().UTC()
+	stored, exists := userSubs[key]
+	if !exists {
+		stored = &Subscription{ID: uuid.NewString(), UserID: userID, ExternalID: key, CreatedAt: now}
+		userSubs[key] = stored
+	}
+
+	stored.Provider = strings.TrimSpace(subscription.Provider)
+	stored.Kind = strings.TrimSpace(subscription.Kind)
+	stored.PlanID = strings.TrimSpace(subscription.PlanID)
+	stored.Status = strings.TrimSpace(subscription.Status)
+	stored.Meta = cloneSubscriptionMeta(subscription.Meta)
+	stored.UpdatedAt = now
+	if subscription.CancelledAt != nil {
+		cancelled := subscription.CancelledAt.UTC()
+		stored.CancelledAt = &cancelled
+	}
+
+	assignSubscription(subscription, stored)
+	return nil
+}
+
+// ListSubscriptionsByUser returns subscriptions associated with a user.
+func (s *memoryStore) ListSubscriptionsByUser(ctx context.Context, userID string) ([]Subscription, error) {
+	_ = ctx
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	normalized := strings.TrimSpace(userID)
+	if normalized == "" {
+		return nil, ErrUserNotFound
+	}
+
+	subs := s.subscriptions[normalized]
+	if len(subs) == 0 {
+		return []Subscription{}, nil
+	}
+
+	result := make([]Subscription, 0, len(subs))
+	for _, sub := range subs {
+		result = append(result, *cloneSubscription(sub))
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].CreatedAt.After(result[j].CreatedAt)
+	})
+	return result, nil
+}
+
+// CancelSubscription marks a subscription as cancelled.
+func (s *memoryStore) CancelSubscription(ctx context.Context, userID, externalID string, cancelledAt time.Time) (*Subscription, error) {
+	_ = ctx
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	normalizedUserID := strings.TrimSpace(userID)
+	if normalizedUserID == "" {
+		return nil, ErrUserNotFound
+	}
+
+	subs := s.subscriptions[normalizedUserID]
+	if subs == nil {
+		return nil, ErrSubscriptionNotFound
+	}
+
+	key := strings.TrimSpace(externalID)
+	existing, ok := subs[key]
+	if !ok {
+		return nil, ErrSubscriptionNotFound
+	}
+
+	cancelled := cancelledAt.UTC()
+	existing.Status = "cancelled"
+	existing.CancelledAt = &cancelled
+	existing.UpdatedAt = time.Now().UTC()
+
+	return cloneSubscription(existing), nil
+}
+
 // CountSuperAdmins returns the number of users configured as super administrators.
 func (s *memoryStore) CountSuperAdmins(ctx context.Context) (int, error) {
 	_ = ctx
@@ -355,6 +487,30 @@ func cloneStringSlice(values []string) []string {
 	return clone
 }
 
+func cloneSubscription(sub *Subscription) *Subscription {
+	if sub == nil {
+		return nil
+	}
+	clone := *sub
+	clone.Meta = cloneSubscriptionMeta(sub.Meta)
+	if sub.CancelledAt != nil {
+		cancelled := sub.CancelledAt.UTC()
+		clone.CancelledAt = &cancelled
+	}
+	return &clone
+}
+
+func cloneSubscriptionMeta(meta map[string]any) map[string]any {
+	if len(meta) == 0 {
+		return map[string]any{}
+	}
+	clone := make(map[string]any, len(meta))
+	for key, value := range meta {
+		clone[key] = value
+	}
+	return clone
+}
+
 func cloneUser(user *User) *User {
 	if user == nil {
 		return nil
@@ -371,6 +527,15 @@ func assignUser(dst, src *User) {
 	dst.Groups = cloneStringSlice(src.Groups)
 	dst.Permissions = cloneStringSlice(src.Permissions)
 	normalizeUserRoleFields(dst)
+}
+
+func assignSubscription(dst, src *Subscription) {
+	*dst = *src
+	dst.Meta = cloneSubscriptionMeta(src.Meta)
+	if src.CancelledAt != nil {
+		cancelled := src.CancelledAt.UTC()
+		dst.CancelledAt = &cancelled
+	}
 }
 
 func isSuperAdmin(user *User) bool {

@@ -50,6 +50,25 @@ const xstream: ProductConfig = {
       },
     ],
   },
+  billing: {
+    paygo: {
+      name: 'Xstream 流量包',
+      description: '按量购买出口带宽或流量，适合弹性增长。',
+      price: 19,
+      currency: 'USD',
+      planId: 'XSTREAM-PAYGO',
+      meta: { tier: 'usage', product: 'xstream' },
+    },
+    saas: {
+      name: 'Xstream Pro',
+      description: '包含全球加速、AI 路径优化与实时观测的订阅计划。',
+      price: 49,
+      currency: 'USD',
+      interval: 'month',
+      planId: 'XSTREAM-SUBSCRIPTION',
+      meta: { tier: 'pro', product: 'xstream' },
+    },
+  },
 }
 
 export default xstream

@@ -235,6 +235,10 @@ func RegisterRoutes(r *gin.Engine, opts ...Option) {
 	authProtected.POST("/password/reset", h.requestPasswordReset)
 	authProtected.POST("/password/reset/confirm", h.confirmPasswordReset)
 
+	authProtected.GET("/subscriptions", h.listSubscriptions)
+	authProtected.POST("/subscriptions", h.upsertSubscription)
+	authProtected.POST("/subscriptions/cancel", h.cancelSubscription)
+
 	authProtected.POST("/config/sync", h.syncConfig)
 
 	authProtected.GET("/admin/settings", h.getAdminSettings)
@@ -274,6 +278,19 @@ type passwordResetRequestBody struct {
 type passwordResetConfirmRequest struct {
 	Token    string `json:"token"`
 	Password string `json:"password"`
+}
+
+type subscriptionUpsertRequest struct {
+	ExternalID string         `json:"externalId"`
+	Provider   string         `json:"provider"`
+	Kind       string         `json:"kind"`
+	PlanID     string         `json:"planId"`
+	Status     string         `json:"status"`
+	Meta       map[string]any `json:"meta"`
+}
+
+type subscriptionCancelRequest struct {
+	ExternalID string `json:"externalId"`
 }
 
 func hasQueryParameter(c *gin.Context, keys ...string) bool {
@@ -1056,6 +1073,42 @@ func (h *handler) deleteSession(c *gin.Context) {
 
 	h.removeSession(token)
 	c.Status(http.StatusNoContent)
+}
+
+func (h *handler) requireAuthenticatedUser(c *gin.Context) (*store.User, bool) {
+	token := extractToken(c.GetHeader("Authorization"))
+	if token == "" {
+		if value := c.Query("token"); value != "" {
+			token = value
+		}
+	}
+	if token == "" {
+		if cookie, err := c.Cookie(sessionCookieName); err == nil {
+			candidate := strings.TrimSpace(cookie)
+			if candidate != "" {
+				token = candidate
+			}
+		}
+	}
+
+	if token == "" {
+		respondError(c, http.StatusUnauthorized, "session_token_required", "session token is required")
+		return nil, false
+	}
+
+	sess, ok := h.lookupSession(token)
+	if !ok {
+		respondError(c, http.StatusUnauthorized, "invalid_session", "session token is invalid or expired")
+		return nil, false
+	}
+
+	user, err := h.store.GetUserByID(c.Request.Context(), sess.userID)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "session_user_lookup_failed", "failed to load session user")
+		return nil, false
+	}
+
+	return user, true
 }
 
 func (h *handler) createSession(userID string) (string, time.Time, error) {
@@ -1902,6 +1955,106 @@ func (h *handler) mfaStatus(c *gin.Context) {
 	})
 }
 
+func (h *handler) listSubscriptions(c *gin.Context) {
+	user, ok := h.requireAuthenticatedUser(c)
+	if !ok {
+		return
+	}
+
+	subscriptions, err := h.store.ListSubscriptionsByUser(c.Request.Context(), user.ID)
+	if err != nil {
+		respondError(c, http.StatusInternalServerError, "subscriptions_unavailable", "failed to load subscriptions")
+		return
+	}
+
+	sanitized := make([]gin.H, 0, len(subscriptions))
+	for i := range subscriptions {
+		sanitized = append(sanitized, sanitizeSubscription(&subscriptions[i]))
+	}
+
+	c.JSON(http.StatusOK, gin.H{"subscriptions": sanitized})
+}
+
+func (h *handler) upsertSubscription(c *gin.Context) {
+	user, ok := h.requireAuthenticatedUser(c)
+	if !ok {
+		return
+	}
+
+	var req subscriptionUpsertRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid_request", "invalid request payload")
+		return
+	}
+
+	externalID := strings.TrimSpace(req.ExternalID)
+	if externalID == "" {
+		respondError(c, http.StatusBadRequest, "external_id_required", "externalId is required")
+		return
+	}
+
+	provider := strings.TrimSpace(req.Provider)
+	if provider == "" {
+		provider = "paypal"
+	}
+	kind := strings.TrimSpace(req.Kind)
+	if kind == "" {
+		kind = "subscription"
+	}
+	status := strings.TrimSpace(req.Status)
+	if status == "" {
+		status = "active"
+	}
+
+	sub := &store.Subscription{
+		UserID:     user.ID,
+		Provider:   provider,
+		Kind:       kind,
+		PlanID:     strings.TrimSpace(req.PlanID),
+		ExternalID: externalID,
+		Status:     status,
+		Meta:       req.Meta,
+	}
+
+	if err := h.store.UpsertSubscription(c.Request.Context(), sub); err != nil {
+		respondError(c, http.StatusInternalServerError, "subscription_upsert_failed", "failed to persist subscription state")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"subscription": sanitizeSubscription(sub)})
+}
+
+func (h *handler) cancelSubscription(c *gin.Context) {
+	user, ok := h.requireAuthenticatedUser(c)
+	if !ok {
+		return
+	}
+
+	var req subscriptionCancelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondError(c, http.StatusBadRequest, "invalid_request", "invalid request payload")
+		return
+	}
+
+	externalID := strings.TrimSpace(req.ExternalID)
+	if externalID == "" {
+		respondError(c, http.StatusBadRequest, "external_id_required", "externalId is required")
+		return
+	}
+
+	sub, err := h.store.CancelSubscription(c.Request.Context(), user.ID, externalID, time.Now().UTC())
+	if err != nil {
+		if errors.Is(err, store.ErrSubscriptionNotFound) {
+			respondError(c, http.StatusNotFound, "subscription_not_found", "subscription not found")
+			return
+		}
+		respondError(c, http.StatusInternalServerError, "subscription_cancel_failed", "failed to update subscription")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"subscription": sanitizeSubscription(sub)})
+}
+
 func sanitizeUser(user *store.User, challenge *mfaChallenge) gin.H {
 	identifier := strings.TrimSpace(user.ID)
 	groups := user.Groups
@@ -1933,6 +2086,36 @@ func sanitizeUser(user *store.User, challenge *mfaChallenge) gin.H {
 		"groups":        groups,
 		"permissions":   permissions,
 	}
+}
+
+func sanitizeSubscription(sub *store.Subscription) gin.H {
+	if sub == nil {
+		return gin.H{}
+	}
+
+	meta := map[string]any{}
+	for key, value := range sub.Meta {
+		meta[key] = value
+	}
+
+	payload := gin.H{
+		"id":         sub.ID,
+		"userId":     sub.UserID,
+		"provider":   sub.Provider,
+		"kind":       sub.Kind,
+		"planId":     sub.PlanID,
+		"externalId": sub.ExternalID,
+		"status":     sub.Status,
+		"meta":       meta,
+		"createdAt":  sub.CreatedAt.UTC(),
+		"updatedAt":  sub.UpdatedAt.UTC(),
+	}
+
+	if sub.CancelledAt != nil {
+		payload["cancelledAt"] = sub.CancelledAt.UTC()
+	}
+
+	return payload
 }
 
 func buildMFAState(user *store.User, challenge *mfaChallenge) gin.H {

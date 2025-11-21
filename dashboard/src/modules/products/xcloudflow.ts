@@ -50,6 +50,25 @@ const xcloudflow: ProductConfig = {
       },
     ],
   },
+  billing: {
+    paygo: {
+      name: 'CloudFlow 任务包',
+      description: '按量购买编排执行次数，灵活扩展。',
+      price: 12,
+      currency: 'USD',
+      planId: 'XCLOUDFLOW-PAYGO',
+      meta: { tier: 'usage', product: 'xcloudflow' },
+    },
+    saas: {
+      name: 'CloudFlow SaaS',
+      description: '托管版多云编排与管控，含团队协作。',
+      price: 59,
+      currency: 'USD',
+      interval: 'month',
+      planId: 'XCLOUDFLOW-SUBSCRIPTION',
+      meta: { tier: 'team', product: 'xcloudflow' },
+    },
+  },
 }
 
 export default xcloudflow

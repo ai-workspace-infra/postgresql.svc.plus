@@ -31,6 +31,21 @@ export type ProductConfig = {
   videosUrl: string
   downloadUrl: string
   editions: Editions
+  billing?: {
+    paygo?: BillingPlan
+    saas?: BillingPlan
+  }
+}
+
+export type BillingPlan = {
+  name: string
+  description?: string
+  price: number
+  currency: string
+  interval?: string
+  planId?: string
+  clientId?: string
+  meta?: Record<string, unknown>
 }
 
 export const PRODUCT_LIST: ProductConfig[] = [xstream, xscopehub, xcloudflow]

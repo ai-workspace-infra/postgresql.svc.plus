@@ -50,6 +50,25 @@ const xscopehub: ProductConfig = {
       },
     ],
   },
+  billing: {
+    paygo: {
+      name: 'ScopeHub 数据查询包',
+      description: '按查询量或指标卡点购买，灵活接入。',
+      price: 15,
+      currency: 'USD',
+      planId: 'XSCOPEHUB-PAYGO',
+      meta: { tier: 'usage', product: 'xscopehub' },
+    },
+    saas: {
+      name: 'ScopeHub SaaS',
+      description: '订阅可视化观测、看板与告警服务。',
+      price: 39,
+      currency: 'USD',
+      interval: 'month',
+      planId: 'XSCOPEHUB-SUBSCRIPTION',
+      meta: { tier: 'growth', product: 'xscopehub' },
+    },
+  },
 }
 
 export default xscopehub

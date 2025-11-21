@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS public.sessions CASCADE;
 DROP TABLE IF EXISTS public.identities CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
 DROP TABLE IF EXISTS public.admin_settings CASCADE;
+DROP TABLE IF EXISTS public.subscriptions CASCADE;
 
 -- =========================================
 -- Extensions
@@ -113,6 +114,21 @@ CREATE TABLE public.admin_settings (
   CONSTRAINT admin_settings_module_role_uk UNIQUE (module_key, role)
 );
 
+CREATE TABLE public.subscriptions (
+  uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_uuid UUID NOT NULL REFERENCES public.users(uuid) ON DELETE CASCADE,
+  provider TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'subscription',
+  plan_id TEXT,
+  external_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  cancelled_at TIMESTAMPTZ,
+  CONSTRAINT subscriptions_user_external_uk UNIQUE (user_uuid, external_id)
+);
+
 -- =========================================
 -- Indexes
 -- =========================================
@@ -121,6 +137,8 @@ CREATE UNIQUE INDEX users_email_lower_uk ON public.users (lower(email)) WHERE em
 CREATE INDEX idx_identities_user_uuid ON public.identities (user_uuid);
 CREATE INDEX idx_sessions_user_uuid ON public.sessions (user_uuid);
 CREATE INDEX idx_admin_settings_version ON public.admin_settings (version);
+CREATE INDEX idx_subscriptions_user_uuid ON public.subscriptions (user_uuid);
+CREATE INDEX idx_subscriptions_status ON public.subscriptions (status);
 
 -- =========================================
 -- Triggers
@@ -165,3 +183,8 @@ CREATE TRIGGER trg_admin_settings_set_updated_at
 CREATE TRIGGER trg_admin_settings_bump_version
   BEFORE UPDATE ON public.admin_settings
   FOR EACH ROW EXECUTE FUNCTION public.bump_version();
+
+-- subscriptions
+CREATE TRIGGER trg_subscriptions_set_updated_at
+  BEFORE UPDATE ON public.subscriptions
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

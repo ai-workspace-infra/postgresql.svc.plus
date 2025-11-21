@@ -102,7 +102,7 @@ export const userCenterExtension: DashboardExtension = {
         title: '订阅与计费',
         description: '启用订阅与计费配置页面。',
         envVar: 'NEXT_PUBLIC_FEATURE_SUBSCRIPTION_MODULE',
-        defaultEnabled: false,
+        defaultEnabled: true,
       },
     },
     {
