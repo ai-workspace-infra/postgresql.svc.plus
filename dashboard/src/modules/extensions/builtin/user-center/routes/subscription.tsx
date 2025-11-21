@@ -1,4 +1,5 @@
 import Card from '../components/Card'
+import BillingOptionsPanel from '../account/BillingOptionsPanel'
 import SubscriptionPanel from '../account/SubscriptionPanel'
 
 export default function UserCenterSubscriptionRoute() {
@@ -13,6 +14,7 @@ export default function UserCenterSubscriptionRoute() {
           流程：先选择产品模式（PAYG / SaaS），再选择支付方式，扫码支付 → 自动识别到账。
         </p>
       </Card>
+      <BillingOptionsPanel />
       <SubscriptionPanel />
     </div>
   )
