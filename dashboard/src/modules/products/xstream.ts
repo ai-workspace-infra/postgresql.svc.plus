@@ -1,6 +1,6 @@
-import type { ProductConfig } from './registry'
+import type { BillingPaymentMethod, ProductConfig } from './registry'
 
-const sharedPaymentMethods = [
+const sharedPaymentMethods: BillingPaymentMethod[] = [
   {
     type: 'paypal',
     label: 'PayPal 扫码',
