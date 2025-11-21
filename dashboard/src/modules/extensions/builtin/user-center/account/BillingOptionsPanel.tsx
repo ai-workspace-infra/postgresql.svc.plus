@@ -301,7 +301,8 @@ export default function BillingOptionsPanel() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {productOptions.map((option) => {
-              const isActive = selected?.plan.planId === option.plan.planId && selected.kind === option.kind
+              const isActive =
+                selected !== null && selected.plan.planId === option.plan.planId && selected.kind === option.kind
               return (
                 <div
                   key={`${option.product.slug}-${option.kind}`}
