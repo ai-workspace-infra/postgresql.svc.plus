@@ -45,6 +45,11 @@ const methodHints: Record<BillingPaymentMethod['type'], string> = {
 export default function BillingOptionsPanel() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const [selected, setSelected] = useState<ProductOption | null>(null)
+  const primaryButtonClass =
+    'inline-flex w-full items-center justify-center rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-strong)]'
+  const qrClassName = 'mx-auto h-56 w-56 object-contain'
+  const paymentCardClass =
+    'flex h-full flex-col gap-4 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-5 shadow-sm'
 
   const products = useMemo(
     () => PRODUCT_LIST.filter((item) => item.billing && (item.billing.paygo || item.billing.saas)),
@@ -150,32 +155,33 @@ export default function BillingOptionsPanel() {
     const qrCode = method.qrCode?.trim()
 
     return (
-      <div
-        key={`${selected?.plan.planId}-${method.type}`}
-        className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm"
-      >
+      <div key={`${selected?.plan.planId}-${method.type}`} className={paymentCardClass}>
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">{method.label || method.type}</p>
-          <p className="text-sm font-semibold text-[var(--color-heading)]">{method.type === 'ethereum' ? 'ETH 扫码支付' : 'USDT（TRC20）扫码'}</p>
-          <p className="text-xs text-[var(--color-text-subtle)]">{methodHints[method.type]}</p>
+          <p className="text-lg font-semibold text-[var(--color-heading)]">{method.type === 'ethereum' ? 'ETH（ERC20）' : 'USDT（TRC20）'}</p>
+          <p className="text-sm text-[var(--color-text-subtle)]">{methodHints[method.type]}</p>
         </div>
 
         {qrCode ? (
-          <div className="rounded-xl bg-white p-3 text-center">
-            <img src={qrCode} alt={`${method.label || method.type} QR`} className="mx-auto h-44 w-44 object-contain" />
+          <div className="rounded-xl bg-white p-4 text-center">
+            <img src={qrCode} alt={`${method.label || method.type} QR`} className={qrClassName} />
           </div>
         ) : null}
 
         {address ? (
-          <div className="space-y-1 rounded-xl bg-white p-3 text-xs text-[var(--color-text)]">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex flex-col">
-                <span className="font-semibold text-[var(--color-heading)]">钱包地址</span>
-                <span className="truncate font-mono" title={address}>
-                  {address}
+          <div className="space-y-2 rounded-xl bg-[color:var(--color-surface-muted)] p-3 text-xs text-[var(--color-text)]">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-[color:var(--color-heading)]">钱包地址</span>
+              {network ? (
+                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[color:var(--color-heading)]">
+                  {network}
                 </span>
-                {network ? <span className="text-[11px] text-[var(--color-text-subtle)]">网络 / Network：{network}</span> : null}
-              </div>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-white/60 p-2">
+              <span className="flex-1 truncate font-mono" title={address}>
+                {address}
+              </span>
               <button
                 type="button"
                 onClick={async () => {
@@ -183,7 +189,7 @@ export default function BillingOptionsPanel() {
                   await navigator.clipboard.writeText(address)
                   setStatusMessage('已复制钱包地址，完成支付后订单将自动识别。')
                 }}
-                className="inline-flex items-center rounded-md bg-[var(--color-heading)] px-3 py-1 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary)]"
+                className="inline-flex items-center rounded-md bg-white px-3 py-1 text-[11px] font-semibold text-[color:var(--color-heading)] shadow-sm transition-colors hover:bg-[color:var(--color-surface)]"
               >
                 复制
               </button>
@@ -192,11 +198,7 @@ export default function BillingOptionsPanel() {
         ) : null}
 
         <div className="mt-auto flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => handleCryptoRecord(method)}
-            className="inline-flex w-full items-center justify-center rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-strong)]"
-          >
+          <button type="button" onClick={() => handleCryptoRecord(method)} className={primaryButtonClass}>
             使用此方式支付
           </button>
         </div>
@@ -208,16 +210,16 @@ export default function BillingOptionsPanel() {
     if (!selected) return null
 
     return (
-      <div className="flex flex-col gap-4 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface)] p-4 shadow-sm">
+      <div className={paymentCardClass}>
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">PayPal</p>
-          <p className="text-sm font-semibold text-[var(--color-heading)]">PayPal 扫码</p>
-          <p className="text-xs text-[var(--color-text-subtle)]">{methodHints.paypal}</p>
+          <p className="text-lg font-semibold text-[var(--color-heading)]">PayPal 扫码</p>
+          <p className="text-sm text-[var(--color-text-subtle)]">{methodHints.paypal}</p>
         </div>
 
         {method.qrCode ? (
-          <div className="rounded-xl bg-white p-3 text-center">
-            <img src={method.qrCode} alt="PayPal QR" className="mx-auto h-44 w-44 object-contain" />
+          <div className="rounded-xl bg-white p-4 text-center">
+            <img src={method.qrCode} alt="PayPal QR" className={qrClassName} />
           </div>
         ) : null}
 
@@ -265,7 +267,7 @@ export default function BillingOptionsPanel() {
           </div>
           <button
             type="button"
-            className="inline-flex w-full items-center justify-center rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-primary-strong)]"
+            className={primaryButtonClass}
             onClick={() => setStatusMessage('正在使用 PayPal 支付，完成后系统会自动同步订单。')}
           >
             使用此方式支付
@@ -277,82 +279,89 @@ export default function BillingOptionsPanel() {
 
   return (
     <Card>
-      <div className="flex flex-col gap-3">
-        <div>
-          <p className="text-sm font-semibold text-[var(--color-primary)]">支付与订阅</p>
-          <h2 className="text-xl font-semibold text-[var(--color-heading)]">扫码支付，自动识别到账</h2>
-          <p className="text-sm text-[var(--color-text-subtle)]">
-            支持 PayPal / 以太坊 ETH / USDT（TRC20）扫码支付。完成后系统会自动识别订单并开通或续订服务。
-          </p>
+      <div className="flex flex-col gap-5">
+        <div className="flex items-start justify-between gap-3 flex-col md:flex-row md:items-center">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">Product Mode</p>
+            <h2 className="text-xl font-semibold text-[color:var(--color-heading)]">先选产品模式，再挑支付方式</h2>
+            <p className="text-sm text-[var(--color-text-subtle)]">
+              PAY-AS-YOU-GO（流量包）与 SaaS 订阅并排展示，信息分层更清晰，避免混淆。
+            </p>
+            <p className="text-xs font-semibold text-[var(--color-heading)]">
+              扫码支付 → 系统自动识别付款 → 自动激活 / 续订订单。
+            </p>
+          </div>
+          {selected?.clientId ? (
+            <p className="rounded-full bg-[color:var(--color-surface-muted)] px-4 py-2 text-xs font-semibold text-[var(--color-heading)]">
+              PayPal / 加密货币均已启用
+            </p>
+          ) : (
+            <p className="rounded-full bg-[color:var(--color-surface-muted)] px-4 py-2 text-xs font-semibold text-[var(--color-heading)]">
+              尚未配置 PayPal Client ID
+            </p>
+          )}
         </div>
 
-        <div className="mt-2 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">选择产品</p>
-              <h3 className="text-lg font-semibold text-[var(--color-heading)]">先确认购买或订阅的方案</h3>
-              <p className="text-sm text-[var(--color-text-subtle)]">PAYG 与 SaaS 分离展示，避免二维码混在一起。</p>
-            </div>
-            {selected?.clientId ? (
-              <p className="text-xs text-[var(--color-text-subtle)]">已启用 PayPal / 加密货币结算</p>
-            ) : (
-              <p className="text-xs text-[var(--color-text-subtle)]">尚未配置 PayPal Client ID</p>
-            )}
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {productOptions.map((option) => {
-              const isActive =
-                selected !== null && selected.plan.planId === option.plan.planId && selected.kind === option.kind
-              return (
-                <div
-                  key={`${option.product.slug}-${option.kind}`}
-                  className={`flex h-full flex-col rounded-2xl border p-4 shadow-sm transition-colors ${
-                    isActive
-                      ? 'border-[color:var(--color-primary)] bg-[color:var(--color-surface)]'
-                      : 'border-[color:var(--color-surface-border)] bg-[color:var(--color-surface-muted)] hover:border-[color:var(--color-primary)]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
+        <div className="grid gap-4 md:grid-cols-2">
+          {productOptions.map((option) => {
+            const isActive =
+              selected !== null && selected.plan.planId === option.plan.planId && selected.kind === option.kind
+            const isSubscription = option.kind === 'subscription'
+            const description = isSubscription
+              ? '全节点加速 + AI 网络优化。自动续费，可随时取消。'
+              : '一次购买可叠加，不自动续费。'
+            return (
+              <div
+                key={`${option.product.slug}-${option.kind}`}
+                className={`flex h-full flex-col gap-3 rounded-2xl border p-5 shadow-sm transition-colors ${
+                  isActive
+                    ? 'border-[color:var(--color-primary)] bg-[color:var(--color-surface)]'
+                    : 'border-[color:var(--color-surface-border)] bg-[color:var(--color-surface-muted)] hover:border-[color:var(--color-primary)]'
+                }`}
+              >
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
                     <div className="space-y-1">
                       <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">
                         {kindLabel[option.kind]}
                       </p>
                       <h4 className="text-lg font-semibold text-[var(--color-heading)]">{option.plan.name}</h4>
-                      {option.plan.description ? (
-                        <p className="text-sm text-[var(--color-text-subtle)]">{option.plan.description}</p>
-                      ) : null}
-                      <p className="text-xl font-bold text-[var(--color-heading)]">
-                        {option.plan.currency} {option.plan.price.toFixed(2)}
-                        {option.kind === 'subscription' && option.plan.interval ? ` / ${option.plan.interval}` : null}
-                      </p>
                     </div>
+                    <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-[color:var(--color-heading)]">
+                      {isSubscription ? '自动续费' : '一次性购买'}
+                    </span>
                   </div>
-                  <div className="mt-auto flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelected(option)}
-                      className={`inline-flex w-full items-center justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
-                        isActive
-                          ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-strong)]'
-                          : 'bg-white text-[var(--color-heading)] hover:bg-[var(--color-surface)]'
-                      }`}
-                    >
-                      {actionLabel[option.kind]}
-                    </button>
-                  </div>
+                  <p className="text-sm text-[var(--color-text-subtle)]">{description}</p>
+                  <p className="text-2xl font-bold text-[var(--color-heading)]">
+                    {option.plan.currency} {option.plan.price.toFixed(0)}
+                    {isSubscription && option.plan.interval ? ` / ${option.plan.interval}` : ''}
+                  </p>
                 </div>
-              )
-            })}
-          </div>
+                <div className="mt-auto">
+                  <button
+                    type="button"
+                    onClick={() => setSelected(option)}
+                    className={`${
+                      isActive
+                        ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-strong)]'
+                        : 'bg-white text-[var(--color-heading)] hover:bg-[color:var(--color-surface)]'
+                    } inline-flex w-full items-center justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-colors`}
+                  >
+                    {actionLabel[option.kind]}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {selected ? (
-          <div className="space-y-3 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface-muted)] p-4">
+          <div className="space-y-4 rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface-muted)] p-5">
             <div className="flex flex-col gap-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">选择支付方式</p>
-              <h3 className="text-lg font-semibold text-[var(--color-heading)]">支付后系统自动识别并开通</h3>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary)]">Payment</p>
+              <h3 className="text-lg font-semibold text-[var(--color-heading)]">三种扫码支付并列，统一卡片结构</h3>
               <p className="text-sm text-[var(--color-text-subtle)]">
-                扫码支付 → 系统识别付款 → 订单自动激活或续订。PayPal 无需地址，ETH/USDT 展示钱包地址与复制按钮。
+                标准流程：扫码支付 → 系统自动识别付款 → 自动激活 / 续订订单。二维码统一尺寸，地址区使用等宽字体并提供复制按钮。
               </p>
             </div>
 
