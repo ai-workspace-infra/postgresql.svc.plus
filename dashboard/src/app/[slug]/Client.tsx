@@ -29,7 +29,6 @@ import ProductDownload from '@components/marketing/ProductDownload'
 import ProductEditions from '@components/marketing/ProductEditions'
 import ProductFaq from '@components/marketing/ProductFaq'
 import ProductFeatures from '@components/marketing/ProductFeatures'
-import ProductBillingActions from '@components/marketing/ProductBillingActions'
 import ProductHero from '@components/marketing/ProductHero'
 import ProductScenarios from '@components/marketing/ProductScenarios'
 import type { ProductConfig } from '@modules/products/registry'
@@ -185,7 +184,6 @@ export default function Client({ config }: ClientProps) {
       <main>
         <ProductHero config={config} lang={lang} onExportPoster={handleExportPoster} />
         <ProductFeatures config={config} lang={lang} />
-        <ProductBillingActions config={config} lang={lang} />
         <ProductEditions config={config} lang={lang} />
         <ProductScenarios lang={lang} />
         <ProductDownload config={config} lang={lang} />
