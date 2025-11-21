@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-type PayPalNamespace = typeof window.paypal
+type PayPalNamespace = NonNullable<typeof window.paypal>
 
 type PayPalButtonsComponent = ReturnType<NonNullable<PayPalNamespace>['Buttons']>
 
