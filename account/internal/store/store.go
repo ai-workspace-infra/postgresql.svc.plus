@@ -32,17 +32,19 @@ type User struct {
 
 // Subscription represents a recurring or usage-based billing relationship.
 type Subscription struct {
-	ID          string
-	UserID      string
-	Provider    string
-	Kind        string
-	PlanID      string
-	ExternalID  string
-	Status      string
-	Meta        map[string]any
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	CancelledAt *time.Time
+	ID            string
+	UserID        string
+	Provider      string
+	PaymentMethod string
+	PaymentQRCode string
+	Kind          string
+	PlanID        string
+	ExternalID    string
+	Status        string
+	Meta          map[string]any
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	CancelledAt   *time.Time
 }
 
 // Store provides persistence operations for users.
@@ -306,6 +308,10 @@ func (s *memoryStore) UpsertSubscription(ctx context.Context, subscription *Subs
 	if key == "" {
 		return errors.New("external id is required")
 	}
+	if strings.TrimSpace(subscription.PaymentMethod) == "" {
+		subscription.PaymentMethod = strings.TrimSpace(subscription.Provider)
+	}
+	subscription.PaymentQRCode = strings.TrimSpace(subscription.PaymentQRCode)
 
 	now := time.Now().UTC()
 	stored, exists := userSubs[key]
@@ -315,6 +321,8 @@ func (s *memoryStore) UpsertSubscription(ctx context.Context, subscription *Subs
 	}
 
 	stored.Provider = strings.TrimSpace(subscription.Provider)
+	stored.PaymentMethod = strings.TrimSpace(subscription.PaymentMethod)
+	stored.PaymentQRCode = strings.TrimSpace(subscription.PaymentQRCode)
 	stored.Kind = strings.TrimSpace(subscription.Kind)
 	stored.PlanID = strings.TrimSpace(subscription.PlanID)
 	stored.Status = strings.TrimSpace(subscription.Status)

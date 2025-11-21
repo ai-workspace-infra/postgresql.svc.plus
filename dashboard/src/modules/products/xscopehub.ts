@@ -1,5 +1,33 @@
 import type { ProductConfig } from './registry'
 
+const sharedPaymentMethods = [
+  {
+    type: 'paypal',
+    label: 'PayPal 扫码',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https://www.paypal.com/paypalme/xcontrol',
+    instructions: '打开 PayPal App 扫码或跳转二维码链接完成支付。',
+  },
+  {
+    type: 'ethereum',
+    label: '以太坊 / ETH',
+    network: 'ERC20',
+    address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=ethereum:0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    instructions: '支持 ETH/USDT ERC20 转账，付款后在账户中心同步扫码订单。',
+  },
+  {
+    type: 'usdt',
+    label: 'USDT',
+    network: 'TRC20',
+    address: 'TK9p9oxKGVfYB1D6UcqSgnZJx1f3w3Zz7B',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=usdt:TRC20:TK9p9oxKGVfYB1D6UcqSgnZJx1f3w3Zz7B',
+    instructions: 'USDT-TRC20 扫码转账完成后，点击同步记录到账户。',
+  },
+]
+
 const xscopehub: ProductConfig = {
   slug: 'xscopehub',
   name: 'XScopeHub',
@@ -58,6 +86,7 @@ const xscopehub: ProductConfig = {
       currency: 'USD',
       planId: 'XSCOPEHUB-PAYGO',
       meta: { tier: 'usage', product: 'xscopehub' },
+      paymentMethods: sharedPaymentMethods,
     },
     saas: {
       name: 'ScopeHub SaaS',
@@ -67,6 +96,7 @@ const xscopehub: ProductConfig = {
       interval: 'month',
       planId: 'XSCOPEHUB-SUBSCRIPTION',
       meta: { tier: 'growth', product: 'xscopehub' },
+      paymentMethods: sharedPaymentMethods,
     },
   },
 }

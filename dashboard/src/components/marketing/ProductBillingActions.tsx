@@ -4,7 +4,8 @@ import { useCallback, useMemo, useState } from 'react'
 import Link from 'next/link'
 
 import { PayPalPayGoButton, PayPalSubscriptionButton } from '@components/billing/PayPalButtons'
-import type { ProductConfig } from '@modules/products/registry'
+import CryptoBillingWidget from '@components/billing/CryptoBillingWidget'
+import type { BillingPaymentMethod, ProductConfig } from '@modules/products/registry'
 
 function resolveClientId(planClientId?: string) {
   if (planClientId && planClientId.trim().length > 0) {
@@ -44,6 +45,9 @@ export default function ProductBillingActions({ config, lang }: ProductBillingAc
       kind: string
       planId?: string
       status: string
+      provider?: string
+      paymentMethod?: string
+      paymentQr?: string
       meta?: Record<string, unknown>
     }) => {
       try {
@@ -54,7 +58,9 @@ export default function ProductBillingActions({ config, lang }: ProductBillingAc
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            provider: 'paypal',
+            provider: payload.provider || 'paypal',
+            paymentMethod: payload.paymentMethod || payload.provider || 'paypal',
+            paymentQr: payload.paymentQr,
             ...payload,
           }),
         })
@@ -95,15 +101,15 @@ export default function ProductBillingActions({ config, lang }: ProductBillingAc
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               {lang === 'zh'
-                ? '直接在产品页面完成 PayPal 支付，记录会同步到账户中心。'
-                : 'Complete PayPal checkout directly on the product page and keep records in your account.'}
+                ? '直接在产品页面完成 PayPal / 以太坊 / USDT 支付与扫码，记录会同步到账户中心。'
+                : 'Complete PayPal, Ethereum, or USDT checkout with QR support and keep records in your account.'}
             </p>
           </div>
           <div className="text-sm text-slate-700">
             {clientId
               ? lang === 'zh'
-                ? '使用 PayPal 安全结算'
-                : 'Secure checkout with PayPal'
+                ? '使用 PayPal / 以太坊 / USDT 安全结算与扫码'
+                : 'PayPal, Ethereum, and USDT checkout with QR support'
               : lang === 'zh'
                 ? '尚未配置 PayPal Client ID'
                 : 'PayPal Client ID is not configured'}
@@ -144,10 +150,46 @@ export default function ProductBillingActions({ config, lang }: ProductBillingAc
                       kind: 'paygo',
                       planId: paygo.planId,
                       status: 'active',
+                      provider: 'paypal',
+                      paymentMethod: 'paypal',
                       meta: { ...paygo.meta, product: config.slug, paypal: data },
                     })
                   }
                 />
+
+                {paygo.paymentMethods?.length ? (
+                  <div className="mt-5 space-y-2">
+                    <p className="text-sm font-medium text-slate-800">
+                      {lang === 'zh'
+                        ? '支持 PayPal / 以太坊 / USDT 扫码记录：'
+                        : 'QR checkout for PayPal, Ethereum, and USDT:'}
+                    </p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {paygo.paymentMethods.map((method: BillingPaymentMethod) => (
+                        <CryptoBillingWidget
+                          key={`${paygo.planId}-${method.type}`}
+                          method={method}
+                          planId={paygo.planId}
+                          planName={paygo.name}
+                          kind="paygo"
+                          productSlug={config.slug}
+                          onRecord={(details) =>
+                            handleSync({
+                              externalId: details.externalId,
+                              kind: 'paygo',
+                              planId: paygo.planId,
+                              status: details.status || 'pending',
+                              provider: method.type,
+                              paymentMethod: method.type,
+                              paymentQr: details.paymentQr,
+                              meta: { ...paygo.meta, ...details.meta, product: config.slug },
+                            })
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -183,10 +225,46 @@ export default function ProductBillingActions({ config, lang }: ProductBillingAc
                       kind: 'subscription',
                       planId: saas.planId,
                       status: 'active',
+                      provider: 'paypal',
+                      paymentMethod: 'paypal',
                       meta: { ...saas.meta, product: config.slug, paypal: data },
                     })
                   }
                 />
+
+                {saas.paymentMethods?.length ? (
+                  <div className="mt-5 space-y-2">
+                    <p className="text-sm font-medium text-slate-800">
+                      {lang === 'zh'
+                        ? '订阅也可通过 PayPal / 以太坊 / USDT 扫码：'
+                        : 'Subscriptions via PayPal, Ethereum, or USDT QR codes:'}
+                    </p>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {saas.paymentMethods.map((method: BillingPaymentMethod) => (
+                        <CryptoBillingWidget
+                          key={`${saas.planId}-${method.type}`}
+                          method={method}
+                          planId={saas.planId}
+                          planName={saas.name}
+                          kind="subscription"
+                          productSlug={config.slug}
+                          onRecord={(details) =>
+                            handleSync({
+                              externalId: details.externalId,
+                              kind: 'subscription',
+                              planId: saas.planId,
+                              status: details.status || 'pending',
+                              provider: method.type,
+                              paymentMethod: method.type,
+                              paymentQr: details.paymentQr,
+                              meta: { ...saas.meta, ...details.meta, product: config.slug },
+                            })
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}

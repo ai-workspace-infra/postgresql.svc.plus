@@ -1,5 +1,33 @@
 import type { ProductConfig } from './registry'
 
+const sharedPaymentMethods = [
+  {
+    type: 'paypal',
+    label: 'PayPal 扫码',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https://www.paypal.com/paypalme/xcontrol',
+    instructions: '使用 PayPal App 扫码，或在浏览器打开二维码链接完成支付。',
+  },
+  {
+    type: 'ethereum',
+    label: '以太坊 / ETH',
+    network: 'ERC20',
+    address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=ethereum:0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    instructions: '转账后点击“同步扫码订单”即可在账户中心看到记录。',
+  },
+  {
+    type: 'usdt',
+    label: 'USDT',
+    network: 'TRC20',
+    address: 'TK9p9oxKGVfYB1D6UcqSgnZJx1f3w3Zz7B',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=usdt:TRC20:TK9p9oxKGVfYB1D6UcqSgnZJx1f3w3Zz7B',
+    instructions: '支持 USDT-TRC20 扫码支付，完成后同步到订单记录。',
+  },
+]
+
 const xstream: ProductConfig = {
   slug: 'xstream',
   name: 'Xstream',
@@ -58,6 +86,7 @@ const xstream: ProductConfig = {
       currency: 'USD',
       planId: 'XSTREAM-PAYGO',
       meta: { tier: 'usage', product: 'xstream' },
+      paymentMethods: sharedPaymentMethods,
     },
     saas: {
       name: 'Xstream Pro',
@@ -67,6 +96,7 @@ const xstream: ProductConfig = {
       interval: 'month',
       planId: 'XSTREAM-SUBSCRIPTION',
       meta: { tier: 'pro', product: 'xstream' },
+      paymentMethods: sharedPaymentMethods,
     },
   },
 }

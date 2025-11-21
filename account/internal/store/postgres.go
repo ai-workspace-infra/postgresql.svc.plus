@@ -554,6 +554,10 @@ func (s *postgresStore) UpsertSubscription(ctx context.Context, subscription *Su
 	if externalID == "" {
 		return errors.New("external id is required")
 	}
+	if strings.TrimSpace(subscription.PaymentMethod) == "" {
+		subscription.PaymentMethod = strings.TrimSpace(subscription.Provider)
+	}
+	subscription.PaymentQRCode = strings.TrimSpace(subscription.PaymentQRCode)
 
 	encodedMeta, err := json.Marshal(subscription.Meta)
 	if err != nil {
@@ -565,13 +569,15 @@ func (s *postgresStore) UpsertSubscription(ctx context.Context, subscription *Su
 		cancelledAt = subscription.CancelledAt.UTC()
 	}
 
-	const query = `INSERT INTO subscriptions (user_uuid, provider, kind, plan_id, external_id, status, meta, cancelled_at)
-VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, '{}'::jsonb), $8)
+	const query = `INSERT INTO subscriptions (user_uuid, provider, payment_method, kind, plan_id, external_id, status, payment_qr, meta, cancelled_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, '{}'::jsonb), $10)
 ON CONFLICT (user_uuid, external_id) DO UPDATE SET
   provider = EXCLUDED.provider,
+  payment_method = EXCLUDED.payment_method,
   kind = EXCLUDED.kind,
   plan_id = EXCLUDED.plan_id,
   status = EXCLUDED.status,
+  payment_qr = EXCLUDED.payment_qr,
   meta = EXCLUDED.meta,
   cancelled_at = EXCLUDED.cancelled_at,
   updated_at = now()
@@ -589,10 +595,12 @@ RETURNING uuid, created_at, updated_at, cancelled_at`
 		query,
 		normalizedUserID,
 		strings.TrimSpace(subscription.Provider),
+		strings.TrimSpace(subscription.PaymentMethod),
 		strings.TrimSpace(subscription.Kind),
 		strings.TrimSpace(subscription.PlanID),
 		externalID,
 		strings.TrimSpace(subscription.Status),
+		strings.TrimSpace(subscription.PaymentQRCode),
 		encodedMeta,
 		cancelledAt,
 	).Scan(&idValue, &createdAt, &updatedAt, &cancelled)
@@ -628,7 +636,7 @@ func (s *postgresStore) ListSubscriptionsByUser(ctx context.Context, userID stri
 		return nil, ErrUserNotFound
 	}
 
-	const query = `SELECT uuid, user_uuid, provider, kind, plan_id, external_id, status, meta, created_at, updated_at, cancelled_at
+	const query = `SELECT uuid, user_uuid, provider, payment_method, kind, plan_id, external_id, status, payment_qr, meta, created_at, updated_at, cancelled_at
 FROM subscriptions WHERE user_uuid = $1 ORDER BY created_at DESC`
 
 	rows, err := s.db.QueryContext(ctx, query, normalizedUserID)
@@ -640,18 +648,20 @@ FROM subscriptions WHERE user_uuid = $1 ORDER BY created_at DESC`
 	var subs []Subscription
 	for rows.Next() {
 		var (
-			idValue    any
-			provider   string
-			kind       string
-			planID     sql.NullString
-			externalID string
-			status     string
-			metaBytes  []byte
-			createdAt  time.Time
-			updatedAt  time.Time
-			cancelled  sql.NullTime
+			idValue       any
+			provider      string
+			paymentMethod string
+			kind          string
+			planID        sql.NullString
+			externalID    string
+			status        string
+			paymentQR     sql.NullString
+			metaBytes     []byte
+			createdAt     time.Time
+			updatedAt     time.Time
+			cancelled     sql.NullTime
 		)
-		if err := rows.Scan(&idValue, &normalizedUserID, &provider, &kind, &planID, &externalID, &status, &metaBytes, &createdAt, &updatedAt, &cancelled); err != nil {
+		if err := rows.Scan(&idValue, &normalizedUserID, &provider, &paymentMethod, &kind, &planID, &externalID, &status, &paymentQR, &metaBytes, &createdAt, &updatedAt, &cancelled); err != nil {
 			return nil, err
 		}
 
@@ -666,16 +676,18 @@ FROM subscriptions WHERE user_uuid = $1 ORDER BY created_at DESC`
 		}
 
 		sub := Subscription{
-			ID:         identifier,
-			UserID:     userID,
-			Provider:   provider,
-			Kind:       kind,
-			PlanID:     planID.String,
-			ExternalID: externalID,
-			Status:     status,
-			Meta:       meta,
-			CreatedAt:  createdAt.UTC(),
-			UpdatedAt:  updatedAt.UTC(),
+			ID:            identifier,
+			UserID:        userID,
+			Provider:      provider,
+			PaymentMethod: paymentMethod,
+			PaymentQRCode: paymentQR.String,
+			Kind:          kind,
+			PlanID:        planID.String,
+			ExternalID:    externalID,
+			Status:        status,
+			Meta:          meta,
+			CreatedAt:     createdAt.UTC(),
+			UpdatedAt:     updatedAt.UTC(),
 		}
 		if cancelled.Valid {
 			sub.CancelledAt = &cancelled.Time
@@ -706,26 +718,30 @@ func (s *postgresStore) CancelSubscription(ctx context.Context, userID, external
 	const query = `UPDATE subscriptions
 SET status = 'cancelled', cancelled_at = $3, updated_at = now()
 WHERE user_uuid = $1 AND external_id = $2
-RETURNING uuid, provider, kind, plan_id, status, meta, created_at, updated_at, cancelled_at`
+RETURNING uuid, provider, payment_method, kind, plan_id, status, payment_qr, meta, created_at, updated_at, cancelled_at`
 
 	var (
-		idValue   any
-		provider  string
-		kind      string
-		planID    sql.NullString
-		status    string
-		metaBytes []byte
-		createdAt time.Time
-		updatedAt time.Time
-		cancelled sql.NullTime
+		idValue       any
+		provider      string
+		paymentMethod string
+		kind          string
+		planID        sql.NullString
+		status        string
+		paymentQR     sql.NullString
+		metaBytes     []byte
+		createdAt     time.Time
+		updatedAt     time.Time
+		cancelled     sql.NullTime
 	)
 
 	err := s.db.QueryRowContext(ctx, query, normalizedUserID, key, cancelledAt.UTC()).Scan(
 		&idValue,
 		&provider,
+		&paymentMethod,
 		&kind,
 		&planID,
 		&status,
+		&paymentQR,
 		&metaBytes,
 		&createdAt,
 		&updatedAt,
@@ -749,16 +765,18 @@ RETURNING uuid, provider, kind, plan_id, status, meta, created_at, updated_at, c
 	}
 
 	sub := &Subscription{
-		ID:         identifier,
-		UserID:     normalizedUserID,
-		Provider:   provider,
-		Kind:       kind,
-		PlanID:     planID.String,
-		ExternalID: key,
-		Status:     status,
-		Meta:       meta,
-		CreatedAt:  createdAt.UTC(),
-		UpdatedAt:  updatedAt.UTC(),
+		ID:            identifier,
+		UserID:        normalizedUserID,
+		Provider:      provider,
+		PaymentMethod: paymentMethod,
+		PaymentQRCode: paymentQR.String,
+		Kind:          kind,
+		PlanID:        planID.String,
+		ExternalID:    key,
+		Status:        status,
+		Meta:          meta,
+		CreatedAt:     createdAt.UTC(),
+		UpdatedAt:     updatedAt.UTC(),
 	}
 	if cancelled.Valid {
 		sub.CancelledAt = &cancelled.Time

@@ -1,5 +1,33 @@
 import type { ProductConfig } from './registry'
 
+const sharedPaymentMethods = [
+  {
+    type: 'paypal',
+    label: 'PayPal 扫码',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https://www.paypal.com/paypalme/xcontrol',
+    instructions: '使用 PayPal 客户端扫码或打开二维码链接完成支付。',
+  },
+  {
+    type: 'ethereum',
+    label: '以太坊 / ETH',
+    network: 'ERC20',
+    address: '0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=ethereum:0x8ba1f109551bD432803012645Ac136ddd64DBA72',
+    instructions: '完成链上转账后，点击同步扫码订单将记录存入账户。',
+  },
+  {
+    type: 'usdt',
+    label: 'USDT',
+    network: 'TRC20',
+    address: 'TK9p9oxKGVfYB1D6UcqSgnZJx1f3w3Zz7B',
+    qrCode:
+      'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=usdt:TRC20:TK9p9oxKGVfYB1D6UcqSgnZJx1f3w3Zz7B',
+    instructions: '支持 USDT-TRC20，扫码完成后可同步到账单。',
+  },
+]
+
 const xcloudflow: ProductConfig = {
   slug: 'xcloudflow',
   name: 'XCloudFlow',
@@ -58,6 +86,7 @@ const xcloudflow: ProductConfig = {
       currency: 'USD',
       planId: 'XCLOUDFLOW-PAYGO',
       meta: { tier: 'usage', product: 'xcloudflow' },
+      paymentMethods: sharedPaymentMethods,
     },
     saas: {
       name: 'CloudFlow SaaS',
@@ -67,6 +96,7 @@ const xcloudflow: ProductConfig = {
       interval: 'month',
       planId: 'XCLOUDFLOW-SUBSCRIPTION',
       meta: { tier: 'team', product: 'xcloudflow' },
+      paymentMethods: sharedPaymentMethods,
     },
   },
 }

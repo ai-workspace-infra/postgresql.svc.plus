@@ -37,6 +37,15 @@ export type ProductConfig = {
   }
 }
 
+export type BillingPaymentMethod = {
+  type: 'paypal' | 'ethereum' | 'usdt'
+  label?: string
+  address?: string
+  network?: string
+  qrCode?: string
+  instructions?: string
+}
+
 export type BillingPlan = {
   name: string
   description?: string
@@ -46,6 +55,7 @@ export type BillingPlan = {
   planId?: string
   clientId?: string
   meta?: Record<string, unknown>
+  paymentMethods?: BillingPaymentMethod[]
 }
 
 export const PRODUCT_LIST: ProductConfig[] = [xstream, xscopehub, xcloudflow]

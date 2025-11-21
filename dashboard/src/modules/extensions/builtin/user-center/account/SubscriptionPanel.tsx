@@ -19,6 +19,8 @@ type SubscriptionRecord = {
   kind?: string
   planId?: string
   status: string
+  paymentMethod?: string
+  paymentQr?: string
   externalId: string
   createdAt?: string
   updatedAt?: string
@@ -84,7 +86,9 @@ export default function SubscriptionPanel() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold text-[var(--color-heading)]">订阅与计费</h2>
-          <p className="text-sm text-[var(--color-text-subtle)]">查看你通过 PayPal 触发的 Pay-as-you-go 与 SaaS 订阅。</p>
+          <p className="text-sm text-[var(--color-text-subtle)]">
+            查看你通过 PayPal / 以太坊 / USDT（含二维码扫码）的 Pay-as-you-go 与 SaaS 订阅，试用也会出现在这里。
+          </p>
         </div>
       </div>
 
@@ -105,6 +109,9 @@ export default function SubscriptionPanel() {
                 <div>
                   <p className="text-xs uppercase tracking-wide text-[var(--color-primary)]">{record.provider}</p>
                   <h3 className="text-base font-semibold text-[var(--color-text)]">{record.kind ?? 'subscription'}</h3>
+                  {record.paymentMethod ? (
+                    <p className="text-xs text-[var(--color-text-subtle)]">付款方式：{record.paymentMethod}</p>
+                  ) : null}
                 </div>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${record.status === 'cancelled' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}
@@ -129,13 +136,40 @@ export default function SubscriptionPanel() {
                   <dt>Updated</dt>
                   <dd className="text-[var(--color-text)]">{formatDate(record.updatedAt)}</dd>
                 </div>
+                {typeof record.meta?.startsAt === 'string' ? (
+                  <div className="flex items-center justify-between">
+                    <dt>Starts</dt>
+                    <dd className="text-[var(--color-text)]">{formatDate(record.meta?.startsAt as string)}</dd>
+                  </div>
+                ) : null}
+                {typeof record.meta?.expiresAt === 'string' ? (
+                  <div className="flex items-center justify-between">
+                    <dt>Expires</dt>
+                    <dd className="text-[var(--color-text)]">{formatDate(record.meta?.expiresAt as string)}</dd>
+                  </div>
+                ) : null}
                 {record.cancelledAt ? (
                   <div className="flex items-center justify-between">
                     <dt>Cancelled</dt>
                     <dd className="text-[var(--color-text)]">{formatDate(record.cancelledAt)}</dd>
                   </div>
                 ) : null}
+                {record.meta?.note ? (
+                  <div className="flex items-center justify-between">
+                    <dt>备注</dt>
+                    <dd className="text-[var(--color-text)]">{String(record.meta?.note)}</dd>
+                  </div>
+                ) : null}
               </dl>
+              {record.paymentQr ? (
+                <div className="mt-3 rounded-lg bg-white p-3">
+                  <img
+                    src={record.paymentQr}
+                    alt={`QR for ${record.externalId}`}
+                    className="mx-auto h-28 w-28 object-contain"
+                  />
+                </div>
+              ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   type="button"

@@ -281,12 +281,14 @@ type passwordResetConfirmRequest struct {
 }
 
 type subscriptionUpsertRequest struct {
-	ExternalID string         `json:"externalId"`
-	Provider   string         `json:"provider"`
-	Kind       string         `json:"kind"`
-	PlanID     string         `json:"planId"`
-	Status     string         `json:"status"`
-	Meta       map[string]any `json:"meta"`
+	ExternalID    string         `json:"externalId"`
+	Provider      string         `json:"provider"`
+	PaymentMethod string         `json:"paymentMethod"`
+	PaymentQRCode string         `json:"paymentQr"`
+	Kind          string         `json:"kind"`
+	PlanID        string         `json:"planId"`
+	Status        string         `json:"status"`
+	Meta          map[string]any `json:"meta"`
 }
 
 type subscriptionCancelRequest struct {
@@ -406,6 +408,26 @@ func (h *handler) register(c *gin.Context) {
 
 	if h.emailVerificationEnabled {
 		h.removeRegistrationVerification(email)
+	}
+
+	trialExpiresAt := time.Now().UTC().Add(7 * 24 * time.Hour)
+	trial := &store.Subscription{
+		UserID:        user.ID,
+		Provider:      "trial",
+		PaymentMethod: "trial",
+		Kind:          "trial",
+		PlanID:        "TRIAL-7D",
+		ExternalID:    fmt.Sprintf("trial-%s", user.ID),
+		Status:        "active",
+		Meta: map[string]any{
+			"startsAt":  time.Now().UTC(),
+			"expiresAt": trialExpiresAt,
+			"note":      "new user full-access trial",
+		},
+	}
+
+	if err := h.store.UpsertSubscription(c.Request.Context(), trial); err != nil {
+		slog.Warn("failed to provision onboarding trial", "err", err, "userID", user.ID)
 	}
 
 	message := "registration successful"
@@ -1997,6 +2019,11 @@ func (h *handler) upsertSubscription(c *gin.Context) {
 	if provider == "" {
 		provider = "paypal"
 	}
+	paymentMethod := strings.TrimSpace(req.PaymentMethod)
+	if paymentMethod == "" {
+		paymentMethod = provider
+	}
+	paymentQRCode := strings.TrimSpace(req.PaymentQRCode)
 	kind := strings.TrimSpace(req.Kind)
 	if kind == "" {
 		kind = "subscription"
@@ -2007,13 +2034,15 @@ func (h *handler) upsertSubscription(c *gin.Context) {
 	}
 
 	sub := &store.Subscription{
-		UserID:     user.ID,
-		Provider:   provider,
-		Kind:       kind,
-		PlanID:     strings.TrimSpace(req.PlanID),
-		ExternalID: externalID,
-		Status:     status,
-		Meta:       req.Meta,
+		UserID:        user.ID,
+		Provider:      provider,
+		PaymentMethod: paymentMethod,
+		PaymentQRCode: paymentQRCode,
+		Kind:          kind,
+		PlanID:        strings.TrimSpace(req.PlanID),
+		ExternalID:    externalID,
+		Status:        status,
+		Meta:          req.Meta,
 	}
 
 	if err := h.store.UpsertSubscription(c.Request.Context(), sub); err != nil {
@@ -2099,16 +2128,18 @@ func sanitizeSubscription(sub *store.Subscription) gin.H {
 	}
 
 	payload := gin.H{
-		"id":         sub.ID,
-		"userId":     sub.UserID,
-		"provider":   sub.Provider,
-		"kind":       sub.Kind,
-		"planId":     sub.PlanID,
-		"externalId": sub.ExternalID,
-		"status":     sub.Status,
-		"meta":       meta,
-		"createdAt":  sub.CreatedAt.UTC(),
-		"updatedAt":  sub.UpdatedAt.UTC(),
+		"id":            sub.ID,
+		"userId":        sub.UserID,
+		"provider":      sub.Provider,
+		"paymentMethod": sub.PaymentMethod,
+		"paymentQr":     strings.TrimSpace(sub.PaymentQRCode),
+		"kind":          sub.Kind,
+		"planId":        sub.PlanID,
+		"externalId":    sub.ExternalID,
+		"status":        sub.Status,
+		"meta":          meta,
+		"createdAt":     sub.CreatedAt.UTC(),
+		"updatedAt":     sub.UpdatedAt.UTC(),
 	}
 
 	if sub.CancelledAt != nil {
