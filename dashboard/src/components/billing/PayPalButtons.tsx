@@ -49,7 +49,7 @@ type PayPalPayGoButtonProps = {
 type PayPalSubscriptionButtonProps = {
   clientId?: string
   currency?: string
-  planId: string
+  planId?: string
   productSlug?: string
   onApprove?: (subscriptionId: string, data?: Record<string, unknown>) => void
 }
