@@ -20,7 +20,6 @@ import {
   LayoutPanelLeft,
   LayoutTemplate,
   Link2,
-  ListChecks,
   LucideIcon,
   Network,
   Search,
@@ -48,8 +47,10 @@ export default function HomePage() {
         search: '搜索',
         consoleTitle: 'Cloud-Neutral 控制台',
         consoleSubtitle: '统一的多云控制界面。',
+        openConsole: '打开控制台',
+        docs: '文档',
         quickActions: '快捷操作',
-        services: '服务入口',
+        productMatrix: '产品矩阵',
         nextSteps: '下一步',
         resources: '资源',
         updates: '更新',
@@ -61,8 +62,10 @@ export default function HomePage() {
       search: 'Search',
       consoleTitle: 'Cloud-Neutral Console',
       consoleSubtitle: 'Unified multi-cloud control surface.',
+      openConsole: 'Open Console',
+      docs: 'Documentation',
       quickActions: 'Quick actions',
-      services: 'Service entry grid',
+      productMatrix: 'Product matrix',
       nextSteps: 'Next steps',
       resources: 'Resources',
       updates: 'Updates',
@@ -72,41 +75,41 @@ export default function HomePage() {
 
   const quickActions: CardItem[] = [
     {
-      title: language === 'zh' ? '创建工作空间' : 'Create workspace',
-      description: language === 'zh' ? '初始化团队并连接入口策略。' : 'Initialize a team and connect entry policies.',
-      href: '/account/organizations',
+      title: language === 'zh' ? '创建项目' : 'Create project',
+      description: language === 'zh' ? '设置新的 Cloud-Neutral 项目。' : 'Set up a new Cloud-Neutral project.',
+      href: '/panel/projects/new',
       icon: Command,
     },
     {
-      title: language === 'zh' ? '同步身份目录' : 'Sync identity directory',
-      description: language === 'zh' ? '绑定 SSO、目录或外部身份源。' : 'Bind SSO, directories, or external identity sources.',
-      href: '/account/connections',
+      title: language === 'zh' ? '打开控制台' : 'Open console',
+      description: language === 'zh' ? '进入控制台管理所有模块。' : 'Enter the console to manage all modules.',
+      href: '/panel',
       icon: Shield,
     },
     {
-      title: language === 'zh' ? '查看事件流' : 'Inspect event stream',
-      description: language === 'zh' ? '审计登录、部署与运行时信号。' : 'Audit sign-ins, deployments, and runtime signals.',
-      href: '/insight',
+      title: language === 'zh' ? '通过 GitOps 部署' : 'Deploy via GitOps',
+      description: language === 'zh' ? '连接仓库并同步环境。' : 'Connect repositories and sync environments.',
+      href: '/cloud_iac/gitops',
       icon: Terminal,
     },
   ]
 
-  const serviceEntries: CardItem[] = [
+  const products: ProductItem[] = [
     {
       title: 'XCloudFlow',
-      description: language === 'zh' ? '云原生交付与发布管道。' : 'Cloud-native delivery and rollout pipelines.',
+      description: language === 'zh' ? '交付与发布流水线。' : 'Delivery and rollout pipelines.',
       href: '/panel',
       icon: LayoutTemplate,
     },
     {
       title: 'XStream',
-      description: language === 'zh' ? '事件流、指标与追踪聚合。' : 'Event streams, metrics, and trace aggregation.',
+      description: language === 'zh' ? '事件流与可观测聚合。' : 'Event stream and observability aggregation.',
       href: '/insight',
       icon: Network,
     },
     {
       title: 'XScopeHub',
-      description: language === 'zh' ? '资产拓扑与依赖映射。' : 'Asset topology and dependency mapping.',
+      description: language === 'zh' ? '资产拓扑与依赖视图。' : 'Asset topology and dependency views.',
       href: '/cloud_iac',
       icon: Compass,
     },
@@ -120,57 +123,57 @@ export default function HomePage() {
 
   const checklist: ChecklistItem[] = [
     {
-      tag: language === 'zh' ? '安全' : 'Security',
-      title: language === 'zh' ? '建立审计基线' : 'Establish audit baseline',
-      description: language === 'zh' ? '配置留存、通知与密钥轮换。' : 'Configure retention, notifications, and key rotation.',
-      href: '/insight/audit',
+      tag: language === 'zh' ? '身份' : 'Identity',
+      title: language === 'zh' ? '配置身份' : 'Configure identity',
+      description: language === 'zh' ? '接入身份源并定义登录策略。' : 'Connect identity sources and sign-in policies.',
+      href: '/account/connections',
       icon: ClipboardList,
     },
     {
-      tag: language === 'zh' ? '连接' : 'Connectivity',
-      title: language === 'zh' ? '接入集群' : 'Attach clusters',
-      description: language === 'zh' ? '注册运行环境并验证探针。' : 'Register runtimes and validate probes.',
+      tag: language === 'zh' ? '应用' : 'Applications',
+      title: language === 'zh' ? '注册应用' : 'Register an app',
+      description: language === 'zh' ? '创建客户端并配置回调。' : 'Create clients and configure callbacks.',
+      href: '/account/applications',
+      icon: Boxes,
+    },
+    {
+      tag: language === 'zh' ? '部署' : 'Deploy',
+      title: language === 'zh' ? '部署基础设施' : 'Deploy infrastructure',
+      description: language === 'zh' ? '同步 IaC 定义并推送策略。' : 'Sync IaC definitions and push policies.',
       href: '/cloud_iac',
       icon: Server,
     },
     {
-      tag: language === 'zh' ? '发布' : 'Delivery',
-      title: language === 'zh' ? '设置批次管控' : 'Set rollout controls',
-      description: language === 'zh' ? '定义阶段门与回滚策略。' : 'Define stage gates and rollback policies.',
-      href: '/panel/settings',
-      icon: Boxes,
-    },
-    {
-      tag: language === 'zh' ? '可观测' : 'Observability',
-      title: language === 'zh' ? '同步信号源' : 'Sync signal sources',
-      description: language === 'zh' ? '对齐日志、指标与追踪标签。' : 'Align logs, metrics, and trace labels.',
+      tag: language === 'zh' ? '监控' : 'Monitoring',
+      title: language === 'zh' ? '查看监控面板' : 'View monitoring dashboards',
+      description: language === 'zh' ? '聚合指标、日志与追踪视图。' : 'Aggregate metrics, logs, and traces.',
       href: '/insight',
-      icon: ListChecks,
+      icon: CheckCircle2,
     },
   ]
 
   const resources: CardItem[] = [
     {
-      title: language === 'zh' ? 'CLI 工具' : 'CLI tools',
-      description: language === 'zh' ? '通过命令行快速管理资源。' : 'Manage resources quickly via CLI.',
+      title: language === 'zh' ? 'CLI 工具' : 'CLI Tools',
+      description: language === 'zh' ? '使用命令行快速管理资源。' : 'Use the CLI to manage resources quickly.',
       href: '/docs/cli',
       icon: Terminal,
     },
     {
       title: language === 'zh' ? '文档中心' : 'Documentation',
-      description: language === 'zh' ? '浏览控制平面与 API 指南。' : 'Browse control plane and API guides.',
+      description: language === 'zh' ? '浏览控制平面与 API 指南。' : 'Explore control plane and API guides.',
       href: '/docs',
       icon: BookOpen,
     },
     {
-      title: language === 'zh' ? '示例与模板' : 'Examples & templates',
-      description: language === 'zh' ? '复制开箱即用的配置片段。' : 'Copy ready-to-use configuration snippets.',
+      title: language === 'zh' ? '示例与模板' : 'Examples',
+      description: language === 'zh' ? '复用配置片段与最佳实践。' : 'Reuse configuration snippets and best practices.',
       href: '/docs/examples',
       icon: Wand2,
     },
     {
-      title: language === 'zh' ? 'API Explorer' : 'API explorer',
-      description: language === 'zh' ? '交互式测试 REST 与 SDK。' : 'Interactively test REST and SDK calls.',
+      title: language === 'zh' ? 'API Explorer' : 'API Explorer',
+      description: language === 'zh' ? '交互测试 REST 与 SDK。' : 'Interactively test REST and SDK calls.',
       href: '/docs/api',
       icon: Api,
     },
@@ -205,6 +208,8 @@ export default function HomePage() {
     },
   ]
 
+  const productOpenLabel = language === 'zh' ? '打开' : 'Open'
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <SystemNavbar
@@ -215,23 +220,75 @@ export default function HomePage() {
         onLanguageChange={setLanguage}
       />
       <main className="max-w-[1100px] mx-auto px-4 py-10 space-y-10">
-        <section className="space-y-1">
-          <h1 className="text-xl font-semibold">{copy.consoleTitle}</h1>
-          <p className="text-sm text-slate-500">{copy.consoleSubtitle}</p>
+        <section className="space-y-3">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold">{copy.consoleTitle}</h1>
+            <p className="text-sm text-slate-500">{copy.consoleSubtitle}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-[13px]">
+            <a
+              href="/panel"
+              className="inline-flex items-center gap-2 rounded-[4px] border border-black/[0.07] bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden />
+              {copy.openConsole}
+            </a>
+            <a
+              href="/docs"
+              className="inline-flex items-center gap-2 rounded-[4px] border border-black/[0.07] bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              <BookOpen className="h-3.5 w-3.5" aria-hidden />
+              {copy.docs}
+            </a>
+          </div>
         </section>
 
-        <QuickActionsSection title={copy.quickActions} items={quickActions} />
+        <section className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1.65fr_1fr]">
+          <div className="space-y-3">
+            <SectionTitle label={copy.quickActions} />
+            <div className="space-y-3">
+              {quickActions.map((item) => (
+                <ActionCard key={item.title} {...item} />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-3">
+            <SectionTitle label={copy.productMatrix} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {products.map((item) => (
+                <ProductCard key={item.title} {...item} openLabel={productOpenLabel} />
+              ))}
+            </div>
+          </div>
+        </section>
 
-        <ServiceEntrySection title={copy.services} items={serviceEntries} />
+        <section className="space-y-3">
+          <SectionTitle label={copy.nextSteps} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {checklist.map((item) => (
+              <ChecklistCard key={item.title} {...item} />
+            ))}
+          </div>
+        </section>
 
-        <NextStepsSection title={copy.nextSteps} items={checklist} />
-
-        <UnifiedResourcesUpdates
-          resourcesTitle={copy.resources}
-          updatesTitle={copy.updates}
-          resources={resources}
-          updates={updates}
-        />
+        <section className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+          <div className="space-y-3">
+            <SectionTitle label={copy.resources} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {resources.map((item) => (
+                <ActionCard key={item.title} {...item} />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-3">
+            <SectionTitle label={copy.updates} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {updates.map((item) => (
+                <UpdateCard key={item.title} {...item} />
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
       <ConsoleFooter />
     </div>
@@ -245,9 +302,20 @@ type CardItem = {
   icon: LucideIcon
 }
 
-type ChecklistItem = CardItem & { tag: string }
+type ProductItem = CardItem
 
-type UpdateItem = CardItem & { tag: string; date: string }
+interface ProductCardProps extends ProductItem {
+  openLabel: string
+}
+
+interface ChecklistItem extends CardItem {
+  tag: string
+}
+
+interface UpdateItem extends CardItem {
+  tag: string
+  date: string
+}
 
 type NavbarProps = {
   tabs: string[]
@@ -268,11 +336,7 @@ function SystemNavbar({ tabs, searchLabel, languageLabel, currentLanguage, onLan
           </div>
           <nav className="flex items-center gap-3">
             {tabs.map((tab) => (
-              <a
-                key={tab}
-                href="#"
-                className="rounded px-1 py-1 transition hover:text-slate-900 hover:underline"
-              >
+              <a key={tab} href="#" className="rounded px-1 py-1 transition hover:text-slate-900 hover:underline">
                 {tab}
               </a>
             ))}
@@ -282,8 +346,7 @@ function SystemNavbar({ tabs, searchLabel, languageLabel, currentLanguage, onLan
           <div className="flex items-center gap-2 rounded border border-black/[0.08] px-2 py-1 text-slate-600">
             <Search className="h-3.5 w-3.5" aria-hidden />
             <span className="text-[12px]">{searchLabel}</span>
-            <kbd className="rounded border border-black/[0.12] bg-slate-100 px-1 text-[11px] text-slate-700">/
-            </kbd>
+            <kbd className="rounded border border-black/[0.12] bg-slate-100 px-1 text-[11px] text-slate-700">/</kbd>
           </div>
           <div
             aria-label={languageLabel}
@@ -316,78 +379,6 @@ function SystemNavbar({ tabs, searchLabel, languageLabel, currentLanguage, onLan
   )
 }
 
-function QuickActionsSection({ title, items }: { title: string; items: CardItem[] }) {
-  return (
-    <section className="space-y-3">
-      <SectionTitle label={title} />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {items.map((item) => (
-          <ActionCard key={item.title} {...item} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function ServiceEntrySection({ title, items }: { title: string; items: CardItem[] }) {
-  return (
-    <section className="space-y-3">
-      <SectionTitle label={title} />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {items.map((item) => (
-          <ActionCard key={item.title} {...item} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function NextStepsSection({ title, items }: { title: string; items: ChecklistItem[] }) {
-  return (
-    <section className="space-y-3">
-      <SectionTitle label={title} />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {items.map((item) => (
-          <ChecklistCard key={item.title} {...item} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function UnifiedResourcesUpdates({
-  resourcesTitle,
-  updatesTitle,
-  resources,
-  updates,
-}: {
-  resourcesTitle: string
-  updatesTitle: string
-  resources: CardItem[]
-  updates: UpdateItem[]
-}) {
-  return (
-    <section className="rounded-lg border border-black/[0.06] bg-white p-6 sm:p-8 space-y-8">
-      <div className="space-y-3">
-        <SectionTitle label={resourcesTitle} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {resources.map((item) => (
-            <ActionCard key={item.title} {...item} />
-          ))}
-        </div>
-      </div>
-      <div className="space-y-3">
-        <SectionTitle label={updatesTitle} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {updates.map((item) => (
-            <UpdateCard key={item.title} {...item} />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function SectionTitle({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -407,6 +398,26 @@ function ActionCard({ title, description, href, icon: Icon }: CardItem) {
         <div className="space-y-1">
           <div className="font-semibold text-slate-900">{title}</div>
           <p className="text-slate-600">{description}</p>
+        </div>
+      </div>
+    </a>
+  )
+}
+
+function ProductCard({ title, description, href, icon: Icon, openLabel }: ProductCardProps) {
+  return (
+    <a className={cardBaseClass} href={href}>
+      <div className="flex items-start gap-3">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-800">
+          <Icon className="h-3.5 w-3.5" aria-hidden />
+        </span>
+        <div className="space-y-1">
+          <div className="font-semibold text-slate-900">{title}</div>
+          <p className="text-slate-600">{description}</p>
+          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700">
+            {openLabel}
+            <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden />
+          </span>
         </div>
       </div>
     </a>
@@ -464,30 +475,40 @@ function ConsoleFooter() {
 
   return (
     <footer className="mt-10 bg-[#0f121a] text-slate-200">
-      <div className="mx-auto max-w-[1100px] px-4 py-6 space-y-4">
-        <div className="grid grid-cols-3 items-center">
-          <div />
-          <div className="flex justify-center gap-3">
+      <div className="mx-auto max-w-[1100px] px-4 py-6 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-[12px] text-slate-300">
+          <div className="flex items-center gap-2">
+            <a href="#" className="hover:text-white">
+              Privacy
+            </a>
+            <span className="text-slate-500">/</span>
+            <a href="#" className="hover:text-white">
+              Terms
+            </a>
+            <span className="text-slate-500">/</span>
+            <a href="#" className="hover:text-white">
+              Contact
+            </a>
+          </div>
+          <div className="flex items-center gap-3">
             {socials.map(({ label, icon: Icon, href }) => (
               <a
                 key={label}
                 href={href}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-100 transition hover:border-white/40 hover:text-white"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-100 transition hover:border-white/40 hover:text-white"
               >
                 <Icon className="h-4 w-4" aria-hidden />
                 <span className="sr-only">{label}</span>
               </a>
             ))}
-          </div>
-          <div className="flex justify-end">
-            <button className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-white/40">
+            <button className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-1.5 text-xs font-semibold text-slate-100 transition hover:border-white/40">
               <Globe className="h-4 w-4" aria-hidden />
               <span>Theme</span>
               <ChevronDown className="h-3 w-3" aria-hidden />
             </button>
           </div>
         </div>
-        <div className="text-center text-xs text-slate-400">© 2025 Cloud-Neutral</div>
+        <div className="text-left text-[12px] text-slate-400">© 2025 Cloud-Neutral</div>
       </div>
     </footer>
   )
