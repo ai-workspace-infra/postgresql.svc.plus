@@ -4,7 +4,7 @@ export const dynamic = 'error'
 
 import { useLanguage } from '@i18n/LanguageProvider'
 import {
-  Api,
+  AppWindow,
   BookOpen,
   Boxes,
   CheckCircle2,
@@ -175,7 +175,7 @@ export default function HomePage() {
       title: language === 'zh' ? 'API Explorer' : 'API Explorer',
       description: language === 'zh' ? '交互测试 REST 与 SDK。' : 'Interactively test REST and SDK calls.',
       href: '/docs/api',
-      icon: Api,
+      icon: AppWindow,
     },
   ]
 
