@@ -2,7 +2,6 @@
 
 import Navbar from '@components/Navbar'
 import Footer from '@components/Footer'
-import Sidebar from '@components/home/Sidebar'
 
 import { useLanguage } from '../../i18n/LanguageProvider'
 
@@ -30,7 +29,8 @@ type Update = {
   summary: string
 }
 
-const sectionCardClass = 'rounded-lg border border-black/10 bg-white p-6'
+const sectionCardClass =
+  'rounded-2xl border border-white/5 bg-[#0f172a] p-6 text-white shadow-[0_20px_80px_rgba(0,0,0,0.35)]'
 
 export default function Homepage() {
   const { language } = useLanguage()
@@ -216,21 +216,41 @@ export default function Homepage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#f6f7f9] text-slate-900">
+    <div className="min-h-screen bg-[#0b1120] text-white">
       <Navbar />
-      <main className="mx-auto grid w-full max-w-6xl grid-cols-[1fr_300px] gap-8 px-6 py-10">
-        <div className="flex max-w-[900px] flex-col gap-8">
-          <QuickActionsSection quickActions={quickActions} language={language} />
-          <ServiceEntryGrid services={services} language={language} />
-          <NextSteps steps={nextSteps} language={language} />
-          <Resources resources={resources} language={language} />
-          <BlogUpdates updates={updates} language={language} />
-          <Footer />
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10">
+        <div className="rounded-2xl border border-white/5 bg-gradient-to-r from-[#0f1a33] via-[#0d162c] to-[#0f1a33] p-8 shadow-[0_25px_80px_rgba(0,0,0,0.45)]">
+          <div className="flex flex-col gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-200/80">
+              {language === 'zh' ? '控制台入口' : 'Console entry stream'}
+            </p>
+            <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
+              {language === 'zh' ? '从这里开始统一管理' : 'Start orchestrating from one console'}
+            </h1>
+            <p className="text-sm text-white/70 sm:max-w-3xl">
+              {language === 'zh'
+                ? '快速进入项目、身份与交付入口，保持清晰的纵向信息流。'
+                : 'Move through projects, identity, and delivery entry points with a clear vertical flow.'}
+            </p>
+            <div className="flex flex-wrap gap-3 pt-2 text-sm text-[#7dd3fc]">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 font-semibold">
+                {language === 'zh' ? '创建应用' : 'Create application'}
+                <span aria-hidden>→</span>
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 font-semibold">
+                {language === 'zh' ? '了解更多' : 'Learn more'}
+                <span aria-hidden>↗</span>
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="sticky top-20 h-fit self-start">
-          <Sidebar />
-        </div>
+        <QuickActionsSection quickActions={quickActions} language={language} />
+        <ServiceEntryGrid services={services} language={language} />
+        <NextSteps steps={nextSteps} language={language} />
+        <Resources resources={resources} language={language} />
+        <BlogUpdates updates={updates} language={language} />
       </main>
+      <Footer />
     </div>
   )
 }
@@ -244,32 +264,32 @@ function QuickActionsSection({ quickActions, language }: SectionProps & { quickA
     <section className={sectionCardClass}>
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200/80">
             {language === 'zh' ? '快捷操作' : 'Quick actions'}
           </p>
-          <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+          <h2 className="text-lg font-semibold sm:text-xl">
             {language === 'zh' ? '快速进入常用任务' : 'Jump into routine tasks'}
           </h2>
         </div>
-        <span className="text-[12px] text-slate-500">{language === 'zh' ? '任务优先' : 'Task-first'}</span>
+        <span className="text-[12px] text-white/60">{language === 'zh' ? '任务优先' : 'Task-first'}</span>
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-3">
         {quickActions.map((item) => (
           <a
             key={item.name}
             href={item.link}
-            className="flex h-full flex-col justify-between rounded-md border border-black/10 bg-[#f9fafb] p-4 text-slate-900 transition hover:bg-[#eef1f6]"
+            className="flex h-full flex-col justify-between rounded-xl border border-white/5 bg-white/5 p-4 text-white transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08]"
           >
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-sm border border-black/10 text-sm text-slate-700">
+              <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-white">
                 {item.icon}
               </span>
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold">{item.name}</h3>
-                <p className="text-[13px] leading-snug text-slate-600">{item.description}</p>
+                <p className="text-[13px] leading-snug text-white/70">{item.description}</p>
               </div>
             </div>
-            <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#2f54c1]">
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#7dd3fc]">
               {item.action}
               <span aria-hidden>→</span>
             </span>
@@ -284,13 +304,13 @@ function ServiceEntryGrid({ services, language }: SectionProps & { services: Ser
   return (
     <section className={sectionCardClass}>
       <div className="space-y-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200/80">
           {language === 'zh' ? '云中立服务' : 'Cloud-neutral services'}
         </p>
-        <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+        <h2 className="text-lg font-semibold sm:text-xl">
           {language === 'zh' ? '进入各产品控制面' : 'Enter control planes'}
         </h2>
-        <p className="text-[13px] text-slate-600">
+        <p className="text-[13px] text-white/70">
           {language === 'zh'
             ? '保持无渐变、无装饰的卡片布局，突出入口清晰度。'
             : 'Calm, decoration-free cards that keep entry points clear.'}
@@ -301,18 +321,18 @@ function ServiceEntryGrid({ services, language }: SectionProps & { services: Ser
           <a
             key={item.name}
             href={item.link}
-            className="flex h-full flex-col justify-between rounded-md border border-black/10 bg-[#f9fafb] p-4 text-slate-900 transition hover:bg-[#eef1f6]"
+            className="flex h-full flex-col justify-between rounded-xl border border-white/5 bg-white/5 p-4 text-white transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08]"
           >
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-sm border border-black/10 text-sm text-slate-700">
+              <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-white">
                 {item.icon}
               </span>
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold">{item.name}</h3>
-                <p className="text-[13px] leading-snug text-slate-600">{item.description}</p>
+                <p className="text-[13px] leading-snug text-white/70">{item.description}</p>
               </div>
             </div>
-            <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#2f54c1]">
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#7dd3fc]">
               {item.action}
               <span aria-hidden>→</span>
             </span>
@@ -327,24 +347,24 @@ function NextSteps({ steps, language }: SectionProps & { steps: NextStep[] }) {
   return (
     <section className={sectionCardClass}>
       <div className="space-y-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200/80">
           {language === 'zh' ? '下一步' : 'Your next steps'}
         </p>
-        <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+        <h2 className="text-lg font-semibold sm:text-xl">
           {language === 'zh' ? '按步骤完成配置' : 'Complete the guided setup'}
         </h2>
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((step) => (
-          <div key={step.title} className="flex h-full flex-col gap-3 rounded-md border border-black/10 bg-[#f9fafb] p-4">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-xs font-semibold text-[#2f54c1]">
+          <div key={step.title} className="flex h-full flex-col gap-3 rounded-xl border border-white/5 bg-white/5 p-4">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/10 text-xs font-semibold text-[#7dd3fc]">
               ↺
             </span>
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-900">{step.title}</h3>
-              <p className="text-[13px] leading-snug text-slate-600">{step.description}</p>
+              <h3 className="text-sm font-semibold">{step.title}</h3>
+              <p className="text-[13px] leading-snug text-white/70">{step.description}</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#2f54c1]">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#7dd3fc]">
               {language === 'zh' ? '前往' : 'Go to step'}
               <span aria-hidden>→</span>
             </span>
@@ -359,10 +379,10 @@ function Resources({ resources, language }: SectionProps & { resources: Resource
   return (
     <section className={sectionCardClass}>
       <div className="space-y-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200/80">
           {language === 'zh' ? '资源与工具' : 'Resources & tools'}
         </p>
-        <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+        <h2 className="text-lg font-semibold sm:text-xl">
           {language === 'zh' ? '支撑任务的工具集' : 'Toolbox for your tasks'}
         </h2>
       </div>
@@ -371,18 +391,18 @@ function Resources({ resources, language }: SectionProps & { resources: Resource
           <a
             key={item.name}
             href={item.link}
-            className="flex h-full flex-col justify-between rounded-md border border-black/10 bg-[#f9fafb] p-4 text-slate-900 transition hover:bg-[#eef1f6]"
+            className="flex h-full flex-col justify-between rounded-xl border border-white/5 bg-white/5 p-4 text-white transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08]"
           >
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-sm border border-black/10 text-sm text-slate-700">
+              <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-white">
                 {item.icon}
               </span>
               <div className="space-y-1">
                 <h3 className="text-sm font-semibold">{item.name}</h3>
-                <p className="text-[13px] leading-snug text-slate-600">{item.description}</p>
+                <p className="text-[13px] leading-snug text-white/70">{item.description}</p>
               </div>
             </div>
-            <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#2f54c1]">
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#7dd3fc]">
               {item.action}
               <span aria-hidden>→</span>
             </span>
@@ -397,10 +417,10 @@ function BlogUpdates({ updates, language }: SectionProps & { updates: Update[] }
   return (
     <section className={sectionCardClass}>
       <div className="space-y-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200/80">
           {language === 'zh' ? '博客与更新' : 'Blog & updates'}
         </p>
-        <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
+        <h2 className="text-lg font-semibold sm:text-xl">
           {language === 'zh' ? '近期动态' : 'Recent activity'}
         </h2>
       </div>
@@ -408,19 +428,19 @@ function BlogUpdates({ updates, language }: SectionProps & { updates: Update[] }
         {updates.map((item) => (
           <article
             key={item.title}
-            className="flex h-full flex-col justify-between rounded-md border border-black/10 bg-[#f9fafb] p-4"
+            className="flex h-full flex-col justify-between rounded-xl border border-white/5 bg-white/5 p-4 text-white"
           >
-            <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-slate-500">
-              <span className="rounded-full border border-black/10 px-2 py-1 text-[11px] font-semibold text-slate-600">
+            <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
+              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-semibold text-white">
                 {item.tag}
               </span>
-              <span className="text-xs text-slate-500">{item.date}</span>
+              <span className="text-xs text-white/60">{item.date}</span>
             </div>
             <div className="mt-3 space-y-2">
-              <h3 className="text-sm font-semibold text-slate-900">{item.title}</h3>
-              <p className="text-[13px] leading-snug text-slate-600">{item.summary}</p>
+              <h3 className="text-sm font-semibold text-white">{item.title}</h3>
+              <p className="text-[13px] leading-snug text-white/70">{item.summary}</p>
             </div>
-            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#2f54c1]">
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#7dd3fc]">
               {language === 'zh' ? '查看' : 'View'}
               <span aria-hidden>→</span>
             </span>
