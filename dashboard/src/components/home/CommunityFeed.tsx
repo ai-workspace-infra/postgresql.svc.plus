@@ -56,47 +56,48 @@ export default function CommunityFeed({ posts = [] }: CommunityFeedProps) {
 
   return (
     <section
-      className={clsx(
-        'relative overflow-hidden',
-        designTokens.spacing.section.homepage,
-        'bg-gradient-to-tr from-brand-surface/50 via-white to-white'
-      )}
+      className={clsx('bg-[#f6f7f9]', designTokens.spacing.section.homepage)}
       aria-labelledby="community-feed"
     >
-      <div className={clsx(designTokens.layout.container, 'relative z-10 flex flex-col gap-12')}>
-        <div className="max-w-2xl space-y-4">
-          <span className="text-sm font-semibold uppercase tracking-[0.28em] text-brand-dark/80">
-            {language === 'zh' ? '社区更新' : 'Community'}
+      <div className={clsx(designTokens.layout.container, 'flex flex-col gap-6 sm:gap-8')}>
+        <div className="space-y-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+            {language === 'zh' ? '更新' : 'Updates'}
           </span>
-          <h2 id="community-feed" className="text-3xl font-bold text-slate-900 sm:text-4xl">
-            {data.title}
-          </h2>
-          <p className="text-base text-slate-600 sm:text-lg">{data.subtitle}</p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="space-y-1">
+              <h2 id="community-feed" className="text-2xl font-semibold text-slate-900 sm:text-[24px]">
+                {data.title}
+              </h2>
+              <p className="text-sm text-slate-600 sm:text-base">{data.subtitle}</p>
+            </div>
+            <Link href="/blog" className="text-sm font-semibold text-[#3467e9] hover:text-[#2957cf]">
+              {data.cta} →
+            </Link>
+          </div>
         </div>
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:[&>*]:h-full">
           {recentPosts.map((post) => (
             <article
               key={post.slug}
-              className={clsx(
-                designTokens.cards.base,
-                designTokens.transitions.homepage,
-                'flex flex-col gap-4 p-8 backdrop-blur'
-              )}
+              className="flex h-full flex-col justify-between rounded-lg border border-black/10 bg-white p-5"
             >
-              <div className="flex items-center justify-between text-sm font-semibold text-brand">
-                <span>Blog</span>
-                <span className="text-xs text-slate-500">{formatDate(post.date, language)}</span>
+              <div className="flex items-start justify-between text-[12px] text-slate-500">
+                <span className="rounded-full border border-black/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                  Blog
+                </span>
+                <span>{formatDate(post.date, language)}</span>
               </div>
-              <div className="space-y-3">
-                <h3 className="text-xl font-semibold text-slate-900 sm:text-2xl">
+              <div className="mt-3 space-y-2">
+                <h3 className="text-lg font-semibold text-slate-900">
                   <Link
                     href={`/blog/${post.slug}`}
-                    className="hover:text-brand transition-colors"
+                    className="hover:text-slate-900"
                   >
                     {post.title}
                   </Link>
                 </h3>
-                <p className="text-sm text-slate-600 sm:text-base">{post.excerpt}</p>
+                <p className="text-sm text-slate-600">{post.excerpt}</p>
                 {post.author && (
                   <p className="text-xs text-slate-500">
                     {language === 'zh' ? '作者' : 'By'} {post.author}
@@ -105,22 +106,17 @@ export default function CommunityFeed({ posts = [] }: CommunityFeedProps) {
               </div>
               <Link
                 href={`/blog/${post.slug}`}
-                className={clsx(
-                  designTokens.buttons.base,
-                  designTokens.buttons.palette.secondary,
-                  designTokens.buttons.shape.homepage,
-                  designTokens.transitions.homepage,
-                  'self-start'
-                )}
+                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#3467e9] hover:text-[#2957cf]"
               >
-                {data.cta}
+                {language === 'zh' ? '查看详情' : 'View details'}
+                <span aria-hidden>→</span>
               </Link>
             </article>
           ))}
 
           {recentPosts.length === 0 && (
-            <div className="col-span-2 flex flex-col items-center justify-center py-20">
-              <p className="text-slate-500">暂无博客更新</p>
+            <div className="col-span-2 flex flex-col items-center justify-center rounded-lg border border-black/10 bg-white py-16 text-sm text-slate-500">
+              <p>{language === 'zh' ? '暂无更新' : 'No updates yet'}</p>
             </div>
           )}
         </div>
