@@ -13,7 +13,7 @@ import {
   ClipboardList,
   Command,
   Compass,
-  Discord,
+  Disc,
   FileText,
   Github,
   Globe,
@@ -469,7 +469,7 @@ function ConsoleFooter() {
     { label: 'GitHub', icon: Github, href: 'https://github.com' },
     { label: 'X', icon: Twitter, href: 'https://x.com' },
     { label: 'LinkedIn', icon: Globe, href: 'https://www.linkedin.com' },
-    { label: 'Discord', icon: Discord, href: 'https://discord.com' },
+    { label: 'Discord', icon: Disc, href: 'https://discord.com' },
     { label: 'YouTube', icon: Youtube, href: 'https://youtube.com' },
   ]
 
