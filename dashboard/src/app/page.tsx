@@ -5,6 +5,7 @@ export const dynamic = 'error'
 import { useLanguage } from '@i18n/LanguageProvider'
 import {
   AppWindow,
+  ArrowUpRightSquare,
   BookOpen,
   Boxes,
   CheckCircle2,
@@ -25,7 +26,6 @@ import {
   Search,
   Server,
   Shield,
-  SquareArrowOutUpRight,
   Terminal,
   Twitter,
   UserRound,
@@ -230,7 +230,7 @@ export default function HomePage() {
               href="/panel"
               className="inline-flex items-center gap-2 rounded-[4px] border border-black/[0.07] bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-50"
             >
-              <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden />
+              <ArrowUpRightSquare className="h-3.5 w-3.5" aria-hidden />
               {copy.openConsole}
             </a>
             <a
@@ -416,7 +416,7 @@ function ProductCard({ title, description, href, icon: Icon, openLabel }: Produc
           <p className="text-slate-600">{description}</p>
           <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700">
             {openLabel}
-            <SquareArrowOutUpRight className="h-3.5 w-3.5" aria-hidden />
+            <ArrowUpRightSquare className="h-3.5 w-3.5" aria-hidden />
           </span>
         </div>
       </div>
@@ -458,7 +458,7 @@ function UpdateCard({ tag, date, title, description, href, icon: Icon }: UpdateI
           <div className="font-semibold text-slate-900">{title}</div>
           <p className="text-slate-600">{description}</p>
         </div>
-        <SquareArrowOutUpRight className="ml-auto h-4 w-4 text-slate-400" aria-hidden />
+        <ArrowUpRightSquare className="ml-auto h-4 w-4 text-slate-400" aria-hidden />
       </div>
     </a>
   )
