@@ -4,38 +4,42 @@ export const dynamic = 'error'
 
 import { useLanguage } from '@i18n/LanguageProvider'
 import {
+  ActivitySquare,
   AppWindow,
-  ArrowUpRightSquare,
+  ArrowRight,
   BookOpen,
-  Boxes,
+  Box,
   CheckCircle2,
-  ChevronDown,
-  ClipboardList,
+  CloudCog,
   Command,
   Compass,
-  Disc,
-  FileText,
+  ExternalLink,
   Github,
-  Globe,
-  Languages,
-  LayoutPanelLeft,
-  LayoutTemplate,
+  Globe2,
+  GraduationCap,
+  Layers,
   Link2,
-  LucideIcon,
-  Network,
-  Search,
-  Server,
-  Shield,
+  PanelsTopLeft,
+  ShieldCheck,
   Terminal,
-  Twitter,
-  UserRound,
-  Wand2,
-  Youtube,
+  TrendingUp,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, type ElementType, type ReactNode } from 'react'
 
-const cardBaseClass =
-  'rounded-[4px] border border-black/[0.07] bg-white p-4 text-[13px] transition hover:bg-slate-50'
+type CardItem = {
+  title: string
+  description: string
+  href: string
+}
+
+type ProductItem = CardItem & { icon: ElementType }
+type QuickActionItem = ProductItem
+type ChecklistItem = ProductItem & { badge: string }
+type ResourceItem = ProductItem
+type UpdateItem = ProductItem & { tag: string; date: string }
+
+const cardClasses =
+  'group relative rounded-xl border border-gray-200/80 bg-white/90 p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900'
 
 export default function HomePage() {
   const { language, setLanguage } = useLanguage()
@@ -43,12 +47,9 @@ export default function HomePage() {
   const copy = useMemo(() => {
     if (language === 'zh') {
       return {
-        tabs: ['主页', '文档', '下载', '开源', '更多服务'],
-        search: '搜索',
         consoleTitle: 'Cloud-Neutral 控制台',
-        consoleSubtitle: '统一的多云控制界面。',
+        consoleSubtitle: '针对多云工作负载的统一入口。',
         openConsole: '打开控制台',
-        docs: '文档',
         quickActions: '快捷操作',
         productMatrix: '产品矩阵',
         nextSteps: '下一步',
@@ -58,39 +59,34 @@ export default function HomePage() {
       }
     }
     return {
-      tabs: ['Home', 'Docs', 'Download', 'Open Source', 'More Services'],
-      search: 'Search',
       consoleTitle: 'Cloud-Neutral Console',
-      consoleSubtitle: 'Unified multi-cloud control surface.',
+      consoleSubtitle: 'Unified entry for cloud-neutral workloads.',
       openConsole: 'Open Console',
-      docs: 'Documentation',
-      quickActions: 'Quick actions',
-      productMatrix: 'Product matrix',
-      nextSteps: 'Next steps',
+      quickActions: 'Quick Actions',
+      productMatrix: 'Product Matrix',
+      nextSteps: 'Next Steps',
       resources: 'Resources',
       updates: 'Updates',
       languageLabel: 'Language',
     }
   }, [language])
 
-  const quickActions: CardItem[] = [
+  const quickActions: QuickActionItem[] = [
     {
-      title: language === 'zh' ? '创建项目' : 'Create project',
-      description: language === 'zh' ? '设置新的 Cloud-Neutral 项目。' : 'Set up a new Cloud-Neutral project.',
-      href: '/panel/projects/new',
-      icon: Command,
-    },
-    {
-      title: language === 'zh' ? '打开控制台' : 'Open console',
-      description: language === 'zh' ? '进入控制台管理所有模块。' : 'Enter the console to manage all modules.',
+      title: language === 'zh' ? '打开控制台' : 'Open Console',
+      description: language === 'zh'
+        ? '进入统一管理控制台。'
+        : 'Enter the unified management console.',
       href: '/panel',
-      icon: Shield,
+      icon: PanelsTopLeft,
     },
     {
       title: language === 'zh' ? '通过 GitOps 部署' : 'Deploy via GitOps',
-      description: language === 'zh' ? '连接仓库并同步环境。' : 'Connect repositories and sync environments.',
-      href: '/cloud_iac/gitops',
-      icon: Terminal,
+      description: language === 'zh'
+        ? '连接代码仓库并持续同步环境。'
+        : 'Connect repositories and continuously sync environments.',
+      href: '/cloud_iac',
+      icon: Command,
     },
   ]
 
@@ -99,13 +95,13 @@ export default function HomePage() {
       title: 'XCloudFlow',
       description: language === 'zh' ? '交付与发布流水线。' : 'Delivery and rollout pipelines.',
       href: '/panel',
-      icon: LayoutTemplate,
+      icon: Layers,
     },
     {
       title: 'XStream',
       description: language === 'zh' ? '事件流与可观测聚合。' : 'Event stream and observability aggregation.',
       href: '/insight',
-      icon: Network,
+      icon: ActivitySquare,
     },
     {
       title: 'XScopeHub',
@@ -117,51 +113,51 @@ export default function HomePage() {
       title: 'XControl',
       description: language === 'zh' ? '身份、访问与策略治理。' : 'Identity, access, and policy governance.',
       href: '/account',
-      icon: LayoutPanelLeft,
+      icon: ShieldCheck,
     },
   ]
 
   const checklist: ChecklistItem[] = [
     {
-      tag: language === 'zh' ? '身份' : 'Identity',
-      title: language === 'zh' ? '配置身份' : 'Configure identity',
-      description: language === 'zh' ? '接入身份源并定义登录策略。' : 'Connect identity sources and sign-in policies.',
+      badge: language === 'zh' ? '身份' : 'Identity',
+      title: language === 'zh' ? '配置身份' : 'Configure Identity',
+      description: language === 'zh' ? '绑定身份源并设置登录策略。' : 'Bind identity sources and sign-in policies.',
       href: '/account/connections',
-      icon: ClipboardList,
+      icon: ShieldCheck,
     },
     {
-      tag: language === 'zh' ? '应用' : 'Applications',
-      title: language === 'zh' ? '注册应用' : 'Register an app',
+      badge: language === 'zh' ? '应用' : 'Apps',
+      title: language === 'zh' ? '注册应用' : 'Register an App',
       description: language === 'zh' ? '创建客户端并配置回调。' : 'Create clients and configure callbacks.',
       href: '/account/applications',
-      icon: Boxes,
+      icon: Box,
     },
     {
-      tag: language === 'zh' ? '部署' : 'Deploy',
-      title: language === 'zh' ? '部署基础设施' : 'Deploy infrastructure',
+      badge: language === 'zh' ? '部署' : 'Deploy',
+      title: language === 'zh' ? '部署基础设施' : 'Deploy Infrastructure',
       description: language === 'zh' ? '同步 IaC 定义并推送策略。' : 'Sync IaC definitions and push policies.',
       href: '/cloud_iac',
-      icon: Server,
+      icon: CloudCog,
     },
     {
-      tag: language === 'zh' ? '监控' : 'Monitoring',
-      title: language === 'zh' ? '查看监控面板' : 'View monitoring dashboards',
+      badge: language === 'zh' ? '监控' : 'Monitoring',
+      title: language === 'zh' ? '查看监控面板' : 'View Monitoring Dashboards',
       description: language === 'zh' ? '聚合指标、日志与追踪视图。' : 'Aggregate metrics, logs, and traces.',
       href: '/insight',
-      icon: CheckCircle2,
+      icon: TrendingUp,
     },
   ]
 
-  const resources: CardItem[] = [
+  const resources: ResourceItem[] = [
     {
       title: language === 'zh' ? 'CLI 工具' : 'CLI Tools',
-      description: language === 'zh' ? '使用命令行快速管理资源。' : 'Use the CLI to manage resources quickly.',
+      description: language === 'zh' ? '使用命令行快速管理资源。' : 'Manage resources quickly from the CLI.',
       href: '/docs/cli',
       icon: Terminal,
     },
     {
       title: language === 'zh' ? '文档中心' : 'Documentation',
-      description: language === 'zh' ? '浏览控制平面与 API 指南。' : 'Explore control plane and API guides.',
+      description: language === 'zh' ? '浏览控制平面与 API 指南。' : 'Browse control plane and API guides.',
       href: '/docs',
       icon: BookOpen,
     },
@@ -169,209 +165,193 @@ export default function HomePage() {
       title: language === 'zh' ? '示例与模板' : 'Examples',
       description: language === 'zh' ? '复用配置片段与最佳实践。' : 'Reuse configuration snippets and best practices.',
       href: '/docs/examples',
-      icon: Wand2,
+      icon: AppWindow,
     },
     {
       title: language === 'zh' ? 'API Explorer' : 'API Explorer',
       description: language === 'zh' ? '交互测试 REST 与 SDK。' : 'Interactively test REST and SDK calls.',
       href: '/docs/api',
-      icon: AppWindow,
+      icon: Link2,
     },
   ]
 
   const updates: UpdateItem[] = [
     {
-      tag: language === 'zh' ? '发布' : 'Release',
+      tag: language === 'zh' ? '发布' : 'RELEASE',
       date: '2025-02-10',
-      title: language === 'zh' ? 'XCloudFlow 批次守护' : 'XCloudFlow batch guardians',
+      title: language === 'zh' ? 'XCloudFlow 守护批次' : 'XCloudFlow batch guardians',
       description: language === 'zh'
-        ? '为每个批次自动应用回滚与审批模板。'
-        : 'Apply rollback and approval templates automatically to each batch.',
+        ? '自动为批次应用回滚与审批模板。'
+        : 'Automatically apply rollback and approval templates to each batch.',
       href: '/blog/cloudflow-guardians',
       icon: CheckCircle2,
     },
     {
-      tag: language === 'zh' ? '指南' : 'Guide',
+      tag: language === 'zh' ? '指南' : 'GUIDE',
       date: '2025-01-28',
       title: language === 'zh' ? '零信任入口蓝图' : 'Zero-trust entry blueprint',
-      description: language === 'zh' ? '统一入口、流量审计与策略推送实践。' : 'Unified entry, traffic audit, and policy push practices.',
+      description: language === 'zh'
+        ? '统一入口、流量审计与策略推送实践。'
+        : 'Unified entry, traffic audit, and policy push practices.',
       href: '/blog/zero-trust-blueprint',
-      icon: FileText,
+      icon: GraduationCap,
     },
     {
-      tag: 'Blog',
+      tag: language === 'zh' ? '博客' : 'BLOG',
       date: '2025-01-12',
       title: language === 'zh' ? '跨云观测路径' : 'Cross-cloud observability paths',
-      description: language === 'zh' ? '在多云环境对齐指标与告警域。' : 'Align metrics and alert domains across clouds.',
+      description: language === 'zh'
+        ? '在多云环境对齐指标与告警域。'
+        : 'Align metrics and alert domains across clouds.',
       href: '/blog/cross-cloud-observability',
-      icon: Link2,
+      icon: ArrowRight,
     },
   ]
 
-  const productOpenLabel = language === 'zh' ? '打开' : 'Open'
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <SystemNavbar
-        tabs={copy.tabs}
-        searchLabel={copy.search}
+    <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+      <ConsoleHeader
         languageLabel={copy.languageLabel}
         currentLanguage={language}
         onLanguageChange={setLanguage}
       />
-      <main className="max-w-[1100px] mx-auto px-4 py-10 space-y-10">
-        <section className="space-y-3">
-          <div className="space-y-1">
-            <h1 className="text-xl font-semibold">{copy.consoleTitle}</h1>
-            <p className="text-sm text-slate-500">{copy.consoleSubtitle}</p>
+      <main className="mx-auto max-w-6xl space-y-16 px-6 pb-20 pt-12">
+        <section className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">{copy.consoleTitle}</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{copy.consoleSubtitle}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-[13px]">
+          <div className="flex flex-wrap gap-3 text-sm font-semibold">
             <a
               href="/panel"
-              className="inline-flex items-center gap-2 rounded-[4px] border border-black/[0.07] bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
             >
-              <ArrowUpRightSquare className="h-3.5 w-3.5" aria-hidden />
+              <PanelsTopLeft className="h-4 w-4" aria-hidden />
               {copy.openConsole}
             </a>
             <a
               href="/docs"
-              className="inline-flex items-center gap-2 rounded-[4px] border border-black/[0.07] bg-white px-3 py-1.5 font-semibold text-slate-800 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
             >
-              <BookOpen className="h-3.5 w-3.5" aria-hidden />
-              {copy.docs}
+              <BookOpen className="h-4 w-4" aria-hidden />
+              Docs
             </a>
           </div>
         </section>
 
-        <section className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1.65fr_1fr]">
-          <div className="space-y-3">
-            <SectionTitle label={copy.quickActions} />
-            <div className="space-y-3">
-              {quickActions.map((item) => (
-                <ActionCard key={item.title} {...item} />
-              ))}
-            </div>
+        <Section
+          title={copy.quickActions}
+          description={language === 'zh' ? '快捷入口，直接落地操作。' : 'Shortcut cards for immediate actions.'}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {quickActions.map((item) => (
+              <ShortcutCard key={item.title} {...item} />
+            ))}
           </div>
-          <div className="space-y-3">
-            <SectionTitle label={copy.productMatrix} />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {products.map((item) => (
-                <ProductCard key={item.title} {...item} openLabel={productOpenLabel} />
-              ))}
-            </div>
-          </div>
-        </section>
+        </Section>
 
-        <section className="space-y-3">
-          <SectionTitle label={copy.nextSteps} />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Section
+          title={copy.productMatrix}
+          description={language === 'zh' ? '核心模块的统一入口。' : 'Primary modules, accessible in one place.'}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((item) => (
+              <ProductCard key={item.title} {...item} />
+            ))}
+          </div>
+        </Section>
+
+        <Section
+          title={copy.nextSteps}
+          description={language === 'zh' ? '按顺序完成基础配置。' : 'Complete the onboarding checklist.'}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {checklist.map((item) => (
               <ChecklistCard key={item.title} {...item} />
             ))}
           </div>
-        </section>
+        </Section>
 
-        <section className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
-          <div className="space-y-3">
-            <SectionTitle label={copy.resources} />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {resources.map((item) => (
-                <ActionCard key={item.title} {...item} />
-              ))}
-            </div>
+        <Section
+          title={copy.resources}
+          description={language === 'zh' ? '文档与工具的快速集合。' : 'Documentation and tools in one place.'}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {resources.map((item) => (
+              <ResourceCard key={item.title} {...item} />
+            ))}
           </div>
-          <div className="space-y-3">
-            <SectionTitle label={copy.updates} />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {updates.map((item) => (
-                <UpdateCard key={item.title} {...item} />
-              ))}
-            </div>
+        </Section>
+
+        <Section
+          title={copy.updates}
+          description={language === 'zh' ? '最新发布与实践指南。' : 'Recent releases and guides.'}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {updates.map((item) => (
+              <UpdateCard
+                key={item.title}
+                learnMoreLabel={language === 'zh' ? '了解更多' : 'Learn more'}
+                {...item}
+              />
+            ))}
           </div>
-        </section>
+        </Section>
       </main>
       <ConsoleFooter />
     </div>
   )
 }
 
-type CardItem = {
-  title: string
-  description: string
-  href: string
-  icon: LucideIcon
-}
-
-type ProductItem = CardItem
-
-interface ProductCardProps extends ProductItem {
-  openLabel: string
-}
-
-interface ChecklistItem extends CardItem {
-  tag: string
-}
-
-interface UpdateItem extends CardItem {
-  tag: string
-  date: string
-}
-
-type NavbarProps = {
-  tabs: string[]
-  searchLabel: string
+type HeaderProps = {
   languageLabel: string
   currentLanguage: 'en' | 'zh'
   onLanguageChange: (lang: 'en' | 'zh') => void
 }
 
-function SystemNavbar({ tabs, searchLabel, languageLabel, currentLanguage, onLanguageChange }: NavbarProps) {
+function ConsoleHeader({ languageLabel, currentLanguage, onLanguageChange }: HeaderProps) {
   return (
-    <header className="border-b border-black/[0.08] bg-white">
-      <div className="mx-auto flex h-10 max-w-[1100px] items-center justify-between px-4 text-[13px] font-semibold text-slate-600">
+    <header className="border-b border-gray-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6 text-sm text-slate-700 dark:text-slate-200">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-slate-900">
-            <Globe className="h-4 w-4" aria-hidden />
-            <span className="text-sm">XControl</span>
+          <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-50">
+            <Globe2 className="h-5 w-5" aria-hidden />
+            <span>Cloud-Neutral</span>
           </div>
-          <nav className="flex items-center gap-3">
-            {tabs.map((tab) => (
-              <a key={tab} href="#" className="rounded px-1 py-1 transition hover:text-slate-900 hover:underline">
-                {tab}
-              </a>
-            ))}
+          <nav className="hidden items-center gap-3 text-xs font-medium text-slate-500 sm:flex dark:text-slate-400">
+            <span className="rounded-md px-2 py-1 hover:text-slate-800 dark:hover:text-slate-100">Console</span>
+            <span className="rounded-md px-2 py-1 hover:text-slate-800 dark:hover:text-slate-100">Docs</span>
+            <span className="rounded-md px-2 py-1 hover:text-slate-800 dark:hover:text-slate-100">Releases</span>
           </nav>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded border border-black/[0.08] px-2 py-1 text-slate-600">
-            <Search className="h-3.5 w-3.5" aria-hidden />
-            <span className="text-[12px]">{searchLabel}</span>
-            <kbd className="rounded border border-black/[0.12] bg-slate-100 px-1 text-[11px] text-slate-700">/</kbd>
+        <div className="flex items-center gap-3 text-xs font-medium">
+          <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-slate-600 dark:border-slate-800 dark:text-slate-300">
+            <Terminal className="h-4 w-4" aria-hidden />
+            <span>⌘K</span>
           </div>
           <div
             aria-label={languageLabel}
-            className="flex items-center gap-1 rounded border border-black/[0.08] px-2 py-1 text-[12px] text-slate-700"
+            className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 text-slate-700 dark:border-slate-800 dark:text-slate-200"
           >
-            <Languages className="h-3.5 w-3.5" aria-hidden />
+            <Globe2 className="h-4 w-4" aria-hidden />
             <button
               type="button"
               onClick={() => onLanguageChange('en')}
-              className={`px-1 ${currentLanguage === 'en' ? 'text-slate-900 underline' : 'text-slate-600 hover:text-slate-900'}`}
+              className={currentLanguage === 'en' ? 'font-semibold text-slate-900 dark:text-slate-50' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'}
             >
               EN
             </button>
-            <span className="text-black/30">|</span>
+            <span className="text-gray-300 dark:text-slate-600">/</span>
             <button
               type="button"
               onClick={() => onLanguageChange('zh')}
-              className={`px-1 ${currentLanguage === 'zh' ? 'text-slate-900 underline' : 'text-slate-600 hover:text-slate-900'}`}
+              className={currentLanguage === 'zh' ? 'font-semibold text-slate-900 dark:text-slate-50' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100'}
             >
               中文
             </button>
-            <ChevronDown className="h-3 w-3" aria-hidden />
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-800">
-            <UserRound className="h-4 w-4" aria-hidden />
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+            <ShieldCheck className="h-5 w-5" aria-hidden />
           </div>
         </div>
       </div>
@@ -379,86 +359,138 @@ function SystemNavbar({ tabs, searchLabel, languageLabel, currentLanguage, onLan
   )
 }
 
-function SectionTitle({ label }: { label: string }) {
+function Section({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-      <span className="h-2 w-2 rounded-full bg-slate-900" aria-hidden />
-      {label}
-    </div>
-  )
-}
-
-function ActionCard({ title, description, href, icon: Icon }: CardItem) {
-  return (
-    <a className={cardBaseClass} href={href}>
-      <div className="flex items-start gap-3">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-800">
-          <Icon className="h-3.5 w-3.5" aria-hidden />
-        </span>
-        <div className="space-y-1">
-          <div className="font-semibold text-slate-900">{title}</div>
-          <p className="text-slate-600">{description}</p>
-        </div>
+    <section className="space-y-4">
+      <div className="space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{title}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
       </div>
-    </a>
+      {children}
+    </section>
   )
 }
 
-function ProductCard({ title, description, href, icon: Icon, openLabel }: ProductCardProps) {
+function ShortcutCard({ title, description, href, icon: Icon }: QuickActionItem) {
   return (
-    <a className={cardBaseClass} href={href}>
+    <a href={href} className={cardClasses}>
       <div className="flex items-start gap-3">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-800">
-          <Icon className="h-3.5 w-3.5" aria-hidden />
-        </span>
-        <div className="space-y-1">
-          <div className="font-semibold text-slate-900">{title}</div>
-          <p className="text-slate-600">{description}</p>
-          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700">
-            {openLabel}
-            <ArrowUpRightSquare className="h-3.5 w-3.5" aria-hidden />
-          </span>
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+          <Icon className="h-6 w-6" aria-hidden />
         </div>
-      </div>
-    </a>
-  )
-}
-
-function ChecklistCard({ tag, title, description, href, icon: Icon }: ChecklistItem) {
-  return (
-    <a className={cardBaseClass} href={href}>
-      <div className="flex items-start gap-3">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-800">
-          <Icon className="h-3.5 w-3.5" aria-hidden />
-        </span>
-        <div className="space-y-1">
-          <span className="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-700">
-            {tag}
-          </span>
-          <div className="font-semibold text-slate-900">{title}</div>
-          <p className="text-slate-600">{description}</p>
-        </div>
-      </div>
-    </a>
-  )
-}
-
-function UpdateCard({ tag, date, title, description, href, icon: Icon }: UpdateItem) {
-  return (
-    <a className={cardBaseClass} href={href}>
-      <div className="flex items-start gap-3">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-800">
-          <Icon className="h-3.5 w-3.5" aria-hidden />
-        </span>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase text-slate-700">
-            <span className="rounded bg-slate-100 px-2 py-0.5">{tag}</span>
-            <span className="text-slate-500">{date}</span>
+        <div className="space-y-2">
+          <div className="text-base font-semibold text-slate-900 dark:text-slate-50">{title}</div>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+          <div className="flex items-center justify-end text-xs font-medium text-slate-400">
+            <span className="flex items-center gap-1">
+              <span>Open</span>
+              <ExternalLink className="h-4 w-4" aria-hidden />
+            </span>
           </div>
-          <div className="font-semibold text-slate-900">{title}</div>
-          <p className="text-slate-600">{description}</p>
         </div>
-        <ArrowUpRightSquare className="ml-auto h-4 w-4 text-slate-400" aria-hidden />
+      </div>
+    </a>
+  )
+}
+
+function ProductCard({ title, description, href, icon: Icon }: ProductItem) {
+  return (
+    <a href={href} className={cardClasses}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+            <Icon className="h-6 w-6" aria-hidden />
+          </div>
+          <div className="space-y-1">
+            <div className="text-base font-semibold text-slate-900 dark:text-slate-50">{title}</div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-end text-xs font-medium text-slate-400">
+          <span className="flex items-center gap-1">
+            <span>Open</span>
+            <ExternalLink className="h-4 w-4" aria-hidden />
+          </span>
+        </div>
+      </div>
+    </a>
+  )
+}
+
+function ChecklistCard({ badge, title, description, href, icon: Icon }: ChecklistItem) {
+  return (
+    <a href={href} className={cardClasses}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+            <Icon className="h-6 w-6" aria-hidden />
+          </div>
+          <div className="space-y-2">
+            <span className="inline-flex w-fit items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              {badge}
+            </span>
+            <div className="text-base font-semibold text-slate-900 dark:text-slate-50">{title}</div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-end text-xs font-medium text-slate-400">
+          <span className="flex items-center gap-1">
+            <span>Start</span>
+            <ExternalLink className="h-4 w-4" aria-hidden />
+          </span>
+        </div>
+      </div>
+    </a>
+  )
+}
+
+function ResourceCard({ title, description, href, icon: Icon }: ResourceItem) {
+  return (
+    <a href={href} className={cardClasses}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+            <Icon className="h-6 w-6" aria-hidden />
+          </div>
+          <div className="space-y-1">
+            <div className="text-base font-semibold text-slate-900 dark:text-slate-50">{title}</div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-end text-xs font-medium text-slate-400">
+          <span className="flex items-center gap-1">
+            <span>Open</span>
+            <ExternalLink className="h-4 w-4" aria-hidden />
+          </span>
+        </div>
+      </div>
+    </a>
+  )
+}
+
+function UpdateCard({ tag, date, title, description, href, icon: Icon, learnMoreLabel }: UpdateItem & { learnMoreLabel: string }) {
+  return (
+    <a href={href} className={cardClasses}>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100">
+            <Icon className="h-6 w-6" aria-hidden />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase text-slate-600 dark:text-slate-300">
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 dark:bg-slate-800">{tag}</span>
+              <span className="text-slate-400 dark:text-slate-500">{date}</span>
+            </div>
+            <div className="text-base font-semibold text-slate-900 dark:text-slate-50">{title}</div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-end text-xs font-medium text-slate-400">
+          <span className="flex items-center gap-1">
+            <span>{learnMoreLabel}</span>
+            <ExternalLink className="h-4 w-4" aria-hidden />
+          </span>
+        </div>
       </div>
     </a>
   )
@@ -467,48 +499,33 @@ function UpdateCard({ tag, date, title, description, href, icon: Icon }: UpdateI
 function ConsoleFooter() {
   const socials = [
     { label: 'GitHub', icon: Github, href: 'https://github.com' },
-    { label: 'X', icon: Twitter, href: 'https://x.com' },
-    { label: 'LinkedIn', icon: Globe, href: 'https://www.linkedin.com' },
-    { label: 'Discord', icon: Disc, href: 'https://discord.com' },
-    { label: 'YouTube', icon: Youtube, href: 'https://youtube.com' },
+    { label: 'Globe', icon: Globe2, href: 'https://cloud-neutral.example.com' },
+    { label: 'Docs', icon: BookOpen, href: '/docs' },
   ]
 
   return (
-    <footer className="mt-10 bg-[#0f121a] text-slate-200">
-      <div className="mx-auto max-w-[1100px] px-4 py-6 space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-[12px] text-slate-300">
-          <div className="flex items-center gap-2">
-            <a href="#" className="hover:text-white">
-              Privacy
-            </a>
-            <span className="text-slate-500">/</span>
-            <a href="#" className="hover:text-white">
-              Terms
-            </a>
-            <span className="text-slate-500">/</span>
-            <a href="#" className="hover:text-white">
-              Contact
-            </a>
-          </div>
+    <footer className="mt-20 bg-slate-900 text-slate-100">
+      <div className="mx-auto max-w-6xl space-y-4 px-6 py-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-slate-300">© 2025 Cloud-Neutral</div>
           <div className="flex items-center gap-3">
             {socials.map(({ label, icon: Icon, href }) => (
               <a
                 key={label}
                 href={href}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-100 transition hover:border-white/40 hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-100 transition hover:border-white/40 hover:text-white"
               >
                 <Icon className="h-4 w-4" aria-hidden />
                 <span className="sr-only">{label}</span>
               </a>
             ))}
-            <button className="inline-flex items-center gap-2 rounded border border-white/15 px-3 py-1.5 text-xs font-semibold text-slate-100 transition hover:border-white/40">
-              <Globe className="h-4 w-4" aria-hidden />
+            <button className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-white/40">
+              <ShieldCheck className="h-4 w-4" aria-hidden />
               <span>Theme</span>
-              <ChevronDown className="h-3 w-3" aria-hidden />
+              <ArrowRight className="h-4 w-4" aria-hidden />
             </button>
           </div>
         </div>
-        <div className="text-left text-[12px] text-slate-400">© 2025 Cloud-Neutral</div>
       </div>
     </footer>
   )
