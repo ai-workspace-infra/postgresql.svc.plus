@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Mail } from 'lucide-react'
+// import { Mail } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
 import LanguageToggle from './LanguageToggle'
@@ -11,7 +11,7 @@ import { AskAIButton } from './AskAIButton'
 import ReleaseChannelSelector, { ReleaseChannel } from './ReleaseChannelSelector'
 import { getFeatureToggleInfo } from '@lib/featureToggles'
 import { useUser } from '@lib/userStore'
-import SearchComponent from './search'
+// import SearchComponent from './search'
 
 const CHANNEL_ORDER: ReleaseChannel[] = ['stable', 'beta', 'develop']
 const DEFAULT_CHANNELS: ReleaseChannel[] = ['stable']
