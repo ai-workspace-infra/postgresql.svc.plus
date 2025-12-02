@@ -34,6 +34,12 @@ function applyTheme(definition: ThemeDefinition) {
   root.dataset.theme = definition.name
   root.style.setProperty('color-scheme', definition.colorScheme)
 
+  const body = document.body
+  if (body) {
+    body.dataset.theme = definition.name
+    body.style.setProperty('color-scheme', definition.colorScheme)
+  }
+
   const { colors, gradients, shadows, radii } = definition.tokens
   for (const [token, value] of Object.entries(colors)) {
     root.style.setProperty(`--color-${token}`, value)

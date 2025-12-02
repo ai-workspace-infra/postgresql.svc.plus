@@ -34,7 +34,7 @@ const heroCards = [
   },
   {
     title: 'Deploy your app',
-    description: 'Manage your application and users within ZITADEL for secure access.',
+    description: 'Manage your application and users within Cloud-Neutral Toolkit for secure access.',
     icon: Users,
   },
 ]
@@ -47,19 +47,31 @@ const nextSteps = [
 ]
 
 const stats = [
-  { value: '~150k', label: 'Applications integrated with ZITADEL' },
+  { value: '~150k', label: 'Applications integrated with Cloud-Neutral Toolkit' },
   { value: '~330k', label: 'Daily active users' },
   { value: '7', label: 'Go check out our examples & guides' },
 ]
 
 const shortcuts = [
-  { title: 'Get started', description: 'An overview of using ZITADEL', icon: Sparkles },
-  { title: 'Creating your application', description: 'Integrate ZITADEL into your application', icon: AppWindow },
-  { title: 'More about Authentication', description: 'Understand all about authenticating with ZITADEL', icon: ShieldCheck },
-  { title: 'Understanding Authorization', description: 'Scope out all about authorization using ZITADEL', icon: Lock },
-  { title: 'Machine-to-Machine', description: 'Integrate ZITADEL into your services', icon: Layers },
-  { title: 'Connect via CLI', description: 'Connect ZITADEL with your application via CLI', icon: Terminal },
-  { title: 'REST & Admin APIs', description: 'Programmatically integrate ZITADEL into your application', icon: Link },
+  { title: 'Get started', description: 'An overview of using Cloud-Neutral Toolkit', icon: Sparkles },
+  { title: 'Creating your application', description: 'Integrate Cloud-Neutral Toolkit into your application', icon: AppWindow },
+  {
+    title: 'More about Authentication',
+    description: 'Understand all about authenticating with Cloud-Neutral Toolkit',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Understanding Authorization',
+    description: 'Scope out all about authorization using Cloud-Neutral Toolkit',
+    icon: Lock,
+  },
+  { title: 'Machine-to-Machine', description: 'Integrate Cloud-Neutral Toolkit into your services', icon: Layers },
+  { title: 'Connect via CLI', description: 'Connect Cloud-Neutral Toolkit with your application via CLI', icon: Terminal },
+  {
+    title: 'REST & Admin APIs',
+    description: 'Programmatically integrate Cloud-Neutral Toolkit into your application',
+    icon: Link,
+  },
 ]
 
 export default function HomePage() {
@@ -90,9 +102,9 @@ function HeroSection() {
         </div>
         <div className="space-y-4">
           <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Create, authenticate, deploy</p>
-          <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">Get started with ZITADEL</h1>
+          <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">Get started with Cloud-Neutral Toolkit</h1>
           <p className="max-w-2xl text-lg text-slate-300">
-            Integrate ZITADEL into your application or use one of our samples to get started quickly.
+            Integrate Cloud-Neutral Toolkit into your application or use one of our samples to get started quickly.
           </p>
         </div>
         <div className="flex flex-wrap gap-3 text-sm font-semibold">
@@ -205,7 +217,7 @@ function ShortcutsSection() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">More shortcuts</p>
-          <p className="text-sm text-slate-300">Save time when integrating ZITADEL</p>
+          <p className="text-sm text-slate-300">Save time when integrating Cloud-Neutral Toolkit</p>
         </div>
         <div className="flex gap-2 text-xs font-semibold text-indigo-200">
           <button className="rounded-full border border-white/10 bg-white/5 px-3 py-1 transition hover:bg-white/10">Get Started</button>

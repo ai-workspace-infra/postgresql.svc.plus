@@ -46,6 +46,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [language])
 
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    document.documentElement.lang = language
+    document.documentElement.dataset.language = language
+  }, [language])
+
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
       {children}
