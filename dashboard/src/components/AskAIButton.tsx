@@ -5,40 +5,50 @@ import { Bot } from 'lucide-react'
 import { AskAIDialog } from './AskAIDialog'
 import { useAccess } from '@lib/accessControl'
 
-export function AskAIButton() {
+type AskAIButtonProps = {
+  variant?: 'floating' | 'navbar'
+}
+
+export function AskAIButton({ variant = 'floating' }: AskAIButtonProps) {
   const [open, setOpen] = useState(false)
   const [minimized, setMinimized] = useState(false)
   const { allowed, isLoading } = useAccess({ allowGuests: true })
+  const isFloating = variant === 'floating'
 
   if (!allowed && !isLoading) {
     return null
   }
 
+  const handleOpen = () => setOpen(true)
+  const handleMinimize = () => {
+    setOpen(false)
+    if (isFloating) {
+      setMinimized(true)
+    }
+  }
+  const handleEnd = () => {
+    setOpen(false)
+    setMinimized(false)
+  }
+
+  const buttonClassName = isFloating
+    ? `fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-purple-600 text-white shadow-lg transition hover:bg-purple-500 ${
+        minimized ? 'h-12 w-12 justify-center' : 'px-4 py-3'
+      }`
+    : 'flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 text-sm font-semibold text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/10 focus:outline-none focus:ring-2 focus:ring-indigo-300/60 focus:ring-offset-2 focus:ring-offset-slate-900'
+
+  const showTrigger = isFloating ? !open : true
+
   return (
     <>
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-purple-600 text-white shadow-lg hover:bg-purple-500 ${
-            minimized ? 'w-12 h-12 justify-center' : 'px-4 py-3'
-          }`}
-        >
-          <Bot className="w-5 h-5" />
-          {!minimized && 'Ask AI'}
+      {showTrigger ? (
+        <button type="button" onClick={handleOpen} className={buttonClassName} aria-expanded={open}>
+          <Bot className="h-4 w-4" />
+          {(!minimized || !isFloating) && <span className="text-sm">Ask AI</span>}
         </button>
-      )}
+      ) : null}
 
-      <AskAIDialog
-        open={open}
-        onMinimize={() => {
-          setOpen(false)
-          setMinimized(true)
-        }}
-        onEnd={() => {
-          setOpen(false)
-          setMinimized(false)
-        }}
-      />
+      <AskAIDialog open={open} onMinimize={handleMinimize} onEnd={handleEnd} />
     </>
   )
 }

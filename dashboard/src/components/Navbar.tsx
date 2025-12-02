@@ -7,6 +7,7 @@ import { Mail } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
 import LanguageToggle from './LanguageToggle'
+import { AskAIButton } from './AskAIButton'
 import ReleaseChannelSelector, { ReleaseChannel } from './ReleaseChannelSelector'
 import { getFeatureToggleInfo } from '@lib/featureToggles'
 import { useUser } from '@lib/userStore'
@@ -468,6 +469,7 @@ export default function Navbar() {
                 onToggle={toggleChannel}
                 variant="icon"
               />
+              <AskAIButton variant="navbar" />
             </div>
 
             <button
@@ -616,6 +618,7 @@ export default function Navbar() {
               <div className="flex flex-col gap-2">
                 <ReleaseChannelSelector selected={selectedChannels} onToggle={toggleChannel} />
                 <LanguageToggle />
+                <AskAIButton variant="navbar" />
               </div>
             </div>
           ) : null}
