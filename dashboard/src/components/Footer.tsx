@@ -9,15 +9,8 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="mt-12 flex flex-col items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-slate-300 md:flex-row">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-white">
-          <ShieldCheck className="h-5 w-5" aria-hidden />
-          <span className="font-semibold">Cloud-Neutral</span>
-        </div>
-        <span className="text-slate-400">© 2025</span>
-      </div>
-      <div className="flex items-center gap-3">
+    <footer className="mt-12 flex flex-col items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-slate-300">
+      <div className="flex items-center justify-center gap-3">
         {socials.map(({ label, icon: Icon, href }) => (
           <a
             key={label}

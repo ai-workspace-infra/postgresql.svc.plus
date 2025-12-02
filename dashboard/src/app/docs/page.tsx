@@ -6,7 +6,6 @@ import type { DocCollection } from './types'
 import { getDocResources } from './resources.server'
 import { isFeatureEnabled } from '@lib/featureToggles'
 import DocCollectionCard from './DocCollectionCard'
-import Footer from '@components/Footer'
 
 function formatMeta(resource: DocCollection) {
   const parts: string[] = []
@@ -63,7 +62,6 @@ export default async function DocsHome() {
           )}
         </section>
       </div>
-      <Footer />
     </main>
   )
 }

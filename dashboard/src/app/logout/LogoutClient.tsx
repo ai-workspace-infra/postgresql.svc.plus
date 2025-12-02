@@ -3,9 +3,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-import Navbar from '@components/Navbar'
-import Footer from '@components/Footer'
-import { AskAIButton } from '@components/AskAIButton'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { useUser } from '@lib/userStore'
@@ -40,7 +37,6 @@ export function LogoutClient() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <Navbar />
       <main className="flex flex-1 items-center justify-center px-4 pb-16 pt-28 sm:px-6 lg:px-8">
         <div className="w-full max-w-md rounded-3xl bg-white p-10 text-center shadow-xl ring-1 ring-gray-100">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
@@ -70,8 +66,6 @@ export function LogoutClient() {
           <p className="mt-3 text-sm text-gray-600">{signingOutMessage}</p>
         </div>
       </main>
-      <Footer />
-      <AskAIButton />
     </div>
   )
 }

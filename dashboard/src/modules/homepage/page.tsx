@@ -1,8 +1,5 @@
 'use client'
 
-import Navbar from '@components/Navbar'
-import Footer from '@components/Footer'
-
 import { useLanguage } from '../../i18n/LanguageProvider'
 
 type QuickAction = {
@@ -217,7 +214,6 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-[#0b1120] text-white">
-      <Navbar />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10">
         <div className="rounded-2xl border border-white/5 bg-gradient-to-r from-[#0f1a33] via-[#0d162c] to-[#0f1a33] p-8 shadow-[0_25px_80px_rgba(0,0,0,0.45)]">
           <div className="flex flex-col gap-3">
@@ -250,7 +246,6 @@ export default function Homepage() {
         <Resources resources={resources} language={language} />
         <BlogUpdates updates={updates} language={language} />
       </main>
-      <Footer />
     </div>
   )
 }
