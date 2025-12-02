@@ -47,28 +47,30 @@ function persistPreference(preference: ThemePreference) {
   window.localStorage.setItem(STORAGE_KEY, preference)
 }
 
-function buildThemeState(preference: ThemePreference, theme: ThemeName): ThemeState {
-  const definition = themeRegistry[theme]
+function buildThemeState(themePreference: ThemePreference, resolvedTheme: ThemeName): ThemeState {
+  const definition = themeRegistry[resolvedTheme]
   return {
-    preference,
-    theme,
+    theme: themePreference,
+    resolvedTheme,
     tokens: definition.tokens,
     colorScheme: definition.colorScheme,
     availableThemes,
+    isDark: resolvedTheme === 'dark',
   }
 }
 
 export type ThemeState = {
-  preference: ThemePreference
-  theme: ThemeName
+  theme: ThemePreference
+  resolvedTheme: ThemeName
   tokens: ThemeTokens
   colorScheme: 'light' | 'dark'
   availableThemes: ThemeName[]
+  isDark: boolean
 }
 
 export type ThemeActions = {
   hydrate: (initialPreference: ThemePreference) => void
-  setPreference: (preference: ThemePreference) => void
+  setTheme: (theme: ThemePreference) => void
   toggleTheme: () => void
   setSystemTheme: (theme: ThemeName) => void
 }
@@ -80,21 +82,22 @@ export const useThemeStore = create<ThemeState & ThemeActions>((set, get) => ({
     const resolvedTheme = preference === 'system' ? resolveSystemTheme() : preference
     set(buildThemeState(preference, resolvedTheme))
   },
-  setPreference: (preference) => {
+  setTheme: (preference) => {
     const resolvedTheme = preference === 'system' ? resolveSystemTheme() : preference
     persistPreference(preference)
     set(buildThemeState(preference, resolvedTheme))
   },
   toggleTheme: () => {
-    const nextTheme = get().theme === 'light' ? 'dark' : 'light'
-    get().setPreference(nextTheme)
+    const { resolvedTheme, setTheme, theme } = get()
+    const nextTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
+    setTheme(theme === 'system' ? nextTheme : (theme === 'dark' ? 'light' : 'dark'))
   },
-  setSystemTheme: (theme) => {
+  setSystemTheme: (resolvedTheme) => {
     set((state) => {
-      if (state.preference !== 'system') {
+      if (state.theme !== 'system') {
         return state
       }
-      return buildThemeState('system', theme)
+      return buildThemeState('system', resolvedTheme)
     })
   },
 }))

@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 
 import Card from '../components/Card'
-import { darkTheme, lightTheme, useTheme } from '@components/theme'
+import { darkTheme, lightTheme, useThemeStore } from '@components/theme'
 import type { ThemeDefinition, ThemeName, ThemePreference } from '@components/theme'
 
 const THEME_OPTIONS: Array<{
@@ -111,7 +111,9 @@ function ThemePreview({ definition, active }: { definition: ThemeDefinition; act
 }
 
 export default function ThemePreferenceCard() {
-  const { preference, theme, setPreference } = useTheme()
+  const preference = useThemeStore((state) => state.theme)
+  const theme = useThemeStore((state) => state.resolvedTheme)
+  const setTheme = useThemeStore((state) => state.setTheme)
 
   const normalizedPreference = useMemo<ThemePreference>(() => preference ?? 'system', [preference])
 
@@ -133,7 +135,7 @@ export default function ThemePreferenceCard() {
               <button
                 key={option.value}
                 type="button"
-                onClick={() => setPreference(option.value)}
+                onClick={() => setTheme(option.value)}
                 className={`flex flex-1 flex-col items-start gap-2 rounded-[var(--radius-xl)] border px-4 py-4 text-left transition-all md:min-h-[140px] ${
                   isSelected
                     ? 'border-[color:var(--color-primary)] bg-white text-[var(--color-primary)] shadow-[var(--shadow-md)] dark:bg-[color:var(--color-surface-elevated)]'

@@ -17,7 +17,7 @@ const COLOR_TOKENS: Array<{ key: keyof ThemeTokens['colors']; label: string }> =
 ]
 
 export default function ThemeShowcasePage() {
-  const { theme, tokens } = useTheme()
+  const { resolvedTheme, tokens } = useTheme()
   const { colors } = tokens
 
   return (
@@ -26,7 +26,7 @@ export default function ThemeShowcasePage() {
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-primary)]">Theme system</p>
         <h1 className="text-3xl font-bold text-[var(--color-heading)]">主题演示与调试</h1>
         <p className="max-w-3xl text-sm text-[var(--color-text-subtle)]">
-          当前主题：<span className="font-semibold text-[var(--color-text)]">{theme}</span>。使用下方卡片可以即时切换主题，并查看核心设计 token 的取值情况，帮助校验多主题下的界面一致性。
+          当前主题：<span className="font-semibold text-[var(--color-text)]">{resolvedTheme}</span>。使用下方卡片可以即时切换主题，并查看核心设计 token 的取值情况，帮助校验多主题下的界面一致性。
         </p>
       </header>
 

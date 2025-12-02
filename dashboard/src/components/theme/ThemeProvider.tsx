@@ -1,21 +1,9 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 
 import { getThemeDefinition, useThemeStore } from './store'
-import type { ThemeName, ThemePreference, ThemeTokens } from './types'
-
-interface ThemeContextValue {
-  theme: ThemeName
-  preference: ThemePreference
-  tokens: ThemeTokens
-  colorScheme: 'light' | 'dark'
-  availableThemes: ThemeName[]
-  setPreference: (preference: ThemePreference) => void
-  toggleTheme: () => void
-}
-
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
+import type { ThemeName, ThemePreference } from './types'
 
 function applyTheme(theme: ThemeName) {
   if (typeof document === 'undefined') {
@@ -26,6 +14,7 @@ function applyTheme(theme: ThemeName) {
   const root = document.documentElement
   root.dataset.theme = definition.name
   root.style.setProperty('color-scheme', definition.colorScheme)
+  root.classList.toggle('dark', definition.colorScheme === 'dark')
 
   const body = document.body
   if (body) {
@@ -54,13 +43,7 @@ export interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children, initialPreference = 'system' }: ThemeProviderProps) {
-  const theme = useThemeStore((state) => state.theme)
-  const preference = useThemeStore((state) => state.preference)
-  const tokens = useThemeStore((state) => state.tokens)
-  const colorScheme = useThemeStore((state) => state.colorScheme)
-  const availableThemes = useThemeStore((state) => state.availableThemes)
-  const setPreference = useThemeStore((state) => state.setPreference)
-  const toggleTheme = useThemeStore((state) => state.toggleTheme)
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
   const hydrate = useThemeStore((state) => state.hydrate)
   const setSystemTheme = useThemeStore((state) => state.setSystemTheme)
 
@@ -69,8 +52,8 @@ export function ThemeProvider({ children, initialPreference = 'system' }: ThemeP
   }, [hydrate, initialPreference])
 
   useEffect(() => {
-    applyTheme(theme)
-  }, [theme])
+    applyTheme(resolvedTheme)
+  }, [resolvedTheme])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -88,26 +71,5 @@ export function ThemeProvider({ children, initialPreference = 'system' }: ThemeP
     }
   }, [setSystemTheme])
 
-  const value = useMemo<ThemeContextValue>(
-    () => ({
-      theme,
-      preference,
-      tokens,
-      colorScheme,
-      availableThemes,
-      setPreference,
-      toggleTheme,
-    }),
-    [availableThemes, colorScheme, preference, setPreference, theme, tokens, toggleTheme],
-  )
-
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-}
-
-export function useThemeContext() {
-  const context = useContext(ThemeContext)
-  if (!context) {
-    throw new Error('useThemeContext must be used within a ThemeProvider')
-  }
-  return context
+  return <>{children}</>
 }

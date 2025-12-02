@@ -1,10 +1,11 @@
 'use client'
 import { BookOpen, Github, Globe, Link, MessageCircle, Sparkles, Moon, Sun } from 'lucide-react'
 
-import { useTheme } from '@theme/useTheme'
+import { useThemeStore } from '@components/theme'
 
 export default function Footer() {
-  const { isDark, toggleTheme } = useTheme()
+  const isDark = useThemeStore((state) => state.isDark)
+  const toggleTheme = useThemeStore((state) => state.toggleTheme)
   const socials = [
     { label: 'GitHub', icon: Github, href: 'https://github.com/CloudNativeSuite/' },
     { label: 'Docs', icon: BookOpen, href: '#' },

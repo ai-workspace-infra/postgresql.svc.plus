@@ -1,6 +1,6 @@
 'use client'
 
-import { useTheme } from '@components/theme'
+import { useThemeStore } from '@components/theme'
 
 import { useLanguage } from '../../i18n/LanguageProvider'
 
@@ -33,7 +33,10 @@ const sectionCardClass =
 
 export default function Homepage() {
   const { language, setLanguage } = useLanguage()
-  const { theme, preference, setPreference, toggleTheme } = useTheme()
+  const theme = useThemeStore((state) => state.theme)
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
+  const setTheme = useThemeStore((state) => state.setTheme)
+  const toggleTheme = useThemeStore((state) => state.toggleTheme)
 
   const quickActions: QuickAction[] = [
     {
@@ -257,16 +260,16 @@ export default function Homepage() {
                 ] as const
               ).map((option) => {
                 const active =
-                  preference === option.value ||
-                  (option.value !== 'system' && preference === 'system' && theme === option.value)
+                  theme === option.value ||
+                  (option.value !== 'system' && theme === 'system' && resolvedTheme === option.value)
                 return (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() =>
                       option.value === 'light' || option.value === 'dark'
-                        ? setPreference(option.value)
-                        : setPreference('system')
+                        ? setTheme(option.value)
+                        : setTheme('system')
                     }
                     className={`px-3 py-1 text-xs font-semibold transition-colors ${
                       active
@@ -285,10 +288,10 @@ export default function Homepage() {
               className="rounded-full border border-[color:var(--color-surface-border)] px-3 py-1 text-[11px] font-semibold text-[color:var(--color-text-subtle)] transition-colors hover:border-[color:var(--color-primary-border)] hover:text-[color:var(--color-primary)]"
             >
               {language === 'zh'
-                ? theme === 'dark'
+                ? resolvedTheme === 'dark'
                   ? '切换为浅色'
                   : '切换为深色'
-                : theme === 'dark'
+                : resolvedTheme === 'dark'
                   ? 'Switch to light'
                   : 'Switch to dark'}
             </button>
