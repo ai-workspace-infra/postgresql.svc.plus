@@ -1,0 +1,47 @@
+# Base container images
+
+This directory provides Dockerfiles for the foundational images used across the
+project. Each image is designed to keep commonly reused dependencies bundled so
+service-specific images can build faster and remain consistent.
+
+## Available images
+
+- **OpenResty + GeoIP** (`openresty-geoip.Dockerfile`): OpenResty with GeoIP2
+  libraries and `lua-resty-maxminddb` for MaxMind database lookups.
+- **PostgreSQL 16 + extensions** (`postgres-extensions.Dockerfile`): PostgreSQL
+  with `pgvector`, `pg_jieba`, and `pg_cache` compiled into the server for
+  vector search and full-text tokenization.
+- **Node.js builder** (`node-builder.Dockerfile`): Node.js 22 with Yarn, the
+  latest npm, and build essentials for compiling native Next.js dependencies.
+- **Node.js runtime** (`node-runtime.Dockerfile`): Slim Node.js 22 runtime ready
+  for production Next.js deployments.
+
+## Build commands
+
+You can build all base images at once via the repository `Makefile`:
+
+```bash
+make build-base-images
+```
+
+Or build individual images manually:
+
+```bash
+# OpenResty with GeoIP
+make docker-openresty-geoip
+
+# PostgreSQL 16 with extensions
+make docker-postgres-extensions
+
+# Node.js builder (Node 22 + Yarn)
+make docker-node-builder
+
+# Node.js 22 runtime
+make docker-node-runtime
+```
+
+Each target accepts an optional tag override, for example:
+
+```bash
+make docker-postgres-extensions POSTGRES_EXT_IMAGE=my-registry/postgres-extensions:16
+```

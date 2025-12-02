@@ -3,6 +3,11 @@ SHELL := /bin/bash
 O_BIN ?= /usr/local/go/bin
 PG_MAJOR ?= 16
 NODE_MAJOR ?= 22
+BASE_IMAGE_DIR ?= deploy/base-images
+OPENRESTY_IMAGE ?= xcontrol/openresty-geoip:latest
+POSTGRES_EXT_IMAGE ?= xcontrol/postgres-extensions:16
+NODE_BUILDER_IMAGE ?= xcontrol/node-builder:22
+NODE_RUNTIME_IMAGE ?= xcontrol/node-runtime:22
 ARCH := $(shell dpkg --print-architecture)
 PG_DSN ?= postgres://shenlan:password@127.0.0.1:5432/xserver?sslmode=disable
 
@@ -139,7 +144,9 @@ upgrade-rag-server:
         init init-nginx install-nginx upgrade-nginx reload-openresty \
         init-account install-account upgrade-account \
         init-rag-server install-rag-server upgrade-rag-server \
-        configure-hosts install-services upgrade-services
+        configure-hosts install-services upgrade-services \
+        build-base-images docker-openresty-geoip docker-postgres-extensions \
+        docker-node-builder docker-node-runtime
 
 # -----------------------------------------------------------------------------
 # Dependency installation
@@ -216,10 +223,31 @@ else
 endif
 
 # -----------------------------------------------------------------------------
+# Base container images
+# -----------------------------------------------------------------------------
+
+build-base-images:
+	@OPENRESTY_IMAGE=$(OPENRESTY_IMAGE) POSTGRES_EXT_IMAGE=$(POSTGRES_EXT_IMAGE) \
+	NODE_BUILDER_IMAGE=$(NODE_BUILDER_IMAGE) NODE_RUNTIME_IMAGE=$(NODE_RUNTIME_IMAGE) \
+		bash scripts/build-base-images.sh
+
+docker-openresty-geoip:
+	docker build -f $(BASE_IMAGE_DIR)/openresty-geoip.Dockerfile -t $(OPENRESTY_IMAGE) $(BASE_IMAGE_DIR)
+
+docker-postgres-extensions:
+	docker build -f $(BASE_IMAGE_DIR)/postgres-extensions.Dockerfile -t $(POSTGRES_EXT_IMAGE) $(BASE_IMAGE_DIR)
+
+docker-node-builder:
+	docker build -f $(BASE_IMAGE_DIR)/node-builder.Dockerfile -t $(NODE_BUILDER_IMAGE) $(BASE_IMAGE_DIR)
+
+docker-node-runtime:
+	docker build -f $(BASE_IMAGE_DIR)/node-runtime.Dockerfile -t $(NODE_RUNTIME_IMAGE) $(BASE_IMAGE_DIR)
+
+# -----------------------------------------------------------------------------
 # Database initialization
 # -----------------------------------------------------------------------------
 init-db:
-	@psql $(PG_DSN) -f rag-server/sql/schema.sql
+@psql $(PG_DSN) -f rag-server/sql/schema.sql
 
 # -----------------------------------------------------------------------------
 # Build targets
