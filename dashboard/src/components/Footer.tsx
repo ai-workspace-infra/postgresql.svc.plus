@@ -1,15 +1,17 @@
 'use client'
-import { BookOpen, Github, Globe, Link, Moon, Sun } from 'lucide-react'
+import { BookOpen, Github, Globe, Link, MessageCircle, Sparkles, Moon, Sun } from 'lucide-react'
 
 import { useTheme } from '@theme/useTheme'
 
 export default function Footer() {
   const { isDark, toggleTheme } = useTheme()
   const socials = [
-    { label: 'GitHub', icon: Github, href: 'https://github.com' },
+    { label: 'GitHub', icon: Github, href: 'https://github.com/CloudNativeSuite/' },
     { label: 'Docs', icon: BookOpen, href: '#' },
     { label: 'Globe', icon: Globe, href: '#' },
     { label: 'API', icon: Link, href: '#' },
+    { label: '微信公众号', icon: MessageCircle, href: '#' },
+    { label: '小红书', icon: Sparkles, href: '#' },
   ]
 
   const toggleLabel = isDark ? '切换为浅色主题' : '切换为深色主题'
