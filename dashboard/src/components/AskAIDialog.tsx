@@ -24,7 +24,7 @@ function renderMarkdown(text: string) {
   return DOMPurify.sanitize(marked.parse(text) as string)
 }
 
-type InitialQuestionPayload = {
+export type InitialQuestionPayload = {
   key: number
   text: string
 }

@@ -2,14 +2,15 @@
 
 import { useState } from 'react'
 import { Bot } from 'lucide-react'
-import { AskAIDialog } from './AskAIDialog'
+import { AskAIDialog, type InitialQuestionPayload } from './AskAIDialog'
 import { useAccess } from '@lib/accessControl'
 
 type AskAIButtonProps = {
   variant?: 'floating' | 'navbar'
+  initialQuestion?: InitialQuestionPayload
 }
 
-export function AskAIButton({ variant = 'floating' }: AskAIButtonProps) {
+export function AskAIButton({ variant = 'floating', initialQuestion }: AskAIButtonProps) {
   const [open, setOpen] = useState(false)
   const [minimized, setMinimized] = useState(false)
   const { allowed, isLoading } = useAccess({ allowGuests: true })
@@ -49,7 +50,12 @@ export function AskAIButton({ variant = 'floating' }: AskAIButtonProps) {
         </button>
       ) : null}
 
-      <AskAIDialog open={open} onMinimize={handleMinimize} onEnd={handleEnd} />
+      <AskAIDialog
+        open={open}
+        onMinimize={handleMinimize}
+        onEnd={handleEnd}
+        initialQuestion={initialQuestion}
+      />
     </>
   )
 }
