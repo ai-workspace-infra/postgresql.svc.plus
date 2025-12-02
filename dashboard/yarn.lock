@@ -1975,6 +1975,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"baseline-browser-mapping@npm:^2.8.32":
+  version: 2.8.32
+  resolution: "baseline-browser-mapping@npm:2.8.32"
+  bin:
+    baseline-browser-mapping: dist/cli.js
+  checksum: 10/d3223faeb8a5d5aa0c2aecc7ecff85e0f2452ba79f8a1ab170a828a1b0efd5eabf38a5264f8ea223cfdee526cf9df689cefbef2f4f22825fc462c37b3483c607
+  languageName: node
+  linkType: hard
+
 "binary-extensions@npm:^2.0.0":
   version: 2.3.0
   resolution: "binary-extensions@npm:2.3.0"
@@ -2221,6 +2230,7 @@ __metadata:
     "@types/react-grid-layout": "npm:^1.3.5"
     "@types/sanitize-html": "npm:^2.16.0"
     autoprefixer: "npm:^10.4.16"
+    baseline-browser-mapping: "npm:^2.8.32"
     dompurify: "npm:^3.2.6"
     eslint: "npm:8.57.0"
     eslint-config-next: "npm:^15.5.3"
