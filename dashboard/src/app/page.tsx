@@ -6,8 +6,6 @@ import {
   AppWindow,
   ArrowRight,
   BookOpen,
-  Box,
-  ChevronDown,
   Command,
   Github,
   Globe,
@@ -69,7 +67,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.18),transparent_35%),radial-gradient(circle_at_80%_0,rgba(168,85,247,0.15),transparent_30%),radial-gradient(circle_at_50%_60%,rgba(52,211,153,0.08),transparent_35%)]" aria-hidden />
       <div className="relative mx-auto max-w-7xl px-6 pb-20">
-        <Header />
         <main className="space-y-12 pt-10">
           <HeroSection />
           <NextStepsSection />
@@ -79,51 +76,6 @@ export default function HomePage() {
         <Footer />
       </div>
     </div>
-  )
-}
-
-function Header() {
-  const navItems = ['Organization', 'Projects', 'Users', 'Clients', 'Authorization', 'Actions']
-
-  return (
-    <header className="flex h-16 items-center justify-between">
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-3 rounded-full bg-white/5 px-3 py-2 backdrop-blur">
-          <div className="flex items-center gap-2 text-lg font-semibold text-white">
-            <Box className="h-5 w-5" aria-hidden />
-            <span>ZITADEL</span>
-          </div>
-          <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
-            cloud-beta
-          </span>
-        </div>
-        <nav className="hidden items-center gap-6 text-sm text-slate-300 lg:flex">
-          {navItems.map((item) => (
-            <a key={item} href="#" className="transition hover:text-white">
-              {item}
-            </a>
-          ))}
-        </nav>
-      </div>
-      <div className="flex items-center gap-3">
-        <button className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-white/10">
-          <BookOpen className="h-4 w-4" aria-hidden />
-          <span>Documentation</span>
-          <ChevronDown className="h-4 w-4" aria-hidden />
-        </button>
-        <button className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white transition hover:bg-white/10">
-          <Sparkles className="h-5 w-5" aria-hidden />
-        </button>
-        <button className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-white/10">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-sm font-bold text-white">S</span>
-          <div className="flex flex-col items-start leading-none">
-            <span>Default</span>
-            <span className="text-xs text-slate-300">Signing Keys</span>
-          </div>
-          <ChevronDown className="h-4 w-4" aria-hidden />
-        </button>
-      </div>
-    </header>
   )
 }
 
@@ -295,7 +247,7 @@ function Footer() {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-white">
           <ShieldCheck className="h-5 w-5" aria-hidden />
-          <span className="font-semibold">ZITADEL</span>
+          <span className="font-semibold">Cloud-Neutral</span>
         </div>
         <span className="text-slate-400">© 2025</span>
       </div>
