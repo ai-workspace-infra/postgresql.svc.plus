@@ -402,7 +402,7 @@ export default function Navbar() {
             </div>
 
             <div className="hidden flex-1 items-center justify-end gap-4 lg:flex">
-              <SearchComponent className="relative w-full max-w-xs" />
+              {/* <SearchComponent className="relative w-full max-w-xs" /> */}
               {user ? (
                 <div className="relative" ref={accountMenuRef}>
                   <button
@@ -495,11 +495,13 @@ export default function Navbar() {
           {menuOpen ? (
             <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:hidden">
               <div className="flex flex-col gap-4 border-t border-white/10 bg-slate-900/80 py-3 text-slate-100">
+                {/*
                 <SearchComponent
                   className="relative"
                   buttonClassName="h-8 w-8"
                   inputClassName="py-2 pr-12"
                 />
+                */}
                 <div className="flex flex-col gap-2 text-sm font-medium">
                   {mainLinks.map((link) => (
                     <Link
