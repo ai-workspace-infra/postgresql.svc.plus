@@ -18,6 +18,8 @@ import {
   Terminal,
   Users,
 } from 'lucide-react'
+import Footer from '../components/Footer'
+import Navbar from '../components/Navbar'
 
 const heroCards = [
   {
@@ -65,14 +67,16 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.18),transparent_35%),radial-gradient(circle_at_80%_0,rgba(168,85,247,0.15),transparent_30%),radial-gradient(circle_at_50%_60%,rgba(52,211,153,0.08),transparent_35%)]" aria-hidden />
       <div className="relative mx-auto max-w-7xl px-6 pb-20">
+        <Navbar />
         <main className="space-y-12 pt-10">
-        <HeroSection />
-        <NextStepsSection />
-        <StatsSection />
-        <ShortcutsSection />
-      </main>
+          <HeroSection />
+          <NextStepsSection />
+          <StatsSection />
+          <ShortcutsSection />
+        </main>
+        <Footer />
+      </div>
     </div>
-  </div>
   )
 }
 
