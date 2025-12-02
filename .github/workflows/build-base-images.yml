@@ -1,6 +1,12 @@
 name: Build Base Images
 
 on:
+  workflow_call:
+    inputs:
+      push_images:
+        description: "Push images instead of building locally"
+        type: boolean
+        default: true
   push:
     paths:
       - "deploy/base-images/**"
@@ -54,7 +60,7 @@ jobs:
           context: .
           file: ${{ matrix.image.file }}
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ inputs.push_images }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 

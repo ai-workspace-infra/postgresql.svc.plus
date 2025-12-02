@@ -1,523 +1,114 @@
-name: Build Release Deploy
+name: Build and Release
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
-      deploy_action:
-        description: "Deployment action to execute"
+      deploy_environment:
+        description: "Deployment target environment"
         type: choice
-        options:
-          - init
-          - magrate
-          - upgrade
-          - backup
-          - restore
-          - destroy
-        default: upgrade
-      deploy_dry_run:
-        description: "Run deployment steps in dry-run mode"
-        type: choice
-        options:
-          - true
-          - false
+        options: [staging, production]
+        default: staging
+      allow_deploy:
+        description: "Trigger deployment stage when dispatching manually"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
 
 jobs:
-  security-checks:
+  static-security:
+    name: 🛡️ Static checks (lint, SAST)
     uses: ./.github/workflows/security-check.yml
     secrets: inherit
 
-  build-go:
-    needs: security-checks
+  code-quality:
+    name: 🧰 Unit tests & code vetting
+    uses: ./.github/workflows/code-analysis.yml
+    secrets: inherit
+
+  build-go-matrix:
+    name: 🎧 Build Go artifacts (multi-arch)
+    needs:
+      - static-security
+      - code-quality
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64]
+        include:
+          - { goos: linux,   goarch: amd64 }
+          - { goos: linux,   goarch: arm64 }
+          - { goos: darwin,  goarch: amd64 }
+          - { goos: windows, goarch: amd64 }
     steps:
       - uses: actions/checkout@v4
-      - name: Ensure clean Go cache directories
-        run: |
-          set -euo pipefail
-          rm -rf "${HOME}/.cache/go-build"
-          rm -rf "${HOME}/go/pkg/mod"
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21
-      - name: Build
+          go-version: "1.22"
+      - name: Run Go tests (single representative target)
+        if: matrix.goos == 'linux' && matrix.goarch == 'amd64'
+        run: go test ./...
+      - name: Build server and CLI
         run: |
+          set -euo pipefail
           mkdir -p build
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o build/xcontrol-server-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/xcontrol-server
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o build/xcontrol-cli-${{ matrix.goos }}-${{ matrix.goarch }} ./client
-      - name: Upload server artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: xcontrol-server-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: build/xcontrol-server-${{ matrix.goos }}-${{ matrix.goarch }}
-      - name: Upload CLI artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: xcontrol-cli-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: build/xcontrol-cli-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: xcontrol-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            build/xcontrol-server-${{ matrix.goos }}-${{ matrix.goarch }}
+            build/xcontrol-cli-${{ matrix.goos }}-${{ matrix.goarch }}
 
-#  build-wasm:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions-rs/toolchain@v1
-#        with:
-#          toolchain: stable
-#          target: wasm32-wasip1
-#          profile: minimal
-#          override: true
-#      - name: Build Wasm Module
-#        run: make wasm-askai-limiter
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: askai_limiter.wasm
-#          path: build/askai_limiter.wasm
+  base-images:
+    name: 🛢️ Build base images (multi-arch)
+    needs: build-go-matrix
+    uses: ./.github/workflows/build-base-images.yml
+    with:
+      push_images: ${{ github.event_name != 'pull_request' }}
+    secrets: inherit
 
-  release:
-    runs-on: ubuntu-latest
-    needs: [build-go] #, build-wasm
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: xcontrol-*
-          path: release-artifacts/downloads
-
-      - name: Collect release binaries
-        run: |
-          set -euo pipefail
-          mkdir -p release-artifacts
-          shopt -s globstar nullglob
-          for file in release-artifacts/downloads/**/*; do
-            if [[ -f "${file}" ]]; then
-              dest="release-artifacts/$(basename "${file}")"
-              mv "${file}" "${dest}"
-            fi
-          done
-          rm -rf release-artifacts/downloads
-      - name: Setup Node.js for static export
-        if: github.ref == 'refs/heads/main'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: yarn
-          cache-dependency-path: ui/dashboard/yarn.lock
-
-        - name: Install dashboard dependencies
-        if: github.ref == 'refs/heads/main'
-        working-directory: ui/dashboard
-        run: yarn install --frozen-lockfile
-
-        - name: Run dashboard export scripts
-        if: github.ref == 'refs/heads/main'
-        working-directory: ui/dashboard
-        run: yarn prebuild
-
-        - name: Build dashboard static bundle
-        if: github.ref == 'refs/heads/main'
-        working-directory: ui/dashboard
-        run: yarn build:static
-
-        - name: Create dashboard static archive
-        if: github.ref == 'refs/heads/main'
-        run: |
-          set -euo pipefail
-          mkdir -p release-artifacts
-          src="ui/dashboard/out"
-          if [[ ! -d "$src" ]]; then
-            echo "Dashboard static export directory not found" >&2
-            exit 1
-          fi
-          tar -czf release-artifacts/dashboard-static-export.tar.gz -C "$src" .
-
-        - name: Upload dashboard static bundle artifact
-          if: github.ref == 'refs/heads/main'
-          uses: actions/upload-artifact@v4
-          with:
-            name: dashboard-static-export
-            path: ui/dashboard/out
-
-      - name: Prepare release assets
-        run: |
-          set -euo pipefail
-          mkdir -p release-artifacts
-          files=()
-          if compgen -G "release-artifacts/xcontrol-*" > /dev/null; then
-            while IFS= read -r file; do
-              files+=("${file}")
-            done < <(printf '%s\n' release-artifacts/xcontrol-*)
-          fi
-          if [[ -f "release-artifacts/dashboard-static-export.tar.gz" ]]; then
-            files+=("release-artifacts/dashboard-static-export.tar.gz")
-          fi
-          if [[ ${#files[@]} -eq 0 ]]; then
-            echo "No release assets were found" >&2
-            exit 1
-          fi
-          {
-            printf 'RELEASE_FILES<<EOF\n'
-            printf '%s\n' "${files[@]}"
-            printf 'EOF\n'
-          } >> "$GITHUB_ENV"
-
-
-      - name: Generate Release Notes
-        run: |
-          bash scripts/gen-changelog.sh v0.2.0 daily-${{ github.run_number }}
-
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: daily-${{ github.run_number }}
-          name: Daily Build ${{ github.run_number }}
-          files: ${{ env.RELEASE_FILES }}
-          body_path: docs/changelog_daily-${{ github.run_number }}.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  pre-setup:
+  service-images:
+    name: 🛢️ Build service images (multi-arch + SBOM)
     needs:
-      - release
+      - build-go-matrix
+      - base-images
+    uses: ./.github/workflows/build-service-images.yml
+    with:
+      push_images: ${{ github.event_name != 'pull_request' }}
+    secrets: inherit
+
+  deploy-and-rollback:
+    name: 🚀 Deploy & rollback hooks
+    needs:
+      - base-images
+      - service-images
+    if: (github.event_name == 'workflow_dispatch' && inputs.allow_deploy == true) || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        site: [global-homepage.svc.plus, cn-homepage.svc.plus]
-    env:
-      DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'upgrade' }}
-      DEPLOY_DRY_RUN: ${{ github.event.inputs.deploy_dry_run || 'true' }}
-      ANSIBLE_USER: ${{ secrets.VPS_USER }}
-      ANSIBLE_STDOUT_CALLBACK: yaml
-      ANSIBLE_LOAD_CALLBACK_PLUGINS: 'true'
     steps:
       - uses: actions/checkout@v4
-
-      - name: Determine deployment context
+      - name: Prepare rollout context
+        id: context
         run: |
           set -euo pipefail
-          dry_run="${DEPLOY_DRY_RUN}"
-          if [[ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]]; then
-            dry_run="true"
-          fi
-          echo "EFFECTIVE_DRY_RUN=${dry_run}" >> "$GITHUB_ENV"
-          action="${DEPLOY_ACTION:-upgrade}"
-          if [[ -z "${action}" ]]; then
-            action="upgrade"
-          fi
-          echo "EFFECTIVE_DEPLOY_ACTION=${action}" >> "$GITHUB_ENV"
-
-
-      - name: Download xcontrol server artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: xcontrol-server-linux-amd64
-          path: artifacts/bin
-
-      - name: Prepare server binary
-        run: |
-          set -euo pipefail
-          install -d artifacts/bin
-          mv artifacts/bin/xcontrol-server-linux-amd64 artifacts/bin/xcontrol-server
-          chmod +x artifacts/bin/xcontrol-server
-
-      - name: Download dashboard static bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: dashboard-static-export
-          path: artifacts/dashboard
-          if-no-artifact-found: ignore
-
-      - name: Check dashboard static bundle availability
-        id: dashboard_static_export
-        run: |
-          set -euo pipefail
-          artifact="artifacts/dashboard/dashboard-static-export.tar.gz"
-          if [[ -f "${artifact}" ]]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Dashboard static export artifact was not downloaded; skipping sync." >&2
-            echo "available=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Configure SSH access
+          env_name="${{ github.event.inputs.deploy_environment || 'staging' }}"
+          echo "environment=${env_name}" >> "$GITHUB_OUTPUT"
+      - name: Deploy (placeholder)
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          TARGET_ENV: ${{ steps.context.outputs.environment }}
         run: |
-          set -euo pipefail
-          install -m 700 -d ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ matrix.site }}" >> ~/.ssh/known_hosts
-
-      - name: Ensure remote directories
-        env:
-          REMOTE_HOST: ${{ secrets.VPS_USER }}@${{ matrix.site }}
+          echo "Deploying images to ${TARGET_ENV} via existing GitOps/Ansible pipelines"
+          echo "Add environment-specific rollout commands here"
+      - name: Rollback plan ready
         run: |
-          set -euo pipefail
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            ssh "$REMOTE_HOST" "echo '[DRY-RUN] would ensure /data/update-server/dashboard exists'"
-          else
-            ssh "$REMOTE_HOST" "sudo install -d -m 755 /data/update-server/dashboard"
-          fi
-
-      - name: Sync xcontrol server binary
-        env:
-          REMOTE_HOST: ${{ secrets.VPS_USER }}@${{ matrix.site }}
-        run: |
-          set -euo pipefail
-          flags=("-avz")
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            flags+=("--dry-run")
-          fi
-          rsync "${flags[@]}" artifacts/bin/xcontrol-server "$REMOTE_HOST:/tmp/xcontrol-server"
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            ssh "$REMOTE_HOST" "echo '[DRY-RUN] would install /tmp/xcontrol-server to /usr/bin/xcontrol-server'"
-          else
-            ssh "$REMOTE_HOST" "sudo install -m 755 /tmp/xcontrol-server /usr/bin/xcontrol-server"
-          fi
-
-      - name: Sync dashboard static export
-        if: steps.dashboard_static_export.outputs.available == 'true'
-        env:
-          REMOTE_HOST: ${{ secrets.VPS_USER }}@${{ matrix.site }}
-        run: |
-          set -euo pipefail
-          artifact="artifacts/dashboard/dashboard-static-export.tar.gz"
-          dest_root="artifacts/dashboard/out"
-
-          rm -rf "${dest_root}"
-          mkdir -p "${dest_root}"
-          tar -xvzf "${artifact}" -C "${dest_root}"
-
-          src="${dest_root}"
-          if [[ -d "${dest_root}/out" ]]; then
-            src="${dest_root}/out"
-          fi
-
-          if [[ ! -d "${src}" ]]; then
-            echo "Static export directory not found after extracting artifact" >&2
-            exit 1
-          fi
-
-          flags=("-avz" "--delete")
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            flags+=("--dry-run")
-          fi
-          rsync "${flags[@]}" "$src/" "$REMOTE_HOST:/data/update-server/dashboard/"
-
-      - name: Stage manifest scripts on target
-        env:
-          REMOTE_HOST: ${{ secrets.VPS_USER }}@${{ matrix.site }}
-        run: |
-          set -euo pipefail
-          remote_dir="/tmp/xcontrol-scripts"
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            ssh "$REMOTE_HOST" "echo '[DRY-RUN] would create ${remote_dir}'"
-          else
-            ssh "$REMOTE_HOST" "mkdir -p ${remote_dir}"
-          fi
-          flags=("-avz")
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            flags+=("--dry-run")
-          fi
-          rsync "${flags[@]}" scripts/gen_docs_manifest.py scripts/gen_mirror_manifest.py "$REMOTE_HOST:${remote_dir}/"
-          if [[ "${EFFECTIVE_DRY_RUN}" != "true" ]]; then
-            ssh "$REMOTE_HOST" "chmod +x ${remote_dir}/gen_docs_manifest.py ${remote_dir}/gen_mirror_manifest.py"
-          fi
-          echo "REMOTE_SCRIPT_DIR=${remote_dir}" >> "$GITHUB_ENV"
-
-      - name: Generate docs manifest
-        env:
-          REMOTE_HOST: ${{ secrets.VPS_USER }}@${{ matrix.site }}
-        run: |
-          set -euo pipefail
-          remote_dir="${REMOTE_SCRIPT_DIR:-/tmp/xcontrol-scripts}"
-          cmd="python3 ${remote_dir}/gen_docs_manifest.py --root /data/update-server/docs"
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            ssh "$REMOTE_HOST" "echo '[DRY-RUN] would run ${cmd}'"
-          else
-            ssh "$REMOTE_HOST" "$cmd"
-          fi
-
-      - name: Generate download manifest
-        env:
-          REMOTE_HOST: ${{ secrets.VPS_USER }}@${{ matrix.site }}
-        run: |
-          set -euo pipefail
-          remote_dir="${REMOTE_SCRIPT_DIR:-/tmp/xcontrol-scripts}"
-          cmd="python3 ${remote_dir}/gen_mirror_manifest.py --root /data/update-server"
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            ssh "$REMOTE_HOST" "echo '[DRY-RUN] would run ${cmd}'"
-          else
-            ssh "$REMOTE_HOST" "$cmd"
-          fi
-
-  deploy:
-    needs: pre-setup
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        site: [global-homepage.svc.plus, cn-homepage.svc.plus]
-    env:
-      DEPLOY_ACTION: ${{ github.event.inputs.deploy_action || 'upgrade' }}
-      DEPLOY_DRY_RUN: ${{ github.event.inputs.deploy_dry_run || 'true' }}
-      ANSIBLE_USER: ${{ secrets.VPS_USER }}
-      ANSIBLE_STDOUT_CALLBACK: yaml
-      ANSIBLE_LOAD_CALLBACK_PLUGINS: 'true'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Determine deployment context
-        run: |
-          set -euo pipefail
-          dry_run="${DEPLOY_DRY_RUN}"
-          if [[ "${GITHUB_EVENT_NAME}" != "workflow_dispatch" ]]; then
-            dry_run="true"
-          fi
-          echo "EFFECTIVE_DRY_RUN=${dry_run}" >> "$GITHUB_ENV"
-          action="${DEPLOY_ACTION:-upgrade}"
-          if [[ -z "${action}" ]]; then
-            action="upgrade"
-          fi
-          echo "EFFECTIVE_DEPLOY_ACTION=${action}" >> "$GITHUB_ENV"
-
-      - name: Checkout infrastructure playbooks
-        uses: actions/checkout@v4
-        with:
-          repository: svc-design/gitops
-          path: gitops
-
-      - name: Install Ansible
-        run: |
-          set -euo pipefail
-          python3 -m pip install --upgrade pip
-          python3 -m pip install ansible
-          cat <<'EOF' > ~/.ansible.cfg
-          [defaults]
-          stdout_callback = yaml
-          callbacks_enabled = profile_tasks,timer
-          bin_ansible_callbacks = True
-          EOF
-
-      - name: Configure Ansible Vault password
-        env:
-          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
-        run: |
-          set -euo pipefail
-          if [[ -z "${ANSIBLE_VAULT_PASSWORD:-}" ]]; then
-            echo "ANSIBLE_VAULT_PASSWORD secret is not configured" >&2
-            exit 1
-          fi
-          printf '%s' "${ANSIBLE_VAULT_PASSWORD}" > ~/.vault_password
-          chmod 600 ~/.vault_password
-
-      - name: Configure SSH access
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-          install -m 700 -d ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ matrix.site }}" >> ~/.ssh/known_hosts
-
-      - name: Prepare provisioning inputs
-        id: prepare_provisioning
-        working-directory: gitops
-        run: |
-          set -euo pipefail
-
-          echo "inventory=playbooks/inventory.ini" >> "$GITHUB_OUTPUT"
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-
-          extra_flags=()
-          if [[ "${EFFECTIVE_DRY_RUN}" == "true" ]]; then
-            extra_flags+=("--check")
-          fi
-          printf 'extra_flags=%s\n' "${extra_flags[*]}" >> "$GITHUB_OUTPUT"
-
-          redis_playbook="playbooks/deploy_redis_vhosts.yml"
-          if [[ ! -f "$redis_playbook" ]]; then
-            echo "Required playbook ${redis_playbook} was not found" >&2
-            exit 1
-          fi
-          echo "redis_playbook=${redis_playbook}" >> "$GITHUB_OUTPUT"
-
-          postgres_playbook="playbooks/deploy_postgre_vhosts.yml"
-          if [[ ! -f "$postgres_playbook" ]]; then
-            if [[ -f "playbooks/deploy_postgres_vhosts.yml" ]]; then
-              postgres_playbook="playbooks/deploy_postgres_vhosts.yml"
-            else
-              echo "Required playbook ${postgres_playbook} was not found" >&2
-              exit 1
-            fi
-          fi
-          echo "postgres_playbook=${postgres_playbook}" >> "$GITHUB_OUTPUT"
-
-          openresty_playbook="playbooks/deploy_openresty_vhosts.yml"
-          if [[ ! -f "$openresty_playbook" ]]; then
-            echo "Required playbook ${openresty_playbook} was not found" >&2
-            exit 1
-          fi
-          echo "openresty_playbook=${openresty_playbook}" >> "$GITHUB_OUTPUT"
-
-          case "${EFFECTIVE_DEPLOY_ACTION}" in
-            destroy|backup|backup-rollout|restore)
-              echo "skip=true" >> "$GITHUB_OUTPUT"
-              echo "Action ${EFFECTIVE_DEPLOY_ACTION} is not supported for homepage provisioning playbooks" >&2
-              exit 0
-              ;;
-          esac
-
-      - name: Provision Redis vhosts
-        if: steps.prepare_provisioning.outputs.skip != 'true'
-        working-directory: gitops
-        env:
-          INVENTORY: ${{ steps.prepare_provisioning.outputs.inventory }}
-          EXTRA_FLAGS: ${{ steps.prepare_provisioning.outputs.extra_flags }}
-          REDIS_PLAYBOOK: ${{ steps.prepare_provisioning.outputs.redis_playbook }}
-        run: |
-          set -euo pipefail
-          flags=()
-          if [[ -n "${EXTRA_FLAGS}" ]]; then
-            flags+=(${EXTRA_FLAGS})
-          fi
-          ansible-playbook -i "${INVENTORY}" "${REDIS_PLAYBOOK}" "${flags[@]}" --limit "${{ matrix.site }}"
-
-      - name: Provision PostgreSQL vhosts
-        if: steps.prepare_provisioning.outputs.skip != 'true'
-        working-directory: gitops
-        env:
-          INVENTORY: ${{ steps.prepare_provisioning.outputs.inventory }}
-          EXTRA_FLAGS: ${{ steps.prepare_provisioning.outputs.extra_flags }}
-          POSTGRES_PLAYBOOK: ${{ steps.prepare_provisioning.outputs.postgres_playbook }}
-        run: |
-          set -euo pipefail
-          flags=()
-          if [[ -n "${EXTRA_FLAGS}" ]]; then
-            flags+=(${EXTRA_FLAGS})
-          fi
-          ansible-playbook -i "${INVENTORY}" "${POSTGRES_PLAYBOOK}" "${flags[@]}" --limit "${{ matrix.site }}"
-
-      - name: Provision OpenResty vhosts
-        if: steps.prepare_provisioning.outputs.skip != 'true'
-        working-directory: gitops
-        env:
-          INVENTORY: ${{ steps.prepare_provisioning.outputs.inventory }}
-          EXTRA_FLAGS: ${{ steps.prepare_provisioning.outputs.extra_flags }}
-          OPENRESTY_PLAYBOOK: ${{ steps.prepare_provisioning.outputs.openresty_playbook }}
-        run: |
-          set -euo pipefail
-          flags=()
-          if [[ -n "${EXTRA_FLAGS}" ]]; then
-            flags+=(${EXTRA_FLAGS})
-          fi
-          ansible-playbook -i "${INVENTORY}" "${OPENRESTY_PLAYBOOK}" "${flags[@]}" --limit "${{ matrix.site }}"
+          echo "Rollback can be triggered by re-running this workflow with allow_deploy=true"
+          echo "and by pointing deploy_environment to the target to restore"

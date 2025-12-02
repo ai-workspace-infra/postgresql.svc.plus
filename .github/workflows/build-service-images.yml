@@ -1,6 +1,12 @@
 name: Build Service Images
 
 on:
+  workflow_call:
+    inputs:
+      push_images:
+        description: "Push images instead of local builds"
+        type: boolean
+        default: true
   push:
     branches: [ main ]
     paths:
@@ -71,7 +77,7 @@ jobs:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.file }}
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ inputs.push_images }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
