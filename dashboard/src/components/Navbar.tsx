@@ -290,9 +290,9 @@ export default function Navbar() {
         ref={navRef}
         className="fixed top-0 z-50 w-full border-b border-white/10 bg-slate-950/95 text-slate-100 backdrop-blur"
       >
-        <div className="mx-auto flex max-w-7xl flex-col px-6 sm:px-8">
-          <div className="flex items-center gap-5 py-3">
-            <div className="flex flex-1 items-center gap-5">
+        <div className="mx-auto flex max-w-7xl flex-col items-center px-6 sm:px-8">
+          <div className="flex items-center justify-center gap-5 py-3">
+            <div className="flex flex-1 items-center justify-center gap-5">
               <Link href="/" className="flex items-center gap-2 rounded-md border border-white/5 bg-slate-900/60 px-2.5 py-1.5 text-sm font-medium text-white/90 transition hover:bg-slate-800/60">
                 <Image
                   src="/icons/cloudnative_32.png"
