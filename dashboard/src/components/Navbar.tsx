@@ -289,11 +289,11 @@ export default function Navbar() {
     <>
       <nav
         ref={navRef}
-        className="fixed top-0 z-50 w-full border-b border-white/10 bg-slate-950/95 text-slate-100 backdrop-blur"
+        className="sticky top-0 z-50 w-full border-b border-white/10 bg-slate-950/95 text-slate-100 backdrop-blur"
       >
-        <div className="mx-auto flex max-w-7xl flex-col items-center px-6 sm:px-8">
-          <div className="flex items-center justify-center gap-5 py-3">
-            <div className="flex flex-1 items-center justify-center gap-5">
+        <div className="mx-auto w-full max-w-7xl px-6 sm:px-8">
+          <div className="flex items-center gap-5 py-3">
+            <div className="flex flex-1 items-center gap-5">
               <Link href="/" className="flex items-center gap-2 rounded-md border border-white/5 bg-slate-900/60 px-2.5 py-1.5 text-sm font-medium text-white/90 transition hover:bg-slate-800/60">
                 <Image
                   src="/icons/cloudnative_32.png"
@@ -469,7 +469,6 @@ export default function Navbar() {
                 onToggle={toggleChannel}
                 variant="icon"
               />
-              <AskAIButton variant="navbar" />
             </div>
 
             <button
@@ -494,136 +493,139 @@ export default function Navbar() {
           </div>
 
           {menuOpen ? (
-            <div className="flex flex-col gap-4 border-t border-white/10 bg-slate-900/80 py-3 text-slate-100 lg:hidden">
-              <SearchComponent
-                className="relative"
-                buttonClassName="h-8 w-8"
-                inputClassName="py-2 pr-12"
-              />
-              <div className="flex flex-col gap-2 text-sm font-medium">
-                {mainLinks.map((link) => (
-                  <Link
-                    key={link.key}
-                    href={link.href}
-                    className="py-2 text-sm opacity-80 transition hover:opacity-100"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                {serviceItems.length > 0 ? (
-                  <div>
-                    <button
-                      className="flex w-full items-center justify-between py-2 text-sm opacity-80"
-                      onClick={() => setMobileServicesOpen((prev) => !prev)}
+            <div className="mx-auto w-full max-w-7xl px-6 sm:px-8 lg:hidden">
+              <div className="flex flex-col gap-4 border-t border-white/10 bg-slate-900/80 py-3 text-slate-100">
+                <SearchComponent
+                  className="relative"
+                  buttonClassName="h-8 w-8"
+                  inputClassName="py-2 pr-12"
+                />
+                <div className="flex flex-col gap-2 text-sm font-medium">
+                  {mainLinks.map((link) => (
+                    <Link
+                      key={link.key}
+                      href={link.href}
+                      className="py-2 text-sm opacity-80 transition hover:opacity-100"
+                      onClick={() => setMenuOpen(false)}
                     >
-                      <span>{labels.moreServices}</span>
-                      <svg
-                        className={`h-4 w-4 transform transition ${mobileServicesOpen ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
+                      {link.label}
+                    </Link>
+                  ))}
+                  {serviceItems.length > 0 ? (
+                    <div>
+                      <button
+                        className="flex w-full items-center justify-between py-2 text-sm opacity-80"
+                        onClick={() => setMobileServicesOpen((prev) => !prev)}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                    {mobileServicesOpen ? (
-                      <div className="pl-4 text-sm text-slate-300">
-                        {serviceItems.map((child) => {
-                          const isExternal = child.href.startsWith('http')
-                          if (isExternal) {
+                        <span>{labels.moreServices}</span>
+                        <svg
+                          className={`h-4 w-4 transform transition ${mobileServicesOpen ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {mobileServicesOpen ? (
+                        <div className="pl-4 text-sm text-slate-300">
+                          {serviceItems.map((child) => {
+                            const isExternal = child.href.startsWith('http')
+                            if (isExternal) {
+                              return (
+                                <a
+                                  key={child.key}
+                                  href={child.href}
+                                  className="block py-2 text-sm opacity-80 transition hover:opacity-100"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => setMenuOpen(false)}
+                                >
+                                  <span className="flex items-center gap-2">
+                                    <span>{child.label}</span>
+                                    {getPreviewBadge(child.channels)}
+                                  </span>
+                                </a>
+                              )
+                            }
+
                             return (
-                              <a
+                              <Link
                                 key={child.key}
                                 href={child.href}
                                 className="block py-2 text-sm opacity-80 transition hover:opacity-100"
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 onClick={() => setMenuOpen(false)}
                               >
                                 <span className="flex items-center gap-2">
                                   <span>{child.label}</span>
                                   {getPreviewBadge(child.channels)}
                                 </span>
-                              </a>
+                              </Link>
                             )
-                          }
-
-                          return (
-                            <Link
-                              key={child.key}
-                              href={child.href}
-                              className="block py-2 text-sm opacity-80 transition hover:opacity-100"
-                              onClick={() => setMenuOpen(false)}
-                            >
-                              <span className="flex items-center gap-2">
-                                <span>{child.label}</span>
-                                {getPreviewBadge(child.channels)}
-                              </span>
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-              {user ? (
-                <div className="rounded-xl border border-white/10 bg-slate-800/80 p-4 text-slate-100 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-sm font-semibold text-white">
-                      {accountInitial}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold">{user.username}</p>
-                      <p className="text-xs text-slate-300">{user.email}</p>
+                          })}
+                        </div>
+                      ) : null}
                     </div>
+                  ) : null}
+                </div>
+                {user ? (
+                  <div className="rounded-xl border border-white/10 bg-slate-800/80 p-4 text-slate-100 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-sm font-semibold text-white">
+                        {accountInitial}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold">{user.username}</p>
+                        <p className="text-xs text-slate-300">{user.email}</p>
+                      </div>
+                    </div>
+                    <Link
+                      href="/panel"
+                      className="mt-3 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/10"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {accountCopy.userCenter}
+                    </Link>
+                    <Link
+                      href="/logout"
+                      className="mt-3 inline-flex items-center justify-center rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:border-rose-300/60 hover:bg-rose-500/10 focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:ring-offset-2 focus:ring-offset-slate-900"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {accountCopy.logout}
+                    </Link>
                   </div>
-                  <Link
-                    href="/panel"
-                    className="mt-3 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/10"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {accountCopy.userCenter}
-                  </Link>
-                  <Link
-                    href="/logout"
-                    className="mt-3 inline-flex items-center justify-center rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:border-rose-300/60 hover:bg-rose-500/10 focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:ring-offset-2 focus:ring-offset-slate-900"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {accountCopy.logout}
-                  </Link>
+                ) : (
+                  <div className="flex items-center gap-3 text-sm font-medium">
+                    <Link
+                      href="/login"
+                      className="py-2 text-sm opacity-80 transition hover:opacity-100"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {nav.account.login}
+                    </Link>
+                    <span className="h-3 w-px bg-white/20" aria-hidden="true" />
+                    <Link
+                      href="/register"
+                      className="rounded-md border border-white/10 px-3 py-1.5 text-indigo-100 transition hover:border-indigo-300/50 hover:bg-white/10"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {nav.account.register}
+                    </Link>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <ReleaseChannelSelector selected={selectedChannels} onToggle={toggleChannel} />
+                  <LanguageToggle />
                 </div>
-              ) : (
-                <div className="flex items-center gap-3 text-sm font-medium">
-                  <Link
-                    href="/login"
-                    className="py-2 text-sm opacity-80 transition hover:opacity-100"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {nav.account.login}
-                  </Link>
-                  <span className="h-3 w-px bg-white/20" aria-hidden="true" />
-                  <Link
-                    href="/register"
-                    className="rounded-md border border-white/10 px-3 py-1.5 text-indigo-100 transition hover:border-indigo-300/50 hover:bg-white/10"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {nav.account.register}
-                  </Link>
-                </div>
-              )}
-              <div className="flex flex-col gap-2">
-                <ReleaseChannelSelector selected={selectedChannels} onToggle={toggleChannel} />
-                <LanguageToggle />
-                <AskAIButton variant="navbar" />
               </div>
             </div>
           ) : null}
         </div>
       </nav>
+
+      <AskAIButton />
 
     </>
   )
