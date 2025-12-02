@@ -1,0 +1,98 @@
+name: Build Service Images
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "dashboard/**"
+      - "rag-server/**"
+      - "account/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io
+  ORG: cloudnativesuite
+
+jobs:
+  build-service:
+    strategy:
+      matrix:
+        service:
+          - { name: dashboard,    context: dashboard,    file: dashboard/Dockerfile, lint: "pnpm lint" }
+          - { name: rag-server,   context: rag-server,   file: rag-server/Dockerfile, lint: "go vet ./..." }
+          - { name: account,      context: account,      file: account/Dockerfile, lint: "go vet ./..." }
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Lint
+      - name: Lint
+        working-directory: ${{ matrix.service.context }}
+        run: |
+          if [ -f package.json ]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+            pnpm lint || exit 1
+          elif [ -f go.mod ]; then
+            go vet ./...
+          fi
+
+      # Login
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Metadata
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=latest
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.file }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
+          output-file: sbom.spdx.json
+
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+
+      - uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: Cosign
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          IMG=${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
+          cosign sign --yes "$IMG"
