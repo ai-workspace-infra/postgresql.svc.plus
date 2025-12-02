@@ -3,7 +3,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-// import { Mail } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { translations } from '../i18n/translations'
 import LanguageToggle from './LanguageToggle'
@@ -456,13 +455,7 @@ export default function Navbar() {
                   </Link>
                 </div>
               )}
-              <Link
-                href="/panel/mail"
-                className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/10 hover:text-white lg:flex"
-                aria-label="Mail center"
-              >
-                <Mail className="h-4 w-4" />
-              </Link>
+              {/* Mail feature temporarily disabled */}
               <LanguageToggle />
               <ReleaseChannelSelector
                 selected={selectedChannels}
