@@ -1,7 +1,7 @@
 'use client'
 import { BookOpen, Github, Globe, Link, Moon, Sun } from 'lucide-react'
 
-import { useTheme } from '@theme'
+import { useTheme } from '@theme/useTheme'
 
 export default function Footer() {
   const { isDark, toggleTheme } = useTheme()
