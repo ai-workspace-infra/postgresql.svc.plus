@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { Minus, X } from 'lucide-react'
 import { ChatBubble } from './ChatBubble'
 import { SourceHint } from './SourceHint'
 
@@ -304,48 +305,67 @@ export function AskAIDialog({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      <div className="hidden md:block flex-1 bg-black/40" onClick={onMinimize} />
-      <div className="w-full md:w-1/2 h-full bg-white shadow-xl flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">Ask anything about your docs</h2>
-          <div className="flex gap-2 text-gray-500">
-            <button onClick={onMinimize} className="hover:text-gray-800" title="Minimize">
-              –
-            </button>
-            <button onClick={handleEnd} className="hover:text-gray-800" title="End conversation">
-              End
-            </button>
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onMinimize} />
+      <div className="absolute inset-y-0 right-0 flex w-full justify-end">
+        <div className="relative flex h-full w-full max-w-3xl flex-col bg-white shadow-2xl sm:max-w-[520px]">
+          <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-gray-500">Ask AI</p>
+              <h2 className="text-lg font-semibold text-gray-900">Ask anything about your docs</h2>
+            </div>
+            <div className="flex items-center gap-2 text-gray-500">
+              <button
+                onClick={onMinimize}
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                title="Minimize"
+                aria-label="Minimize chat"
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <button
+                onClick={handleEnd}
+                className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                title="Close"
+                aria-label="End conversation"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto p-4 text-gray-800 space-y-4">
-          {messages.map((m, idx) => (
-            <ChatBubble key={idx} message={m.text} type={m.sender} />
-          ))}
-          {sources.length > 0 && <SourceHint sources={sources} />}
-        </div>
+          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 text-gray-800">
+            {messages.map((m, idx) => (
+              <ChatBubble key={idx} message={m.text} type={m.sender} />
+            ))}
+            {sources.length > 0 && <SourceHint sources={sources} />}
+          </div>
 
-        <div className="border-t p-4">
-          <textarea
-            className="w-full border p-3 rounded-lg mb-4 text-black"
-            rows={3}
-            placeholder="Type your question..."
-            value={question}
-            onChange={e => setQuestion(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleAsk()
-              }
-            }}
-          />
-          <button
-            onClick={handleAsk}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-          >
-            Ask
-          </button>
+          <div className="border-t px-4 py-3">
+            <div className="space-y-3 rounded-xl bg-gray-50 p-3 shadow-inner">
+              <textarea
+                className="w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-black shadow-sm outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200"
+                rows={3}
+                placeholder="Type your question..."
+                value={question}
+                onChange={e => setQuestion(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleAsk()
+                  }
+                }}
+              />
+              <div className="flex items-center justify-end">
+                <button
+                  onClick={handleAsk}
+                  className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                >
+                  Ask
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
