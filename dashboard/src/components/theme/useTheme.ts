@@ -2,7 +2,7 @@ import { useThemeStore } from './store'
 import type { ThemeName, ThemePreference, ThemeTokens } from './types'
 
 export interface UseThemeResult {
-  theme: ThemeName
+  theme: ThemePreference
   preference: ThemePreference
   tokens: ThemeTokens
   colorScheme: 'light' | 'dark'
@@ -25,6 +25,7 @@ export function useTheme(): UseThemeResult {
 
   return {
     theme,
+    preference: theme,
     resolvedTheme,
     tokens,
     colorScheme,

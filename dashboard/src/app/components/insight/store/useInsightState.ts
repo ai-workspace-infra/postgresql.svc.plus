@@ -145,11 +145,10 @@ export const useInsightStore = create<InsightStore>((set, get) => ({
 if (typeof window !== 'undefined') {
   useInsightStore.getState().hydrateFromURL()
   useInsightStore.subscribe(
-    (storeState) => storeState.state,
-    (next, prev) => {
-      if (next === prev) return
+    (storeState, prevState) => {
+      if (!prevState || storeState.state === prevState.state) return
       useInsightStore.getState().syncToURL()
     },
-    { fireImmediately: true },
   )
+  useInsightStore.getState().syncToURL()
 }
