@@ -8,7 +8,7 @@ import { getExtensionRegistry } from '@extensions/loader'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { resolveAccess } from '@lib/accessControl'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 const registry = getExtensionRegistry()
 const PlaceholderIcon: ComponentType<{ className?: string }> = () => null
@@ -42,7 +42,7 @@ export default function Sidebar({ className = '', onNavigate }: SidebarProps) {
   const pathname = usePathname()
   const { language } = useLanguage()
   const copy = translations[language].userCenter.mfa
-  const { user } = useUser()
+  const user = useUserStore((state) => state.user)
   const requiresSetup = Boolean(user && (!user.mfaEnabled || user.mfaPending))
 
   const navSections = useMemo<NavSection[]>(() => {

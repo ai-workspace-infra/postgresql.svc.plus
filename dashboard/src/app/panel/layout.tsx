@@ -10,7 +10,7 @@ import { getExtensionRegistry } from '@extensions/loader'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 import { resolveAccess, type AccessRule } from '@lib/accessControl'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 const registry = getExtensionRegistry()
 
@@ -30,7 +30,9 @@ export default function PanelLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const { language } = useLanguage()
   const copy = translations[language].userCenter.mfa
-  const { user, isLoading, logout } = useUser()
+  const user = useUserStore((state) => state.user)
+  const isLoading = useUserStore((state) => state.isLoading)
+  const logout = useUserStore((state) => state.logout)
   const requiresSetup = Boolean(user && (!user.mfaEnabled || user.mfaPending))
 
   const routeGuards = useMemo<RouteGuard[]>(() => {

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
 
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 import type { UserRole } from '@lib/userStore'
 
 const ROLE_BADGES: Record<UserRole, { label: string; className: string }> = {
@@ -43,7 +43,8 @@ function resolveAccountInitial(input?: string | null) {
 }
 
 export default function Header({ onMenu }: HeaderProps) {
-  const { user, isLoading } = useUser()
+  const user = useUserStore((state) => state.user)
+  const isLoading = useUserStore((state) => state.isLoading)
   const role: UserRole = user?.role ?? 'guest'
   const badge = ROLE_BADGES[role]
   const accountLabel = user?.name ?? user?.username ?? user?.email ?? 'Guest user'

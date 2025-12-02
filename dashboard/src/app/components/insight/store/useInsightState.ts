@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { create } from 'zustand'
+
 import {
   DEFAULT_INSIGHT_STATE,
   InsightState,
@@ -69,49 +70,51 @@ function resolveBaseUrl() {
   return ''
 }
 
-export function useInsightState() {
-  const [state, setState] = useState<InsightState>(() => {
+type InsightStore = {
+  state: InsightState
+  shareableLink: string
+  setInsight: (next: InsightState) => void
+  updateInsight: (partial: Partial<InsightState>) => void
+  hydrateFromURL: () => InsightState
+  syncToURL: () => void
+}
+
+export const useInsightStore = create<InsightStore>((set, get) => ({
+  state: DEFAULT_INSIGHT_STATE,
+  shareableLink: '',
+  setInsight: (next) => set({ state: next }),
+  updateInsight: (partial) =>
+    set((current) => ({
+      state: {
+        ...current.state,
+        ...partial,
+      },
+    })),
+  hydrateFromURL: () => {
     if (typeof window === 'undefined') {
-      return DEFAULT_INSIGHT_STATE
+      return get().state
     }
     const shareId = getShareIdFromSearch(window.location.search)
     if (shareId) {
       const decoded = decodeStateId(shareId)
       if (decoded) {
-        return deserializeInsightState(decoded)
+        const hydrated = deserializeInsightState(decoded)
+        set({ state: hydrated })
+        return hydrated
       }
     }
-    return deserializeInsightState(window.location.hash)
-  })
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const syncFromLocation = () => {
-      const shareId = getShareIdFromSearch(window.location.search)
-      if (shareId) {
-        const decoded = decodeStateId(shareId)
-        if (decoded) {
-          setState(deserializeInsightState(decoded))
-          return
-        }
-      }
-      setState(deserializeInsightState(window.location.hash))
+    const hydrated = deserializeInsightState(window.location.hash)
+    set({ state: hydrated })
+    return hydrated
+  },
+  syncToURL: () => {
+    if (typeof window === 'undefined') {
+      set({ shareableLink: resolveBaseUrl() })
+      return
     }
 
-    syncFromLocation()
-    window.addEventListener('popstate', syncFromLocation)
-    window.addEventListener('hashchange', syncFromLocation)
-    return () => {
-      window.removeEventListener('popstate', syncFromLocation)
-      window.removeEventListener('hashchange', syncFromLocation)
-    }
-  }, [])
-
-  const serializedState = useMemo(() => serializeInsightState(state), [state])
-  const [shareableLink, setShareableLink] = useState('')
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
+    const serializedState = serializeInsightState(get().state)
     const encoded = encodeStateId(serializedState)
     const currentUrl = new URL(window.location.href)
     const basePath = getBasePath(currentUrl.pathname)
@@ -135,16 +138,18 @@ export function useInsightState() {
     }
 
     const baseUrl = resolveBaseUrl()
-    if (!baseUrl) {
-      setShareableLink(encoded || '')
-      return
-    }
-    setShareableLink(encoded ? `${baseUrl}?share=${encoded}` : baseUrl)
-  }, [serializedState])
+    set({ shareableLink: encoded ? `${baseUrl}?share=${encoded}` : baseUrl })
+  },
+}))
 
-  const updateState = useCallback((partial: Partial<InsightState>) => {
-    setState(prev => ({ ...prev, ...partial }))
-  }, [])
-
-  return { state, updateState, shareableLink }
+if (typeof window !== 'undefined') {
+  useInsightStore.getState().hydrateFromURL()
+  useInsightStore.subscribe(
+    (storeState) => storeState.state,
+    (next, prev) => {
+      if (next === prev) return
+      useInsightStore.getState().syncToURL()
+    },
+    { fireImmediately: true },
+  )
 }

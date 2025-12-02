@@ -2,10 +2,10 @@
 
 import { useMemo } from 'react'
 
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 export function useTenantAuthContext() {
-  const { user } = useUser()
+  const user = useUserStore((state) => state.user)
 
   return useMemo(() => {
     const memberships = user?.tenants ?? []

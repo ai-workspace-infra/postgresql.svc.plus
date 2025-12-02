@@ -12,7 +12,7 @@ import { ExploreBuilder, languageMeta } from '../components/insight/explore/Expl
 import { VizArea } from '../components/insight/viz/VizArea'
 import { SLOPanel } from '../components/insight/slo/SLOPanel'
 import { AIAssistant } from '../components/insight/ai/Assistant'
-import { useInsightState } from '../components/insight/store/useInsightState'
+import { useInsightStore } from '../components/insight/store/useInsightState'
 import { DataSource, QueryLanguage } from '../components/insight/store/urlState'
 
 const LAYOUT_STORAGE_KEY = 'insight-workspace-layout-v1'
@@ -25,7 +25,9 @@ const DEFAULT_LAYOUT: Layout[] = [
 ]
 
 export default function InsightWorkbench() {
-  const { state, updateState, shareableLink } = useInsightState()
+  const state = useInsightStore((store) => store.state)
+  const updateState = useInsightStore((store) => store.updateInsight)
+  const shareableLink = useInsightStore((store) => store.shareableLink)
   const [activeSection, setActiveSection] = useState('topology')
   const [history, setHistory] = useState<Record<QueryLanguage, string[]>>({
     promql: [],

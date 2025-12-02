@@ -1,13 +1,5 @@
 'use client'
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-} from 'react'
-import useSWR from 'swr'
 import { create } from 'zustand'
 
 export type UserRole = 'guest' | 'user' | 'operator' | 'admin'
@@ -46,27 +38,16 @@ type User = {
 
 export type SessionUser = User | null
 
-type UserContextValue = {
-  user: User | null
-  isLoading: boolean
-  login: () => Promise<void>
-  logout: () => Promise<void>
-  refresh: () => Promise<void>
-}
-
 type UserStore = {
   user: User | null
+  isLoading: boolean
   setUser: (user: User | null) => void
+  clearUser: () => void
+  hydrateFromAPI: () => Promise<User | null>
+  refresh: () => Promise<User | null>
+  login: () => Promise<void>
+  logout: () => Promise<void>
 }
-
-const sessionStore = create<UserStore>((set) => ({
-  user: null,
-  setUser: (user) => set({ user }),
-}))
-
-const UserContext = createContext<UserContextValue | undefined>(undefined)
-
-const SESSION_CACHE_KEY = 'account_session'
 
 const KNOWN_ROLE_MAP: Record<string, UserRole> = {
   admin: 'admin',
@@ -230,37 +211,22 @@ async function fetchSessionUser(): Promise<User | null> {
   }
 }
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
-  const user = sessionStore((state) => state.user)
-  const setUser = sessionStore((state) => state.setUser)
-
-  const {
-    data,
-    isLoading,
-    mutate,
-  } = useSWR<User | null>(SESSION_CACHE_KEY, fetchSessionUser, {
-    refreshInterval: 60_000,
-    revalidateOnFocus: true,
-    shouldRetryOnError: true,
-  })
-
-  useEffect(() => {
-    if (data === undefined) {
-      return
-    }
-    setUser(data)
-  }, [data, setUser])
-
-  const refresh = useCallback(async () => {
-    const nextUser = await mutate()
-    setUser(nextUser ?? null)
-  }, [mutate, setUser])
-
-  const login = useCallback(async () => {
-    await refresh()
-  }, [refresh])
-
-  const logout = useCallback(async () => {
+export const useUserStore = create<UserStore>((set, get) => ({
+  user: null,
+  isLoading: true,
+  setUser: (user) => set({ user }),
+  clearUser: () => set({ user: null }),
+  hydrateFromAPI: async () => {
+    set({ isLoading: true })
+    const sessionUser = await fetchSessionUser()
+    set({ user: sessionUser, isLoading: false })
+    return sessionUser
+  },
+  refresh: async () => get().hydrateFromAPI(),
+  login: async () => {
+    await get().hydrateFromAPI()
+  },
+  logout: async () => {
     try {
       await fetch('/api/auth/session', {
         method: 'DELETE',
@@ -270,28 +236,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       console.warn('Failed to clear user session', error)
     }
 
-    await refresh()
-  }, [refresh])
+    await get().hydrateFromAPI()
+  },
+}))
 
-  const value = useMemo(
-    () => ({
-      user,
-      isLoading,
-      login,
-      logout,
-      refresh,
-    }),
-    [user, isLoading, login, logout, refresh],
-  )
-
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
-}
-
-export function useUser() {
-  const context = useContext(UserContext)
-  if (!context) {
-    throw new Error('useUser must be used within a UserProvider')
-  }
-
-  return context
+if (typeof window !== 'undefined') {
+  useUserStore.getState().hydrateFromAPI().catch((error) => {
+    console.warn('User store hydration failed', error)
+    useUserStore.setState({ isLoading: false })
+  })
 }

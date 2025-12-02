@@ -7,7 +7,7 @@ import { Copy } from 'lucide-react'
 
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 import Card from './Card'
 import VlessQrCard from './VlessQrCard'
@@ -39,7 +39,9 @@ export default function UserOverview() {
   const { language } = useLanguage()
   const copy = translations[language].userCenter.overview
   const mfaCopy = translations[language].userCenter.mfa
-  const { user, isLoading, logout } = useUser()
+  const user = useUserStore((state) => state.user)
+  const isLoading = useUserStore((state) => state.isLoading)
+  const logout = useUserStore((state) => state.logout)
   const [copied, setCopied] = useState(false)
 
   const displayName = useMemo(() => resolveDisplayName(user), [user])

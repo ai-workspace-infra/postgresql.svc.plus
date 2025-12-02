@@ -9,7 +9,7 @@ import LanguageToggle from './LanguageToggle'
 import { AskAIButton } from './AskAIButton'
 import ReleaseChannelSelector, { ReleaseChannel } from './ReleaseChannelSelector'
 import { getFeatureToggleInfo } from '@lib/featureToggles'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 // import SearchComponent from './search'
 
 const CHANNEL_ORDER: ReleaseChannel[] = ['stable', 'beta', 'develop']
@@ -37,7 +37,7 @@ export default function Navbar() {
   const [selectedChannels, setSelectedChannels] = useState<ReleaseChannel[]>(['stable'])
   const navRef = useRef<HTMLElement | null>(null)
   const { language } = useLanguage()
-  const { user } = useUser()
+  const user = useUserStore((state) => state.user)
   const nav = translations[language].nav
   const channelLabels = nav.releaseChannels
   const accountCopy = nav.account

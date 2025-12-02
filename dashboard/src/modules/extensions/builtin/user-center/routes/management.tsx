@@ -11,7 +11,7 @@ import PermissionMatrixEditor, {
 } from '../management/components/PermissionMatrixEditor'
 import UserGroupManagement, { type ManagedUser } from '../management/components/UserGroupManagement'
 import { resolveAccess } from '@lib/accessControl'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 type UserMetricsResponse = {
   overview: MetricsOverview
@@ -57,7 +57,8 @@ async function jsonFetcher<T>(input: RequestInfo, init?: RequestInit): Promise<T
 }
 
 export default function UserCenterManagementRoute() {
-  const { user, isLoading: isUserLoading } = useUser()
+  const user = useUserStore((state) => state.user)
+  const isUserLoading = useUserStore((state) => state.isLoading)
   const accessDecision = useMemo(() => resolveAccess(user, { requireLogin: true, roles: ['admin', 'operator'] }), [user])
   const canAccess = accessDecision.allowed
   const canEditPermissions = Boolean(user?.isAdmin)

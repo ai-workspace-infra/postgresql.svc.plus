@@ -8,7 +8,7 @@ import { toDataURL as generateQrCode } from 'qrcode'
 import Card from '../components/Card'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 type TotpStatus = {
   totpEnabled?: boolean
@@ -101,7 +101,9 @@ export default function MfaSetupPanel() {
   const copy = translations[language].userCenter.mfa
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, refresh, logout } = useUser()
+  const user = useUserStore((state) => state.user)
+  const refresh = useUserStore((state) => state.refresh)
+  const logout = useUserStore((state) => state.logout)
 
   const [status, setStatus] = useState<TotpStatus | null>(null)
   const [secret, setSecret] = useState('')

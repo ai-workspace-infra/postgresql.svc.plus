@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 export function LoginForm() {
   const router = useRouter()
@@ -14,7 +14,8 @@ export function LoginForm() {
   const pageCopy = translations[language].login
   const authCopy = translations[language].auth.login
   const navCopy = translations[language].nav.account
-  const { user, login } = useUser()
+  const user = useUserStore((state) => state.user)
+  const login = useUserStore((state) => state.login)
   const userEmail = user?.email ?? ''
   const [identifier, setIdentifier] = useState(() => userEmail)
   const [password, setPassword] = useState('')

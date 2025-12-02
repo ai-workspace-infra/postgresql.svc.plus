@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation'
 
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import { useUser } from '@lib/userStore'
+import { useUserStore } from '@lib/userStore'
 
 export function LogoutClient() {
   const router = useRouter()
-  const { logout } = useUser()
+  const logout = useUserStore((state) => state.logout)
   const { language } = useLanguage()
   const navCopy = translations[language].nav.account
   const signingOutMessage = language === 'zh' ? '正在安全退出，请稍候…' : 'Signing you out safely. One moment…'

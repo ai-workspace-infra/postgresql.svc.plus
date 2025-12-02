@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { useUser } from './userStore'
+import { useUserStore } from './userStore'
 import type { SessionUser, TenantMembership, UserRole } from './userStore'
 
 type AccessReason = 'unauthenticated' | 'forbidden'
@@ -96,7 +96,8 @@ export function resolveAccess(user: SessionUser, rule?: AccessRule): AccessDecis
 }
 
 export function useAccess(rule?: AccessRule) {
-  const { user, isLoading } = useUser()
+  const user = useUserStore((state) => state.user)
+  const isLoading = useUserStore((state) => state.isLoading)
 
   const decision = useMemo(() => resolveAccess(user, rule), [user, rule])
 
