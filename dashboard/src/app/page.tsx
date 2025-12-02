@@ -18,7 +18,8 @@ import {
   Terminal,
   Users,
 } from 'lucide-react'
-import { AppShell } from '@components/common/AppShell'
+import Footer from '../components/Footer'
+import Navbar from '../components/Navbar'
 
 const heroCards = [
   {
@@ -63,24 +64,19 @@ const shortcuts = [
 
 export default function HomePage() {
   return (
-    <AppShell>
-      <div className="space-y-10 lg:space-y-12">
-        <section className="relative overflow-hidden rounded-2xl border border-white/5 bg-slate-900/80 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur sm:p-8 lg:p-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 via-transparent to-indigo-500/10" aria-hidden />
-          <div className="relative">
-            <HeroSection />
-          </div>
-        </section>
-
-        <div className="grid gap-6 lg:grid-cols-[320px,1fr] xl:gap-8">
-          <div className="space-y-6">
-            <NextStepsSection />
-            <StatsSection />
-          </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(56,189,248,0.18),transparent_35%),radial-gradient(circle_at_80%_0,rgba(168,85,247,0.15),transparent_30%),radial-gradient(circle_at_50%_60%,rgba(52,211,153,0.08),transparent_35%)]" aria-hidden />
+      <div className="relative mx-auto max-w-7xl px-6 pb-20">
+        <Navbar />
+        <main className="space-y-12 pt-10">
+          <HeroSection />
+          <NextStepsSection />
+          <StatsSection />
           <ShortcutsSection />
-        </div>
+        </main>
+        <Footer />
       </div>
-    </AppShell>
+    </div>
   )
 }
 
@@ -132,9 +128,9 @@ function HeroSection() {
           <LogoPill label="Laravel" />
         </div>
       </div>
-      <div className="space-y-3 rounded-2xl border border-white/5 bg-slate-950/40 p-5 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur">
+      <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl shadow-slate-900/40 backdrop-blur">
         {heroCards.map((card) => (
-          <div key={card.title} className="group relative overflow-hidden rounded-xl border border-white/5 bg-slate-900/80 p-4 transition hover:border-indigo-400/50 hover:bg-slate-900/90">
+          <div key={card.title} className="group relative overflow-hidden rounded-xl border border-white/10 bg-slate-900/70 p-4 transition hover:border-indigo-400/50 hover:bg-slate-900">
             <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100" aria-hidden>
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-sky-400/10" />
             </div>
@@ -160,20 +156,14 @@ function HeroSection() {
 
 function NextStepsSection() {
   return (
-    <section className="rounded-2xl border border-white/5 bg-slate-900/80 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur">
-      <header className="flex items-center justify-between gap-3 text-sm text-slate-300">
-        <div className="flex items-center gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Your Next Steps</p>
-          <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-indigo-200">Data detected</span>
-        </div>
-        <span className="hidden text-xs text-slate-400 lg:inline">Personalized to your recent activity</span>
+    <section className="space-y-4">
+      <header className="flex items-center gap-3 text-sm text-slate-300">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Your Next Steps</p>
+        <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-indigo-200">Data detected</span>
       </header>
-      <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         {nextSteps.map((item) => (
-          <div
-            key={item.title}
-            className="flex items-start gap-3 rounded-xl border border-white/5 bg-slate-950/40 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.25)]"
-          >
+          <div key={item.title} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4 shadow-lg shadow-slate-900/30">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-200">
               <item.icon className="h-5 w-5" aria-hidden />
             </div>
@@ -196,13 +186,10 @@ function NextStepsSection() {
 
 function StatsSection() {
   return (
-    <section className="rounded-2xl border border-white/5 bg-slate-900/80 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur">
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+    <section className="rounded-2xl border border-white/10 bg-gradient-to-r from-white/5 via-white/0 to-white/5 p-6 shadow-inner shadow-slate-900/50">
+      <div className="grid gap-6 md:grid-cols-3">
         {stats.map((stat) => (
-          <div
-            key={stat.label}
-            className="rounded-xl border border-white/5 bg-slate-950/40 p-4 text-center shadow-[0_20px_80px_rgba(0,0,0,0.25)] md:text-left"
-          >
+          <div key={stat.label} className="space-y-1 text-center md:text-left">
             <div className="text-3xl font-semibold text-white">{stat.value}</div>
             <p className="text-sm text-slate-300">{stat.label}</p>
           </div>
@@ -214,24 +201,24 @@ function StatsSection() {
 
 function ShortcutsSection() {
   return (
-    <section className="rounded-2xl border border-white/5 bg-slate-900/80 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">More shortcuts</p>
           <p className="text-sm text-slate-300">Save time when integrating ZITADEL</p>
         </div>
-        <div className="flex flex-wrap gap-2 text-xs font-semibold text-indigo-200">
+        <div className="flex gap-2 text-xs font-semibold text-indigo-200">
           <button className="rounded-full border border-white/10 bg-white/5 px-3 py-1 transition hover:bg-white/10">Get Started</button>
           <button className="rounded-full border border-white/10 bg-white/5 px-3 py-1 transition hover:bg-white/10">Docs</button>
           <button className="rounded-full border border-white/10 bg-white/5 px-3 py-1 transition hover:bg-white/10">Guides</button>
         </div>
       </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {shortcuts.map((item) => (
           <a
             key={item.title}
             href="#"
-            className="group flex items-start gap-3 rounded-xl border border-white/5 bg-slate-950/40 p-4 transition hover:-translate-y-[1px] hover:border-indigo-400/50 hover:bg-slate-900/80"
+            className="group flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition hover:-translate-y-[1px] hover:border-indigo-400/50 hover:bg-slate-900/60"
           >
             <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-200">
               <item.icon className="h-5 w-5" aria-hidden />
