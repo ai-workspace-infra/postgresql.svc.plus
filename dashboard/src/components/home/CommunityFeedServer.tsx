@@ -1,4 +1,4 @@
-import { getHomepagePosts } from '@cms/content'
+import { getHomepagePosts } from '@lib/marketingContent'
 import CommunityFeed from './CommunityFeed'
 
 export default async function CommunityFeedServer() {

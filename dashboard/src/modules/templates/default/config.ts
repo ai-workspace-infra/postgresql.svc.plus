@@ -1,4 +1,4 @@
-import type { CommonHomeLayoutConfig } from '@templates/layouts/commonHome'
+import type { CommonHomeLayoutConfig } from '../layouts/commonHome'
 
 export const defaultHomeLayoutConfig: CommonHomeLayoutConfig = {
   rootClassName: 'relative min-h-screen bg-brand-surface text-brand-navy antialiased',
@@ -17,8 +17,6 @@ export const defaultHomeLayoutConfig: CommonHomeLayoutConfig = {
     containerClassName: 'relative px-8',
     contentClassName: 'mx-auto w-full max-w-6xl',
     gridClassName: 'grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-12',
-    slots: [
-      { key: 'CommunityFeed' },
-    ],
+    slots: [{ key: 'CommunityFeed' }],
   },
 }

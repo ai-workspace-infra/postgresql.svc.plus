@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
-import type { SidebarSection } from '@cms/content'
+import type { SidebarSection } from '@lib/marketingContent'
 
 interface SidebarCardProps {
   section: SidebarSection

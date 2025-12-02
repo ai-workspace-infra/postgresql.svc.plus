@@ -1,7 +1,7 @@
 import ProductMatrix from '@components/home/ProductMatrix'
 import Sidebar from '@components/home/Sidebar'
 
-import { defaultHomeLayoutConfig } from '@cms/templates/default/config'
+import { defaultHomeLayoutConfig } from './config'
 
 import { createCommonHomeTemplate } from '../layouts/commonHome'
 import type { TemplateDefinition } from '../types'

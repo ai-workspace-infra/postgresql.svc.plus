@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 import { useLanguage } from '../../i18n/LanguageProvider'
 import { designTokens } from '@theme/designTokens'
-import type { HomepagePost } from '@cms/content'
+import type { HomepagePost } from '@lib/marketingContent'
 
 const feed: Record<'zh' | 'en', { title: string; subtitle: string; cta: string }> = {
   zh: {

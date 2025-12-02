@@ -1,6 +1,6 @@
 import ContactPanelClient from './ContactPanelClient'
 
-import { getContactPanelContent } from '@cms/content'
+import { getContactPanelContent } from '@lib/marketingContent'
 
 type ContactPanelProps = {
   className?: string

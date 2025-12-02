@@ -1,4 +1,4 @@
-import { getHomepageHero, getHeroSolutions } from '@cms/content'
+import { getHomepageHero, getHeroSolutions } from '@lib/marketingContent'
 import HeroBannerClient from './HeroBannerClient'
 
 export default async function HeroBanner() {

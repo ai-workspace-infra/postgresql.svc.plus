@@ -1,11 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { cmsConfig } from '@cms/config'
-import type { CmsTemplate } from '@cms/types'
-
 import defaultTemplate from './templates/default'
 import type { TemplateDefinition } from './templates/types'
+
+type CmsTemplate = TemplateDefinition
 
 const BUILTIN_TEMPLATES: Record<string, TemplateDefinition> = {
   default: defaultTemplate,
@@ -64,8 +63,7 @@ export function resolveTemplateName(explicitName?: string, options?: TemplateSel
   }
 
   const envOverride =
-    typeof process !== 'undefined' &&
-    (process.env.NEXT_PUBLIC_TEMPLATE || process.env.CMS_TEMPLATE)
+    typeof process !== 'undefined' && (process.env.NEXT_PUBLIC_TEMPLATE || process.env.CMS_TEMPLATE)
 
   if (envOverride) {
     return envOverride
@@ -75,7 +73,7 @@ export function resolveTemplateName(explicitName?: string, options?: TemplateSel
     throw new Error('Template name not provided and config fallback disabled.')
   }
 
-  return cmsConfig.template
+  return 'default'
 }
 
 export function getActiveTemplate(options?: TemplateSelectionOptions): CmsTemplate {

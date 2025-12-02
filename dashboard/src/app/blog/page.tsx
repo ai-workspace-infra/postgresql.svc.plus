@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import SearchComponent from '@components/search'
-import { getHomepagePosts } from '@cms/content'
+import { getHomepagePosts } from '@lib/marketingContent'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 

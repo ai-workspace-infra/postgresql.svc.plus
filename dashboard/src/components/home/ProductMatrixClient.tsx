@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import clsx from 'clsx'
 
-import type { HeroSolution } from '@cms/content'
+import type { HeroSolution } from '@lib/marketingContent'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 

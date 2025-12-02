@@ -1,6 +1,6 @@
 import ProductMatrixClient from './ProductMatrixClient'
 
-import { getHeroSolutions } from '@cms/content'
+import { getHeroSolutions } from '@lib/marketingContent'
 
 export default async function ProductMatrix() {
   const solutions = await getHeroSolutions()

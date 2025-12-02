@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useMemo } from 'react'
 
-import type { HeroContent, HeroSolution } from '@cms/content'
+import type { HeroContent, HeroSolution } from '@lib/marketingContent'
 import HeroProductTabs from './HeroProductTabs'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'

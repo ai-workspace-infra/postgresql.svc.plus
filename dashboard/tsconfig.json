@@ -17,9 +17,6 @@
     "jsx": "react-jsx",
     "baseUrl": ".",             // 👈 根路径基准
     "paths": {
-      "@cms": ["src/lib/cms/index.ts"], // 👈 增加这行以兼容 import "@cms"
-      "@cms/*": ["src/lib/cms/*"],
-
       "@components/*": ["src/components/*"],
       "@i18n/*": ["src/i18n/*"],
       "@lib/*": ["src/lib/*"],

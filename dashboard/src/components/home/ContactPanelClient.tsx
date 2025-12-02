@@ -15,7 +15,7 @@ import {
 import { useMemo, useState } from 'react'
 import clsx from 'clsx'
 
-import type { ContactPanelContent, ContactItemContent } from '@cms/content'
+import type { ContactPanelContent, ContactItemContent } from '@lib/marketingContent'
 import { useLanguage } from '@i18n/LanguageProvider'
 import { translations } from '@i18n/translations'
 
