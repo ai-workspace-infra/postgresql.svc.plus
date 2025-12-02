@@ -288,36 +288,44 @@ export default function Navbar() {
     <>
       <nav
         ref={navRef}
-        className="fixed top-0 z-50 w-full border-b border-white/10 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/95 text-slate-100 shadow-lg shadow-slate-900/50 backdrop-blur"
+        className="fixed top-0 z-50 w-full border-b border-white/10 bg-slate-950/95 text-slate-100 backdrop-blur"
       >
         <div className="mx-auto flex max-w-7xl flex-col px-6 sm:px-8">
-          <div className="flex items-center gap-6 py-4">
-            <div className="flex flex-1 items-center gap-8">
-              <Link href="/" className="flex items-center gap-3 rounded-full bg-white/5 px-3 py-2 text-lg font-semibold text-white shadow-inner shadow-slate-900/60 transition hover:bg-white/10">
+          <div className="flex items-center gap-5 py-3">
+            <div className="flex flex-1 items-center gap-5">
+              <Link href="/" className="flex items-center gap-2 rounded-md border border-white/5 bg-slate-900/60 px-2.5 py-1.5 text-sm font-medium text-white/90 transition hover:bg-slate-800/60">
                 <Image
                   src="/icons/cloudnative_32.png"
                   alt="logo"
                   width={24}
                   height={24}
-                  className="h-6 w-6"
+                  className="h-[20px] w-[20px] opacity-90"
                   unoptimized
                 />
-                <span>Cloud-Neutral</span>
-                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-100">
+                <span className="text-sm font-medium opacity-90">Cloud-Neutral</span>
+                <span className="rounded-md bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-200">
                   Default config
                 </span>
               </Link>
-              <div className="hidden items-center gap-6 text-sm font-medium text-slate-200 lg:flex">
+              <div className="hidden items-center gap-5 text-sm font-medium text-slate-200 lg:flex">
                 {mainLinks.map((link) => (
-                  <Link key={link.key} href={link.href} className="transition hover:text-white">
+                  <Link
+                    key={link.key}
+                    href={link.href}
+                    className="text-sm opacity-80 transition hover:text-white hover:opacity-100"
+                  >
                     {link.label}
                   </Link>
                 ))}
-                <Link key={downloadLink.key} href={downloadLink.href} className="transition hover:text-white">
+                <Link
+                  key={downloadLink.key}
+                  href={downloadLink.href}
+                  className="text-sm opacity-80 transition hover:text-white hover:opacity-100"
+                >
                   {downloadLink.label}
                 </Link>
                 <div className="group relative">
-                  <button className="flex items-center gap-1 transition hover:text-white">
+                  <button className="flex items-center gap-1 text-sm opacity-80 transition hover:text-white hover:opacity-100">
                     <span>{labels.openSource}</span>
                     <svg
                       className="h-4 w-4 text-slate-400 transition group-hover:text-indigo-200"
@@ -330,12 +338,12 @@ export default function Navbar() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-white/10 bg-slate-900/95 py-2 text-sm text-slate-100 opacity-0 shadow-[0_18px_45px_rgba(0,0,0,0.45)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100 group-focus-within:block group-focus-within:translate-y-2 group-focus-within:opacity-100">
+                  <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-white/10 bg-slate-900/95 py-2 text-sm text-slate-100 opacity-0 shadow-[0_12px_32px_rgba(0,0,0,0.35)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100 group-focus-within:block group-focus-within:translate-y-2 group-focus-within:opacity-100">
                     {openSourceProjects.map((project) => (
                       <Link
                         key={project.key}
                         href={project.href}
-                        className="block px-4 py-2 transition hover:bg-indigo-500/10 hover:text-white"
+                        className="block px-4 py-2 text-sm opacity-80 transition hover:bg-indigo-500/10 hover:text-white hover:opacity-100"
                       >
                         {project.label}
                       </Link>
@@ -344,7 +352,7 @@ export default function Navbar() {
                 </div>
                 {serviceItems.length > 0 ? (
                   <div className="group relative">
-                    <button className="flex items-center gap-1 transition hover:text-white">
+                    <button className="flex items-center gap-1 text-sm opacity-80 transition hover:text-white hover:opacity-100">
                       <span>{labels.moreServices}</span>
                       <svg
                         className="h-4 w-4 text-slate-400 transition group-hover:text-indigo-200"
@@ -357,18 +365,18 @@ export default function Navbar() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-white/10 bg-slate-900/95 py-2 text-sm text-slate-100 opacity-0 shadow-[0_18px_45px_rgba(0,0,0,0.45)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100 group-focus-within:block group-focus-within:translate-y-2 group-focus-within:opacity-100">
-                      {serviceItems.map((child) => {
-                        const isExternal = child.href.startsWith('http')
-                        if (isExternal) {
-                          return (
-                            <a
-                              key={child.key}
-                              href={child.href}
-                              className="flex items-center justify-between gap-2 px-4 py-2 transition hover:bg-indigo-500/10 hover:text-white"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
+                  <div className="absolute left-0 top-full hidden min-w-[200px] translate-y-1 rounded-lg border border-white/10 bg-slate-900/95 py-2 text-sm text-slate-100 opacity-0 shadow-[0_12px_32px_rgba(0,0,0,0.35)] transition-all duration-200 group-hover:block group-hover:translate-y-2 group-hover:opacity-100 group-focus-within:block group-focus-within:translate-y-2 group-focus-within:opacity-100">
+                    {serviceItems.map((child) => {
+                      const isExternal = child.href.startsWith('http')
+                      if (isExternal) {
+                        return (
+                          <a
+                            key={child.key}
+                            href={child.href}
+                            className="flex items-center justify-between gap-2 px-4 py-2 text-sm opacity-80 transition hover:bg-indigo-500/10 hover:text-white hover:opacity-100"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                               <span>{child.label}</span>
                               {getPreviewBadge(child.channels)}
                             </a>
@@ -379,7 +387,7 @@ export default function Navbar() {
                           <Link
                             key={child.key}
                             href={child.href}
-                            className="flex items-center justify-between gap-2 px-4 py-2 transition hover:bg-indigo-500/10 hover:text-white"
+                            className="flex items-center justify-between gap-2 px-4 py-2 text-sm opacity-80 transition hover:bg-indigo-500/10 hover:text-white hover:opacity-100"
                           >
                             <span>{child.label}</span>
                             {getPreviewBadge(child.channels)}
@@ -399,14 +407,14 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setAccountMenuOpen((prev) => !prev)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(37,99,235,0.35)] transition hover:from-indigo-400 hover:to-sky-400 focus:outline-none focus:ring-2 focus:ring-indigo-300/60 focus:ring-offset-2 focus:ring-offset-slate-900"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.28)] transition hover:from-indigo-400 hover:to-sky-400 focus:outline-none focus:ring-2 focus:ring-indigo-300/60 focus:ring-offset-2 focus:ring-offset-slate-900"
                     aria-haspopup="menu"
                     aria-expanded={accountMenuOpen}
                   >
                     {accountInitial}
                   </button>
                   {accountMenuOpen ? (
-                    <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 shadow-[0_18px_45px_rgba(0,0,0,0.45)]">
+                    <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
                       <div className="border-b border-white/10 bg-white/5 px-4 py-3">
                         <p className="text-sm font-semibold text-white">{user.username}</p>
                         <p className="text-xs text-slate-300">{user.email}</p>
@@ -414,14 +422,14 @@ export default function Navbar() {
                       <div className="py-1 text-sm text-slate-100">
                         <Link
                           href="/panel"
-                          className="block px-4 py-2 transition hover:bg-indigo-500/10"
+                          className="block px-4 py-2 text-sm opacity-80 transition hover:bg-indigo-500/10 hover:opacity-100"
                           onClick={() => setAccountMenuOpen(false)}
                         >
                           {accountCopy.userCenter}
                         </Link>
                         <Link
                           href="/logout"
-                          className="flex w-full items-center px-4 py-2 text-left text-rose-400 transition hover:bg-rose-500/10"
+                          className="flex w-full items-center px-4 py-2 text-left text-sm text-rose-300 opacity-80 transition hover:bg-rose-500/10 hover:opacity-100"
                           onClick={() => setAccountMenuOpen(false)}
                         >
                           {accountCopy.logout}
@@ -432,13 +440,16 @@ export default function Navbar() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 text-sm font-medium text-slate-200">
-                  <Link href="/login" className="transition hover:text-white">
+                  <Link
+                    href="/login"
+                    className="text-sm opacity-80 transition hover:text-white hover:opacity-100"
+                  >
                     {nav.account.login}
                   </Link>
                   <span className="h-3 w-px bg-white/20" aria-hidden="true" />
                   <Link
                     href="/register"
-                    className="rounded-full border border-white/10 px-4 py-1.5 text-indigo-100 transition hover:border-indigo-300/40 hover:bg-white/10"
+                    className="rounded-md border border-white/10 px-3 py-1 text-indigo-100 transition hover:border-indigo-300/40 hover:bg-white/5"
                   >
                     {nav.account.register}
                   </Link>
@@ -481,7 +492,7 @@ export default function Navbar() {
           </div>
 
           {menuOpen ? (
-            <div className="flex flex-col gap-4 border-t border-white/10 bg-slate-900/80 py-4 text-slate-100 lg:hidden">
+            <div className="flex flex-col gap-4 border-t border-white/10 bg-slate-900/80 py-3 text-slate-100 lg:hidden">
               <SearchComponent
                 className="relative"
                 buttonClassName="h-8 w-8"
@@ -489,14 +500,19 @@ export default function Navbar() {
               />
               <div className="flex flex-col gap-2 text-sm font-medium">
                 {mainLinks.map((link) => (
-                  <Link key={link.key} href={link.href} className="py-2" onClick={() => setMenuOpen(false)}>
+                  <Link
+                    key={link.key}
+                    href={link.href}
+                    className="py-2 text-sm opacity-80 transition hover:opacity-100"
+                    onClick={() => setMenuOpen(false)}
+                  >
                     {link.label}
                   </Link>
                 ))}
                 {serviceItems.length > 0 ? (
                   <div>
                     <button
-                      className="flex w-full items-center justify-between py-2"
+                      className="flex w-full items-center justify-between py-2 text-sm opacity-80"
                       onClick={() => setMobileServicesOpen((prev) => !prev)}
                     >
                       <span>{labels.moreServices}</span>
@@ -520,7 +536,7 @@ export default function Navbar() {
                               <a
                                 key={child.key}
                                 href={child.href}
-                                className="block py-1.5"
+                                className="block py-2 text-sm opacity-80 transition hover:opacity-100"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => setMenuOpen(false)}
@@ -537,7 +553,7 @@ export default function Navbar() {
                             <Link
                               key={child.key}
                               href={child.href}
-                              className="block py-1.5"
+                              className="block py-2 text-sm opacity-80 transition hover:opacity-100"
                               onClick={() => setMenuOpen(false)}
                             >
                               <span className="flex items-center gap-2">
@@ -553,7 +569,7 @@ export default function Navbar() {
                 ) : null}
               </div>
               {user ? (
-                <div className="rounded-xl border border-white/10 bg-slate-800/80 p-4 text-slate-100 shadow-[0_18px_45px_rgba(0,0,0,0.35)]">
+                <div className="rounded-xl border border-white/10 bg-slate-800/80 p-4 text-slate-100 shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-sky-500 text-sm font-semibold text-white">
                       {accountInitial}
@@ -565,14 +581,14 @@ export default function Navbar() {
                   </div>
                   <Link
                     href="/panel"
-                    className="mt-3 inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/10"
+                    className="mt-3 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-indigo-100 transition hover:border-indigo-300/50 hover:bg-indigo-500/10"
                     onClick={() => setMenuOpen(false)}
                   >
                     {accountCopy.userCenter}
                   </Link>
                   <Link
                     href="/logout"
-                    className="mt-3 inline-flex items-center justify-center rounded-lg border border-white/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:border-rose-300/60 hover:bg-rose-500/10 focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:ring-offset-2 focus:ring-offset-slate-900"
+                    className="mt-3 inline-flex items-center justify-center rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:border-rose-300/60 hover:bg-rose-500/10 focus:outline-none focus:ring-2 focus:ring-rose-400/30 focus:ring-offset-2 focus:ring-offset-slate-900"
                     onClick={() => setMenuOpen(false)}
                   >
                     {accountCopy.logout}
@@ -580,13 +596,17 @@ export default function Navbar() {
                 </div>
               ) : (
                 <div className="flex items-center gap-3 text-sm font-medium">
-                  <Link href="/login" className="py-2" onClick={() => setMenuOpen(false)}>
+                  <Link
+                    href="/login"
+                    className="py-2 text-sm opacity-80 transition hover:opacity-100"
+                    onClick={() => setMenuOpen(false)}
+                  >
                     {nav.account.login}
                   </Link>
                   <span className="h-3 w-px bg-white/20" aria-hidden="true" />
                   <Link
                     href="/register"
-                    className="rounded-full border border-white/10 px-4 py-1.5 text-indigo-100 transition hover:border-indigo-300/50 hover:bg-white/10"
+                    className="rounded-md border border-white/10 px-3 py-1.5 text-indigo-100 transition hover:border-indigo-300/50 hover:bg-white/10"
                     onClick={() => setMenuOpen(false)}
                   >
                     {nav.account.register}
