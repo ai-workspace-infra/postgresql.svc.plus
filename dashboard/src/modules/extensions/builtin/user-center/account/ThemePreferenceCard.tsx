@@ -3,8 +3,8 @@
 import { useMemo } from 'react'
 
 import Card from '../components/Card'
-import { darkTheme, lightTheme, useTheme } from '../routes/theme'
-import type { ThemeDefinition, ThemeName, ThemePreference } from '../routes/theme'
+import { darkTheme, lightTheme, useTheme } from '@components/theme'
+import type { ThemeDefinition, ThemeName, ThemePreference } from '@components/theme'
 
 const THEME_OPTIONS: Array<{
   value: ThemePreference
