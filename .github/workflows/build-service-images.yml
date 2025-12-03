@@ -7,6 +7,26 @@ on:
         description: "Push images instead of local builds"
         type: boolean
         default: true
+      postgres_runtime_digest:
+        description: "Digest for the Postgres runtime base image"
+        type: string
+        required: false
+        default: ''
+      node_runtime_digest:
+        description: "Digest for the Node runtime base image"
+        type: string
+        required: false
+        default: ''
+      node_builder_digest:
+        description: "Digest for the Node builder base image"
+        type: string
+        required: false
+        default: ''
+      openresty_geoip_digest:
+        description: "Digest for the OpenResty GeoIP base image"
+        type: string
+        required: false
+        default: ''
   push:
     branches: [ main ]
     paths:
@@ -23,9 +43,17 @@ permissions:
 env:
   REGISTRY: ghcr.io
   ORG: cloudneutral-lab
+  BASE_ORG: cloud-neutral-toolkit
 
 jobs:
+  base-images:
+    uses: ./.github/workflows/build-base-images.yml
+    secrets: inherit
+    with:
+      push_images: ${{ inputs.push_images }}
+
   build-service:
+    needs: base-images
     strategy:
       matrix:
         service:
@@ -80,6 +108,9 @@ jobs:
           push: ${{ inputs.push_images }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NODE_BUILDER_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_ORG }}/node-builder@${{ inputs.node_builder_digest || needs.base-images.outputs.node_builder_digest }}
+            NODE_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_ORG }}/node-runtime@${{ inputs.node_runtime_digest || needs.base-images.outputs.node_runtime_digest }}
 
       - uses: anchore/sbom-action@v0
         with:

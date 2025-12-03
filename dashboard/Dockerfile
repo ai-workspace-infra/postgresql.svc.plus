@@ -1,5 +1,8 @@
 # Multi-stage production build for the Next.js dashboard
-FROM node:22.20.0 AS base
+ARG NODE_BUILDER_IMAGE
+ARG NODE_RUNTIME_IMAGE
+
+FROM ${NODE_BUILDER_IMAGE} AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -15,7 +18,7 @@ FROM base AS prod-deps
 COPY dashboard/package*.json ./
 RUN npm ci --omit=dev
 
-FROM node:22.20.0-slim AS runner
+FROM ${NODE_RUNTIME_IMAGE} AS runner
 WORKDIR /var/www/XControl/dashboard/
 ENV NODE_ENV=production \
     RUNTIME_ENV=prod \

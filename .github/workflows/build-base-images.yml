@@ -2,6 +2,31 @@ name: Build Base Images
 
 on:
   workflow_call:
+    outputs:
+      node_builder_image:
+        description: "Node builder image with the preferred tag for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.node_builder_image }}
+      node_runtime_image:
+        description: "Node runtime image with the preferred tag for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.node_runtime_image }}
+      openresty_geoip_image:
+        description: "OpenResty GeoIP image with the preferred tag for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.openresty_geoip_image }}
+      postgres_runtime_image:
+        description: "Postgres runtime image with the preferred tag for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.postgres_runtime_image }}
+      node_builder_digest:
+        description: "Node builder image digest for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.node_builder_digest }}
+      node_runtime_digest:
+        description: "Node runtime image digest for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.node_runtime_digest }}
+      openresty_geoip_digest:
+        description: "OpenResty GeoIP image digest for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.openresty_geoip_digest }}
+      postgres_runtime_digest:
+        description: "Postgres runtime image digest for downstream workflows"
+        value: ${{ jobs.collect-base-images.outputs.postgres_runtime_digest }}
     inputs:
       push_images:
         description: "Push images instead of building locally"
@@ -81,6 +106,37 @@ jobs:
           image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}@${{ steps.build.outputs.digest }}
           output-file: sbom.spdx.json
 
+      - name: Capture image metadata
+        env:
+          IMAGE_NAME: ${{ matrix.image.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          META_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          python - <<'PY'
+import json
+import os
+
+tags = os.environ.get("META_TAGS", "").splitlines()
+preferred = next((tag for tag in tags if tag.endswith(":latest")), tags[0] if tags else "")
+
+metadata = {
+    "name": os.environ.get("IMAGE_NAME", ""),
+    "image": f"{os.environ.get('REGISTRY')}/{os.environ.get('ORG')}/{os.environ.get('IMAGE_NAME')}",
+    "digest": os.environ.get("DIGEST", ""),
+    "tags": tags,
+    "preferred_tag": preferred,
+    "image_with_digest": f"{os.environ.get('REGISTRY')}/{os.environ.get('ORG')}/{os.environ.get('IMAGE_NAME')}@{os.environ.get('DIGEST', '')}",
+}
+
+with open("image-metadata.json", "w", encoding="utf-8") as f:
+    json.dump(metadata, f)
+PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: base-image-metadata-${{ matrix.image.name }}
+          path: image-metadata.json
+
       - uses: actions/upload-artifact@v4
         with:
           name: sbom-${{ matrix.image.name }}
@@ -96,3 +152,46 @@ jobs:
         run: |
           COSIGN_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}@${{ steps.build.outputs.digest }}
           cosign sign --yes "$COSIGN_IMAGE"
+
+  collect-base-images:
+    runs-on: ubuntu-latest
+    needs: build-base
+    outputs:
+      node_builder_image: ${{ steps.expose.outputs.node_builder_image }}
+      node_runtime_image: ${{ steps.expose.outputs.node_runtime_image }}
+      openresty_geoip_image: ${{ steps.expose.outputs.openresty_geoip_image }}
+      postgres_runtime_image: ${{ steps.expose.outputs.postgres_runtime_image }}
+      node_builder_digest: ${{ steps.expose.outputs.node_builder_digest }}
+      node_runtime_digest: ${{ steps.expose.outputs.node_runtime_digest }}
+      openresty_geoip_digest: ${{ steps.expose.outputs.openresty_geoip_digest }}
+      postgres_runtime_digest: ${{ steps.expose.outputs.postgres_runtime_digest }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: base-image-metadata-*
+          merge-multiple: true
+          path: metadata
+
+      - name: Extract preferred base image tags
+        id: expose
+        run: |
+          declare -A refs
+          declare -A digests
+          for file in metadata/*.json; do
+            name=$(jq -r '.name' "$file")
+            preferred=$(jq -r '.preferred_tag' "$file")
+            digest=$(jq -r '.digest' "$file")
+            refs[$name]=$preferred
+            digests[$name]=$digest
+          done
+
+          {
+            echo "node_builder_image=${refs[node-builder]}"
+            echo "node_runtime_image=${refs[node-runtime]}"
+            echo "openresty_geoip_image=${refs[openresty-geoip]}"
+            echo "postgres_runtime_image=${refs[postgres-runtime]}"
+            echo "node_builder_digest=${digests[node-builder]}"
+            echo "node_runtime_digest=${digests[node-runtime]}"
+            echo "openresty_geoip_digest=${digests[openresty-geoip]}"
+            echo "postgres_runtime_digest=${digests[postgres-runtime]}"
+          } >> "$GITHUB_OUTPUT"
