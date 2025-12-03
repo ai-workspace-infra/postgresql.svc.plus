@@ -1,9 +1,20 @@
 # ---------------------------------------------------------
-# Stage 0 — Add PGDG Repo (Ubuntu 24.04)
+# Version Definitions (Can be overridden by build args)
+# ---------------------------------------------------------
+ARG PG_MAJOR=16
+ARG PG_VERSION=16.4
+
+# Extension versions
+ARG PG_JIEBA_VERSION=v2.0.1           # or commit SHA
+ARG PG_VECTOR_VERSION=v0.8.1
+ARG PGMQ_VERSION=v1.8.0
+
+# ---------------------------------------------------------
+# Stage 0 — Base with PGDG Repository
 # ---------------------------------------------------------
 FROM ubuntu:24.04 AS pgdg-base
-
-ARG PG_MAJOR=16
+ARG PG_MAJOR
+ARG PG_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN set -eux; \
@@ -19,79 +30,86 @@ RUN set -eux; \
     apt-get update;
 
 # ---------------------------------------------------------
-# Stage 1 — Build Extensions: pg_jieba + pgmq (SQL-only)
+# Stage 1 — Build Extensions (pg_jieba + pgmq + pgvector)
 # ---------------------------------------------------------
 FROM pgdg-base AS builder
-
-ARG PG_MAJOR=16
-ARG PG_JIEBA_REPO=https://github.com/jaiminpan/pg_jieba.git
-ARG PGMQ_VERSION=0.18.2
+ARG PG_MAJOR
+ARG PG_JIEBA_VERSION
+ARG PG_VECTOR_VERSION
+ARG PGMQ_VERSION
 
 RUN set -eux; \
     apt-get install -y --no-install-recommends \
-        build-essential cmake git pkg-config libicu-dev \
-        postgresql-server-dev-${PG_MAJOR}; \
-    temp_dir="$(mktemp -d)";
+        build-essential \
+        cmake \
+        git \
+        pkg-config \
+        libicu-dev \
+        postgresql-server-dev-${PG_MAJOR}
 
 # ---------------------------------------------------------
 # Build pg_jieba
 # ---------------------------------------------------------
-RUN git clone --depth 1 "${PG_JIEBA_REPO}" "$temp_dir/pg_jieba"; \
-    cd "$temp_dir/pg_jieba"; \
-    git submodule update --init --recursive --depth 1 || true; \
-    ln -s "$temp_dir/pg_jieba/third_party/cppjieba" \
-          "$temp_dir/pg_jieba/cppjieba"; \
-    cmake -S "$temp_dir/pg_jieba" \
-          -B "$temp_dir/pg_jieba/build" \
-          -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql/${PG_MAJOR}/server; \
-    cmake --build "$temp_dir/pg_jieba/build" --config Release -- -j"$(nproc)"; \
-    cmake --install "$temp_dir/pg_jieba/build";
+RUN tmp=$(mktemp -d) && \
+    git clone --branch "${PG_JIEBA_VERSION}" \
+        https://github.com/jaiminpan/pg_jieba.git "$tmp/pg_jieba" && \
+    cd "$tmp/pg_jieba" && \
+    git submodule update --init --recursive || true && \
+    ln -s "$tmp/pg_jieba/third_party/cppjieba" "$tmp/pg_jieba/cppjieba" && \
+    cmake -S "$tmp/pg_jieba" \
+          -B "$tmp/pg_jieba/build" \
+          -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql/${PG_MAJOR}/server && \
+    cmake --build "$tmp/pg_jieba/build" --config Release -- -j"$(nproc)" && \
+    cmake --install "$tmp/pg_jieba/build" && \
+    rm -rf "$tmp"
 
 # ---------------------------------------------------------
-# Install pgmq (SQL-only extension)
+# Build pgmq
 # ---------------------------------------------------------
-RUN mkdir -p "$temp_dir/pgmq"; \
-    curl -fsSL -o "$temp_dir/pgmq/pgmq.zip" \
-      "https://github.com/tembo-io/pgmq/archive/refs/tags/v${PGMQ_VERSION}.zip"; \
-    unzip "$temp_dir/pgmq/pgmq.zip" -d "$temp_dir/pgmq"; \
-    cp "$temp_dir/pgmq/pgmq-${PGMQ_VERSION}/sql/pgmq.control" \
-       /usr/share/postgresql/${PG_MAJOR}/extension/; \
-    cp "$temp_dir/pgmq/pgmq-${PGMQ_VERSION}/sql/"*.sql \
-       /usr/share/postgresql/${PG_MAJOR}/extension/;
+RUN tmp=$(mktemp -d) && \
+    git clone --depth 1 --branch "${PGMQ_VERSION}" \
+        https://github.com/tembo-io/pgmq.git "$tmp/pgmq" && \
+    cd "$tmp/pgmq/pgmq-extension" && \
+    make && make install && \
+    rm -rf "$tmp"
 
-RUN rm -rf "$temp_dir";
+# ---------------------------------------------------------
+# Build pgvector
+# ---------------------------------------------------------
+RUN tmp=$(mktemp -d) && \
+    git clone --depth 1 --branch "${PG_VECTOR_VERSION}" \
+        https://github.com/pgvector/pgvector.git "$tmp/pgvector" && \
+    cd "$tmp/pgvector" && \
+    make && make install && \
+    rm -rf "$tmp"
 
 # ---------------------------------------------------------
 # Stage 2 — Runtime
 # ---------------------------------------------------------
 FROM pgdg-base AS runtime
+ARG PG_MAJOR
+ARG PG_VERSION
 
-LABEL maintainer="XControl" \
-      description="PostgreSQL 16 + pgvector + pg_jieba + pgmq (Ubuntu 24.04 Runtime)"
+LABEL maintainer="Cloud-Neutral Toolkit" \
+      description="PostgreSQL ${PG_VERSION} + pgvector + pg_jieba + pgmq"
 
-ARG PG_MAJOR=16
-ARG PGVECTOR_PACKAGE=postgresql-16-pgvector
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN set -eux; \
     apt-get install -y --no-install-recommends \
         postgresql-${PG_MAJOR} \
         postgresql-client-${PG_MAJOR} \
-        postgresql-contrib-${PG_MAJOR} \
-        ${PGVECTOR_PACKAGE}; \
-    rm -rf /var/lib/apt/lists/*;
+        postgresql-contrib-${PG_MAJOR}; \
+    rm -rf /var/lib/apt/lists/*
 
 # ---------------------------------------------------------
-# Copy compiled shared libraries (*.so)
+# Copy .so + extension files from builder
 # ---------------------------------------------------------
-COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/lib/*.so \
+COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/lib/ \
                     /usr/lib/postgresql/${PG_MAJOR}/lib/
 
-# ---------------------------------------------------------
-# Copy extension sql/control files
-# ---------------------------------------------------------
-COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/extension \
-                    /usr/share/postgresql/${PG_MAJOR}/extension
+COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/extension/ \
+                    /usr/share/postgresql/${PG_MAJOR}/extension/
 
 USER postgres
 EXPOSE 5432
