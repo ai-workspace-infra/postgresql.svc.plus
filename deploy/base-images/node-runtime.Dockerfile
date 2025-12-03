@@ -7,11 +7,11 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production
 
 RUN set -eux; \
-    corepack enable; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         ca-certificates; \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*; \
+    corepack enable
 
 WORKDIR /app
 

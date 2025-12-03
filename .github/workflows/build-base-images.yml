@@ -7,10 +7,15 @@ on:
         description: "Push images instead of building locally"
         type: boolean
         default: true
+  workflow_dispatch:
+    inputs:
+      push_images:
+        description: "Push images instead of building locally"
+        type: boolean
+        default: true
   push:
     paths:
       - "deploy/base-images/**"
-  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -60,7 +65,7 @@ jobs:
           context: .
           file: ${{ matrix.image.file }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ inputs.push_images }}
+          push: ${{ (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') && inputs.push_images || github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
