@@ -34,7 +34,7 @@ jobs:
           - { name: node-builder,        file: deploy/base-images/node-builder.Dockerfile }
           - { name: node-runtime,        file: deploy/base-images/node-runtime.Dockerfile }
           - { name: openresty-geoip,     file: deploy/base-images/openresty-geoip.Dockerfile }
-          - { name: postgres-extensions, file: deploy/base-images/postgres-extensions.Dockerfile }
+          - { name: postgres-runtime, file: deploy/base-images/postgres-runtime-wth-extensions.Dockerfile }
 
     runs-on: ubuntu-latest
 
