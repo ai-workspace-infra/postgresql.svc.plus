@@ -44,7 +44,7 @@ RUN set -eux; \
     # ------------------------------
     # Build pg_jieba
     # ------------------------------
-    git clone --depth 1 "${PG_JIEBA_REPO}" "$temp_dir/pg_jieba"; \
+    git clone --depth 1 --recurse-submodules "${PG_JIEBA_REPO}" "$temp_dir/pg_jieba"; \
     cmake -S "$temp_dir/pg_jieba" -B "$temp_dir/pg_jieba/build" \
         -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql/${PG_MAJOR}/server; \
     cmake --build "$temp_dir/pg_jieba/build" --config Release -- -j"$(nproc)"; \
