@@ -47,13 +47,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/metadata-action@v5
+      #- uses: docker/metadata-action@v5
+      #  id: meta
+      #  with:
+      #    images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}
+      #    tags: |
+      #      type=sha
+      #      type=raw,value=latest
+
+      - name: Generate Auto Tags
         id: meta
+        uses: ./.github/actions/auto-tag
         with:
-          images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}
-          tags: |
-            type=sha
-            type=raw,value=latest
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}
+
 
       - uses: docker/setup-qemu-action@v3
 
