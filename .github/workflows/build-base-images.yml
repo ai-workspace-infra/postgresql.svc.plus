@@ -24,7 +24,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  ORG: cloudneutral-lab
+  ORG: cloud-neutral-toolkit
 
 jobs:
   build-base:
