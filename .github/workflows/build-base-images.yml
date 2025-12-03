@@ -19,7 +19,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  ORG: cloudnativesuite
+  ORG: cloudneutral-lab
 
 jobs:
   build-base:
