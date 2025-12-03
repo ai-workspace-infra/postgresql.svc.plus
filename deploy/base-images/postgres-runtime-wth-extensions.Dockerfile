@@ -1,5 +1,5 @@
 # ---------------------------------------------------------
-# Stage 0 — Add PGDG Repo (Ubuntu 24.04 rootfs is already slim)
+# Stage 0 — Add PGDG Repo (Ubuntu 24.04)
 # ---------------------------------------------------------
 FROM ubuntu:24.04 AS pgdg-base
 
@@ -11,7 +11,7 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         wget curl gnupg ca-certificates lsb-release; \
     \
-    mkdir -p /usr/share/keyrings /etc/apt/keyrings; \
+    mkdir -p /usr/share/keyrings; \
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
         | gpg --dearmor >/usr/share/keyrings/pgdg.gpg; \
     \
@@ -26,9 +26,9 @@ RUN set -eux; \
 # ---------------------------------------------------------
 FROM pgdg-base AS builder
 
+ARG PG_MAJOR=16
 ARG PG_JIEBA_REPO=https://github.com/jaiminpan/pg_jieba.git
 ARG PG_CACHE_REPO=https://github.com/jaiminpan/pg_cache.git
-ARG PG_MAJOR=16
 
 RUN set -eux; \
     apt-get install -y --no-install-recommends \
@@ -41,21 +41,30 @@ RUN set -eux; \
     \
     temp_dir="$(mktemp -d)"; \
     \
-    # ------------------------------
-    # Build pg_jieba
-    # ------------------------------
-    git clone --depth 1 --recurse-submodules "${PG_JIEBA_REPO}" "$temp_dir/pg_jieba"; \
-    cmake -S "$temp_dir/pg_jieba" -B "$temp_dir/pg_jieba/build" \
-        -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql/${PG_MAJOR}/server; \
+    # -----------------------------------------------------
+    # Build pg_jieba (fix missing cppjieba include)
+    # -----------------------------------------------------
+    git clone --depth 1 "${PG_JIEBA_REPO}" "$temp_dir/pg_jieba"; \
+    cd "$temp_dir/pg_jieba"; \
+    git submodule update --init --recursive --depth 1 || true; \
+    \
+    # Fix include path mismatch: cppjieba → third_party/cppjieba
+    ln -s "$temp_dir/pg_jieba/third_party/cppjieba" \
+          "$temp_dir/pg_jieba/cppjieba"; \
+    \
+    cmake -S "$temp_dir/pg_jieba" \
+          -B "$temp_dir/pg_jieba/build" \
+          -DPostgreSQL_TYPE_INCLUDE_DIR=/usr/include/postgresql/${PG_MAJOR}/server; \
     cmake --build "$temp_dir/pg_jieba/build" --config Release -- -j"$(nproc)"; \
     cmake --install "$temp_dir/pg_jieba/build"; \
     \
-    # ------------------------------
+    # -----------------------------------------------------
     # Build pg_cache
-    # ------------------------------
+    # -----------------------------------------------------
     git clone --depth 1 "${PG_CACHE_REPO}" "$temp_dir/pg_cache"; \
     make -C "$temp_dir/pg_cache" \
-        PG_CONFIG=/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config -j"$(nproc)"; \
+        PG_CONFIG=/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config \
+        -j"$(nproc)"; \
     make -C "$temp_dir/pg_cache" \
         PG_CONFIG=/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config install; \
     \
@@ -63,7 +72,7 @@ RUN set -eux; \
 
 
 # ---------------------------------------------------------
-# Stage 2 — Runtime (Ubuntu 24.04 + PG16 + pgvector)
+# Stage 2 — Runtime (PostgreSQL + pgvector + extensions)
 # ---------------------------------------------------------
 FROM pgdg-base AS runtime
 
@@ -82,12 +91,11 @@ RUN set -eux; \
         ${PGVECTOR_PACKAGE}; \
     rm -rf /var/lib/apt/lists/*;
 
-# ------------------------------
-# Copy compiled extensions
-# ------------------------------
+# Copy compiled shared libraries (*.so)
 COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/lib/*.so \
                     /usr/lib/postgresql/${PG_MAJOR}/lib/
 
+# Copy extension sql/control files
 COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/extension \
                     /usr/share/postgresql/${PG_MAJOR}/extension
 
