@@ -72,7 +72,7 @@ jobs:
   base-images:
     name: 🛢️ Build base images (multi-arch)
     needs: build-go-matrix
-    uses: ./.github/workflows/build-base-images.yml
+    uses: ./.github/actions/build-images/base.yml
     with:
       push_images: ${{ github.event_name != 'pull_request' }}
     secrets: inherit
@@ -82,7 +82,7 @@ jobs:
     needs:
       - build-go-matrix
       - base-images
-    uses: ./.github/workflows/build-service-images.yml
+    uses: ./.github/actions/build-images/serive.yml
     with:
       push_images: ${{ github.event_name != 'pull_request' }}
     secrets: inherit
