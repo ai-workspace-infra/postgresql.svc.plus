@@ -3,6 +3,7 @@
 # ------------------------------
 ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
 FROM ${GO_RUNTIME_IMAGE} AS builder
+ARG GO_VERSION="1.24.5"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends make git ca-certificates \
