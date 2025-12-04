@@ -1,33 +1,36 @@
-# Multi-stage production build for the Next.js dashboard
+# -------------------------------------------------------
+# Stage 1 — Build (deps + app build via Makefile)
+# -------------------------------------------------------
 ARG NODE_BUILDER_IMAGE
-ARG NODE_RUNTIME_IMAGE
+FROM ${NODE_BUILDER_IMAGE} AS builder
 
-FROM ${NODE_BUILDER_IMAGE} AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
-FROM base AS deps
-COPY dashboard/package*.json ./
-RUN npm ci
+# Copy entire project
+COPY . .
 
-FROM deps AS builder
-COPY dashboard .
-RUN npm run build
+# Run Makefile build (must produce .next + node_modules cleaned)
+RUN make build
 
-FROM base AS prod-deps
-COPY dashboard/package*.json ./
-RUN npm ci --omit=dev
 
+# -------------------------------------------------------
+# Stage 2 — Runtime image (minimal + production deps)
+# -------------------------------------------------------
+ARG NODE_RUNTIME_IMAGE
 FROM ${NODE_RUNTIME_IMAGE} AS runner
+
 WORKDIR /var/www/XControl/dashboard/
 ENV NODE_ENV=production \
     RUNTIME_ENV=prod \
     REGION=cn
 
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+# Copy exact runtime artifacts
 COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3000
+
 CMD ["npm", "run", "start", "--", "-p", "3000"]
