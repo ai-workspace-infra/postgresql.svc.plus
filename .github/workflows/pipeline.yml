@@ -17,10 +17,10 @@ permissions:
   packages: write
   id-token: write
 
-x-matrix: &matrix
-  platform: [linux/amd64, linux/arm64]
-  service: [dashboard, rag-server, account]
-  environment: [dev, prod]
+env:
+  MATRIX_PLATFORM: '["linux/amd64", "linux/arm64"]'
+  MATRIX_SERVICE: '["dashboard", "rag-server", "account"]'
+  MATRIX_ENVIRONMENT: '["dev", "prod"]'
 
 jobs:
   code-quality:
@@ -28,7 +28,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: *matrix
+      matrix:
+        platform: ${{ fromJson(env.MATRIX_PLATFORM) }}
+        service: ${{ fromJson(env.MATRIX_SERVICE) }}
+        environment: ${{ fromJson(env.MATRIX_ENVIRONMENT) }}
     steps:
       - uses: ./.github/actions/code-quality
         with:
@@ -42,7 +45,10 @@ jobs:
     needs: code-quality
     strategy:
       fail-fast: false
-      matrix: *matrix
+      matrix:
+        platform: ${{ fromJson(env.MATRIX_PLATFORM) }}
+        service: ${{ fromJson(env.MATRIX_SERVICE) }}
+        environment: ${{ fromJson(env.MATRIX_ENVIRONMENT) }}
     steps:
       - uses: ./.github/actions/build
         with:
@@ -56,7 +62,10 @@ jobs:
     needs: build
     strategy:
       fail-fast: false
-      matrix: *matrix
+      matrix:
+        platform: ${{ fromJson(env.MATRIX_PLATFORM) }}
+        service: ${{ fromJson(env.MATRIX_SERVICE) }}
+        environment: ${{ fromJson(env.MATRIX_ENVIRONMENT) }}
     steps:
       - uses: ./.github/actions/test
         with:
@@ -70,7 +79,10 @@ jobs:
     needs: test
     strategy:
       fail-fast: false
-      matrix: *matrix
+      matrix:
+        platform: ${{ fromJson(env.MATRIX_PLATFORM) }}
+        service: ${{ fromJson(env.MATRIX_SERVICE) }}
+        environment: ${{ fromJson(env.MATRIX_ENVIRONMENT) }}
     steps:
       - uses: ./.github/actions/security
         with:
@@ -85,7 +97,10 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.allow_deploy == 'true')
     strategy:
       fail-fast: false
-      matrix: *matrix
+      matrix:
+        platform: ${{ fromJson(env.MATRIX_PLATFORM) }}
+        service: ${{ fromJson(env.MATRIX_SERVICE) }}
+        environment: ${{ fromJson(env.MATRIX_ENVIRONMENT) }}
     steps:
       - uses: ./.github/actions/deploy
         with:
