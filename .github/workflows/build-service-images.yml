@@ -56,9 +56,10 @@ env:
   ORG: cloud-neutral-toolkit
 
   # Base image references (tag or digest)
-  GO_RUNTIME_IMAGE:   ${{ inputs.go_runtime_image         || github.event.inputs.go_runtime_image         || '' }}
-  NODE_BUILDER_IMAGE: ${{ inputs.node_builder_image       || github.event.inputs.node_builder_image       || '' }}
-  NODE_RUNTIME_IMAGE: ${{ inputs.node_runtime_image       || github.event.inputs.node_runtime_image       || '' }}
+  GO_RUNTIME_IMAGE: ${{ inputs.go_runtime_image || github.event.inputs.go_runtime_image || 'ghcr.io/cloud-neutral-toolkit/go-runtime:latest' }}
+  NODE_BUILDER_IMAGE: ${{ inputs.node_builder_image || github.event.inputs.node_builder_image || 'ghcr.io/cloud-neutral-toolkit/node-builder:latest' }}
+  NODE_RUNTIME_IMAGE: ${{ inputs.node_runtime_image || github.event.inputs.node_runtime_image || 'ghcr.io/cloud-neutral-toolkit/node-runtime:latest' }}
+
 
   # Push control
   PUSH_IMAGES: ${{ github.event_name == 'push'
