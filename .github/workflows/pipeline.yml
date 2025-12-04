@@ -21,111 +21,79 @@ permissions:
 jobs:
 
   # -------------------------------------------------------------
-  # CI STAGE 1 — Code Quality (environment-independent)
+  # CI — Code Quality → Build → Test → Security
   # -------------------------------------------------------------
-  code-quality:
-    name: "Code quality • ${{ matrix.service }} @ ${{ matrix.platform }}"
+  ci:
+    name: "CI • ${{ matrix.service }} @ ${{ matrix.platform }}"
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         platform: ["linux/amd64", "linux/arm64"]
         service: ["dashboard", "rag-server", "account"]
-    steps:
-      - uses: ./.github/actions/code-quality
-        with:
-          service: ${{ matrix.service }}
-          platform: ${{ matrix.platform }}
+  steps:
+    - name: Code Quality
+      uses: ./.github/actions/code-quality
+      with:
+        service: ${{ matrix.service }}
+        platform: ${{ matrix.platform }}
 
-  # -------------------------------------------------------------
-  # CI STAGE 2 — Build
-  # -------------------------------------------------------------
-  build:
-    name: "Build • ${{ matrix.service }} @ ${{ matrix.platform }}"
-    runs-on: ubuntu-latest
-    needs: code-quality
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: ["linux/amd64", "linux/arm64"]
-        service: ["dashboard", "rag-server", "account"]
-    steps:
-      - uses: ./.github/actions/build
-        with:
-          service: ${{ matrix.service }}
-          platform: ${{ matrix.platform }}
+    - name: Build
+      uses: ./.github/actions/build
+      with:
+        service: ${{ matrix.service }}
+        platform: ${{ matrix.platform }}
 
-      - name: Build Base Images
-        id: base
-        uses: ./.github/actions/build-base-images/
-        secrets: inherit
-        with:
-          push_images: false     # CI 阶段不 push，只 build 并生成 digest
+    - name: Build Base Images
+      uses: ./.github/workflows/build-base-images.yml
+      secrets: inherit
+      with:
+        registry: ghcr.io
+        org: cloud-neutral-toolkit
+        push_images: true
 
       - name: Build Service Images
-        uses: ./.github/actions/build-service-images/
+        uses: ./.github/workflows/build-service-images.yml
         secrets: inherit
         with:
-          push_images: false
+          registry: ghcr.io
+          org: cloud-neutral-toolkit
+          push_images: true
           node_builder_digest: ${{ steps.base.outputs.node_builder_digest }}
           node_runtime_digest: ${{ steps.base.outputs.node_runtime_digest }}
           postgres_runtime_digest: ${{ steps.base.outputs.postgres_runtime_digest }}
           openresty_geoip_digest: ${{ steps.base.outputs.openresty_geoip_digest }}
 
-  # -------------------------------------------------------------
-  # CI STAGE 3 — Test
-  # -------------------------------------------------------------
-  test:
-    name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }}"
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: ["linux/amd64", "linux/arm64"]
-        service: ["dashboard", "rag-server", "account"]
-    steps:
-      - uses: ./.github/actions/test
+      - name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }}"
+        steps:
+        uses: ./.github/actions/test
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
+
+      - name: - name: Security Check
+        steps:
+        uses: ./.github/actions/security
         with:
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
 
   # -------------------------------------------------------------
-  # CI STAGE 4 — Security
+  # CD — Deploy（只在 workflow_dispatch 时跑）
   # -------------------------------------------------------------
-  security:
-    name: "Security • ${{ matrix.service }} @ ${{ matrix.platform }}"
-    runs-on: ubuntu-latest
-    needs: test
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: ["linux/amd64", "linux/arm64"]
-        service: ["dashboard", "rag-server", "account"]
-    steps:
-      - uses: ./.github/actions/security
-        with:
-          service: ${{ matrix.service }}
-          platform: ${{ matrix.platform }}
-
-  # -------------------------------------------------------------
-  # CD — Deploy (only with workflow_dispatch)
-  # -------------------------------------------------------------
-  deploy:
+  cd:
     name: "Deploy • ${{ matrix.service }} (${{ github.event.inputs.environment }})"
     runs-on: ubuntu-latest
-    needs: security
+    needs: ci
     if: github.event_name == 'workflow_dispatch'
+
     env:
       ENVIRONMENT: ${{ github.event.inputs.environment }}
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: ["linux/amd64", "linux/arm64"]
-        service: ["dashboard", "rag-server", "account"]
+
     steps:
-      - uses: ./.github/actions/deploy
+      - name: Deploy Services
+        uses: ./.github/actions/deploy
+        secrets: inherit
         with:
-          service: ${{ matrix.service }}
-          platform: ${{ matrix.platform }}
           environment: ${{ env.ENVIRONMENT }}

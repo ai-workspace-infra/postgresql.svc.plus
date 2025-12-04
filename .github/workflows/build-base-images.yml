@@ -1,0 +1,109 @@
+name: Build Base Images
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        description: "Target registry"
+        type: string
+        required: true
+
+      org:
+        description: "Target organization"
+        type: string
+        required: true
+
+      push_images:
+        description: "Push images instead of building locally"
+        type: boolean
+        default: true
+
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: "Target registry"
+        type: string
+        default: "ghcr.io"
+      org:
+        description: "Target organization"
+        type: string
+        default: "cloud-neutral-toolkit"
+      push_images:
+        description: "Push images instead of building locally"
+        type: boolean
+        default: true
+
+  push:
+    paths:
+      - "deploy/base-images/**"
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ${{ inputs.registry }}
+  ORG: ${{ inputs.org }}
+
+jobs:
+  build-base:
+    strategy:
+      matrix:
+        image:
+          - { name: node-builder, file: deploy/base-images/node-builder.Dockerfile }
+          - { name: node-runtime, file: deploy/base-images/node-runtime.Dockerfile }
+          - { name: openresty-geoip, file: deploy/base-images/openresty-geoip.Dockerfile }
+          - { name: postgres-runtime, file: deploy/base-images/postgres-runtime-wth-extensions.Dockerfile }
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Auto Tags
+        id: meta
+        uses: ./.github/actions/auto-tag
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          file: ${{ matrix.image.file }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') && inputs.push_images || github.event_name == 'push' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}@${{ steps.build.outputs.digest }}
+          output-file: sbom.spdx.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.image.name }}
+          path: sbom.spdx.json
+
+      - uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v2.4.1'
+
+      - name: Sign Image
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          COSIGN_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}@${{ steps.build.outputs.digest }}
+          cosign sign --yes "$COSIGN_IMAGE"
