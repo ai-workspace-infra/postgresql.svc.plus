@@ -8,6 +8,8 @@ OPENRESTY_IMAGE ?= xcontrol/openresty-geoip:latest
 POSTGRES_EXT_IMAGE ?= xcontrol/postgres-extensions:16
 NODE_BUILDER_IMAGE ?= xcontrol/node-builder:22
 NODE_RUNTIME_IMAGE ?= xcontrol/node-runtime:22
+GO_BUILDER_IMAGE ?= xcontrol/go-builder:1.23
+GO_RUNTIME_IMAGE ?= xcontrol/go-runtime:1.23
 ARCH := $(shell dpkg --print-architecture)
 PG_DSN ?= postgres://shenlan:password@127.0.0.1:5432/xserver?sslmode=disable
 
@@ -146,7 +148,7 @@ upgrade-rag-server:
         init-rag-server install-rag-server upgrade-rag-server \
         configure-hosts install-services upgrade-services \
         build-base-images docker-openresty-geoip docker-postgres-extensions \
-        docker-node-builder docker-node-runtime
+        docker-node-builder docker-node-runtime docker-go-builder docker-go-runtime
 
 # -----------------------------------------------------------------------------
 # Dependency installation
@@ -227,12 +229,13 @@ endif
 # -----------------------------------------------------------------------------
 
 build-base-images:
-	@OPENRESTY_IMAGE=$(OPENRESTY_IMAGE) POSTGRES_EXT_IMAGE=$(POSTGRES_EXT_IMAGE) \
-	NODE_BUILDER_IMAGE=$(NODE_BUILDER_IMAGE) NODE_RUNTIME_IMAGE=$(NODE_RUNTIME_IMAGE) \
-		bash scripts/build-base-images.sh
+        @OPENRESTY_IMAGE=$(OPENRESTY_IMAGE) POSTGRES_EXT_IMAGE=$(POSTGRES_EXT_IMAGE) \
+        NODE_BUILDER_IMAGE=$(NODE_BUILDER_IMAGE) NODE_RUNTIME_IMAGE=$(NODE_RUNTIME_IMAGE) \
+        GO_BUILDER_IMAGE=$(GO_BUILDER_IMAGE) GO_RUNTIME_IMAGE=$(GO_RUNTIME_IMAGE) \
+                bash scripts/build-base-images.sh
 
 docker-openresty-geoip:
-	docker build -f $(BASE_IMAGE_DIR)/openresty-geoip.Dockerfile -t $(OPENRESTY_IMAGE) $(BASE_IMAGE_DIR)
+        docker build -f $(BASE_IMAGE_DIR)/openresty-geoip.Dockerfile -t $(OPENRESTY_IMAGE) $(BASE_IMAGE_DIR)
 
 docker-postgres-extensions:
 	docker build -f $(BASE_IMAGE_DIR)/postgres-extensions.Dockerfile -t $(POSTGRES_EXT_IMAGE) $(BASE_IMAGE_DIR)
@@ -241,7 +244,13 @@ docker-node-builder:
 	docker build -f $(BASE_IMAGE_DIR)/node-builder.Dockerfile -t $(NODE_BUILDER_IMAGE) $(BASE_IMAGE_DIR)
 
 docker-node-runtime:
-	docker build -f $(BASE_IMAGE_DIR)/node-runtime.Dockerfile -t $(NODE_RUNTIME_IMAGE) $(BASE_IMAGE_DIR)
+        docker build -f $(BASE_IMAGE_DIR)/node-runtime.Dockerfile -t $(NODE_RUNTIME_IMAGE) $(BASE_IMAGE_DIR)
+
+docker-go-builder:
+        docker build -f $(BASE_IMAGE_DIR)/go-builder.Dockerfile -t $(GO_BUILDER_IMAGE) $(BASE_IMAGE_DIR)
+
+docker-go-runtime:
+        docker build -f $(BASE_IMAGE_DIR)/go-runtime.Dockerfile -t $(GO_RUNTIME_IMAGE) $(BASE_IMAGE_DIR)
 
 # -----------------------------------------------------------------------------
 # Database initialization

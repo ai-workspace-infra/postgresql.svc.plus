@@ -11,6 +11,10 @@ service-specific images can build faster and remain consistent.
 - **PostgreSQL 16 + extensions** (`postgres-extensions.Dockerfile`): PostgreSQL
   with `pgvector`, `pg_jieba`, and `pg_cache` compiled into the server for
   vector search and full-text tokenization.
+- **Go 1.23 builder** (`go-builder.Dockerfile`): Ubuntu 24.04 with the Go
+  toolchain and build dependencies for the Account service and RAG server.
+- **Go runtime** (`go-runtime.Dockerfile`): Slim Ubuntu 24.04 runtime with CA
+  certificates for running statically linked Go binaries.
 - **Node.js builder** (`node-builder.Dockerfile`): Node.js 22 with Yarn, the
   latest npm, and build essentials for compiling native Next.js dependencies.
 - **Node.js runtime** (`node-runtime.Dockerfile`): Slim Node.js 22 runtime ready
@@ -44,4 +48,10 @@ Each target accepts an optional tag override, for example:
 
 ```bash
 make docker-postgres-extensions POSTGRES_EXT_IMAGE=my-registry/postgres-extensions:16
+
+# Go builder (Go 1.23 + build tools)
+make docker-go-builder GO_BUILDER_IMAGE=my-registry/go-builder:1.23
+
+# Go runtime (Ubuntu 24.04 + CA certificates)
+make docker-go-runtime GO_RUNTIME_IMAGE=my-registry/go-runtime:1.23
 ```
