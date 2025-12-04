@@ -3,34 +3,15 @@
 # ------------------------------
 ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
 FROM ${GO_RUNTIME_IMAGE} AS builder
-ARG GO_VERSION="1.24.5"
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl make git ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-# =======================================================
-# 安装 Go SDK（默认开启）
-# =======================================================
-RUN set -eux; \
-    arch="$(uname -m)"; \
-    case "$arch" in \
-        x86_64|amd64) goarch="amd64" ;; \
-        aarch64|arm64) goarch="arm64" ;; \
-        *) echo "Unsupported arch: $arch"; exit 1 ;; \
-    esac; \
-    tarball="go${GO_VERSION}.linux-${goarch}.tar.gz"; \
-    url="https://go.dev/dl/${tarball}"; \
-    echo "=== Installing Go ${GO_VERSION} (${goarch}) ==="; \
-    wget -q "$url" -O "/tmp/go.tgz"; \
-    rm -rf /usr/local/go; \
-    tar -C /usr/local -xzf "/tmp/go.tgz"; \
-    rm /tmp/go.tgz; \
-    echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/go.sh;
+FROM golang:1.22 AS builder
 
-WORKDIR /src
+WORKDIR /workspace/account
+COPY account/ .   # <-- 关键：只拷贝 rag-server 目录
 
-COPY . .
-RUN make build && make -pv /out/ && cp account /out/
+RUN make build \
+ && mkdir -p /out \
+ && cp xcontrol-account /out/account
 
 # ------------------------------
 # Stage 2 — Runtime
