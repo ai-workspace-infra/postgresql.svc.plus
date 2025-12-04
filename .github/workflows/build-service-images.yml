@@ -101,6 +101,9 @@ jobs:
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
+      - name: Prepare base image references
+        run: ./.github/scripts/prepare-base-image-refs.sh
+
       # -----------------------------
       # Build Service Images
       # -----------------------------
@@ -114,11 +117,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            GO_BASE_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/go-runtime@${{ env.GO_RUNTIME_DIGEST }}
-            NODE_BUILDER_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-builder@${{ env.NODE_BUILDER_DIGEST }}
-            NODE_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-runtime@${{ env.NODE_RUNTIME_DIGEST }}
-            OPENRESTY_GEOIP_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/openresty-geoip@${{ env.OPENRESTY_GEOIP_DIGEST }}
-            POSTGRES_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/postgres-runtime@${{ env.POSTGRES_RUNTIME_DIGEST }}
+            GO_BASE_IMAGE=${{ env.GO_RUNTIME_IMAGE_REF }}
+            NODE_BUILDER_IMAGE=${{ env.NODE_BUILDER_IMAGE_REF }}
+            NODE_RUNTIME_IMAGE=${{ env.NODE_RUNTIME_IMAGE_REF }}
+            OPENRESTY_GEOIP_IMAGE=${{ env.OPENRESTY_GEOIP_IMAGE_REF }}
+            POSTGRES_RUNTIME_IMAGE=${{ env.POSTGRES_RUNTIME_IMAGE_REF }}
 
       # -----------------------------
       # SBOM
