@@ -27,8 +27,8 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY --from=builder /out/account /usr/local/bin/account
-COPY account-entrypoint.sh /usr/local/bin/account-entrypoint.sh
-RUN mkdir -p /etc/xcontrol/ && chmod +x /usr/local/bin/account-entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN mkdir -p /etc/xcontrol/ && chmod +x /usr/local/bin/entrypoint.sh
 
 VOLUME ["/etc/xcontrol/"]
 
