@@ -128,7 +128,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            GO_BASE_IMAGE=${{ env.GO_RUNTIME_IMAGE_REF }}
+            GO_RUNTIME_IMAGE=${{ env.GO_RUNTIME_IMAGE_REF }}
             NODE_BUILDER_IMAGE=${{ env.NODE_BUILDER_IMAGE_REF }}
             NODE_RUNTIME_IMAGE=${{ env.NODE_RUNTIME_IMAGE_REF }}
 
