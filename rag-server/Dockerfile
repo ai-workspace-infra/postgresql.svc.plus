@@ -1,6 +1,6 @@
 # Multi-stage production build for the RAG server
-ARG GO_BASE_IMAGE
-FROM ${GO_BASE_IMAGE} AS builder
+ARG GO_RUNTIME_IMAGE
+FROM ${GO_RUNTIME_IMAGE} AS builder
 
 WORKDIR /src
 
@@ -10,7 +10,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/xcontrol-rag ./rag-server/cmd/xcontrol-server
 
-FROM ${GO_BASE_IMAGE} AS runtime
+FROM ${GO_RUNTIME_IMAGE} AS runtime
 
 ENV CONFIG_PATH=/etc/xcontrol/rag-server.yaml PORT=8090
 

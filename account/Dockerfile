@@ -1,8 +1,8 @@
 # ------------------------------
 # Stage 1 — Build
 # ------------------------------
-ARG GO_BASE_IMAGE
-FROM ${GO_BASE_IMAGE} AS builder
+ARG GO_RUNTIME_IMAGE
+FROM ${GO_RUNTIME_IMAGE} AS builder
 
 WORKDIR /src
 
@@ -16,8 +16,8 @@ RUN make build && make -pv /out/ && cp account /out/
 # ------------------------------
 # Stage 2 — Runtime
 # ------------------------------
-ARG GO_BASE_IMAGE
-FROM ${GO_BASE_IMAGE} AS runtime
+ARG GO_RUNTIME_IMAGE
+FROM ${GO_RUNTIME_IMAGE} AS runtime
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
