@@ -18,17 +18,13 @@ permissions:
   packages: write
   id-token: write
 
-env:
-  # Determine environment (default dev)
-  TARGET_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
-
 jobs:
 
   code-quality:
-    name: "Code quality • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ env.TARGET_ENV }})"
+    name: "Code quality • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }})"
     runs-on: ubuntu-latest
     env:
-      ENVIRONMENT: ${{ env.TARGET_ENV }}
+      ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
     strategy:
       fail-fast: false
       matrix:
@@ -42,11 +38,11 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
 
   build:
-    name: "Build • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ env.TARGET_ENV }})"
+    name: "Build • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }})"
     runs-on: ubuntu-latest
     needs: code-quality
     env:
-      ENVIRONMENT: ${{ env.TARGET_ENV }}
+      ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
     strategy:
       fail-fast: false
       matrix:
@@ -60,11 +56,11 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
 
   test:
-    name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ env.TARGET_ENV }})"
+    name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }})"
     runs-on: ubuntu-latest
     needs: build
     env:
-      ENVIRONMENT: ${{ env.TARGET_ENV }}
+      ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
     strategy:
       fail-fast: false
       matrix:
@@ -78,11 +74,11 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
 
   security:
-    name: "Security • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ env.TARGET_ENV }})"
+    name: "Security • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }})"
     runs-on: ubuntu-latest
     needs: test
     env:
-      ENVIRONMENT: ${{ env.TARGET_ENV }}
+      ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
     strategy:
       fail-fast: false
       matrix:
@@ -96,11 +92,11 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
 
   deploy:
-    name: "Deploy • ${{ matrix.service }} (${{ env.TARGET_ENV }})"
+    name: "Deploy • ${{ matrix.service }} (${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }})"
     runs-on: ubuntu-latest
     needs: security
     env:
-      ENVIRONMENT: ${{ env.TARGET_ENV }}
+      ENVIRONMENT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
     if: >
       github.event_name == 'workflow_dispatch' &&
       github.event.inputs.environment == 'prod'
