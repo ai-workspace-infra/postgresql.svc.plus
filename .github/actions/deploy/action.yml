@@ -13,8 +13,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - name: Prepare matrix context
+      id: matrix
+      uses: ../matrix-support
+      with:
+        service: ${{ inputs.service }}
+        platform: ${{ inputs.platform }}
+        environment: ${{ inputs.environment }}
 
     - name: Prepare rollout context
       id: context
@@ -24,6 +29,7 @@ runs:
         echo "service=${{ inputs.service }}" >> "$GITHUB_OUTPUT"
         echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
         echo "platform=${{ inputs.platform }}" >> "$GITHUB_OUTPUT"
+        echo "release_channel=${{ steps.matrix.outputs.is_prod == 'true' && 'prod' || 'dev' }}" >> "$GITHUB_OUTPUT"
 
     - name: Deploy placeholder
       shell: bash
@@ -31,8 +37,9 @@ runs:
         TARGET_ENV: ${{ steps.context.outputs.environment }}
         TARGET_SERVICE: ${{ steps.context.outputs.service }}
         TARGET_PLATFORM: ${{ steps.context.outputs.platform }}
+        RELEASE_CHANNEL: ${{ steps.context.outputs.release_channel }}
       run: |
-        echo "Deploying ${TARGET_SERVICE} (${TARGET_PLATFORM}) to ${TARGET_ENV} namespace"
+        echo "Deploying ${TARGET_SERVICE} (${TARGET_PLATFORM}) to ${TARGET_ENV} namespace via ${RELEASE_CHANNEL} rollout"
         echo "Hook in Helm/kubectl/ArgoCD rollouts here"
 
     - name: Rollback plan

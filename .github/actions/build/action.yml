@@ -1,5 +1,5 @@
 name: Build
-description: Build artifacts for each service and platform.
+description: Build artifacts for each service and platform with optional container publishing.
 inputs:
   service:
     description: Target service name
@@ -13,23 +13,40 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - name: Prepare matrix context
+      id: matrix
+      uses: ../matrix-support
+      with:
+        service: ${{ inputs.service }}
+        platform: ${{ inputs.platform }}
+        environment: ${{ inputs.environment }}
+        enable_docker: 'true'
+
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/${{ inputs.service }}
+          dashboard/.next
+        key: build-${{ inputs.service }}-${{ inputs.platform }}-${{ hashFiles('**/go.sum', 'dashboard/yarn.lock') }}-${{ inputs.environment }}
+        restore-keys: |
+          build-${{ inputs.service }}-${{ inputs.platform }}-
+          build-${{ inputs.service }}-
 
     - name: Prepare Go toolchain
       if: inputs.service != 'dashboard'
       uses: actions/setup-go@v4
       with:
         go-version: '1.22'
+        cache: true
 
     - name: Build Go binaries
       if: inputs.service != 'dashboard'
       shell: bash
       run: |
         set -euo pipefail
-        platform="${{ inputs.platform }}"
-        goos="${platform%%/*}"
-        goarch="${platform##*/}"
+        goos="${{ steps.matrix.outputs.goos }}"
+        goarch="${{ steps.matrix.outputs.goarch }}"
         mkdir -p build/${{ inputs.service }}/"${goos}-${goarch}"
         declare -a targets
         if [[ "${{ inputs.service }}" == "rag-server" ]]; then
@@ -51,14 +68,6 @@ runs:
         name: ${{ inputs.service }}-${{ inputs.platform }}-${{ inputs.environment }}
         path: build/${{ inputs.service }}/
 
-    - name: Set up Node.js
-      if: inputs.service == 'dashboard'
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: yarn
-        cache-dependency-path: dashboard/yarn.lock
-
     - name: Install dashboard dependencies
       if: inputs.service == 'dashboard'
       working-directory: dashboard
@@ -79,3 +88,58 @@ runs:
       with:
         name: dashboard-${{ inputs.platform }}-${{ inputs.environment }}
         path: dashboard/.next
+
+    - name: Docker login (GHCR)
+      if: inputs.environment == 'prod'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Generate Auto Tags
+      if: inputs.environment == 'prod'
+      id: meta
+      uses: ../auto-tag
+      with:
+        image: ghcr.io/${{ github.repository_owner }}/${{ inputs.service }}
+
+    - name: Build and (optionally) push images
+      if: inputs.environment == 'prod'
+      id: build-image
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.service == 'dashboard' && 'dashboard' || inputs.service }}
+        file: ${{ inputs.service == 'dashboard' && 'dashboard/Dockerfile' || format('{0}/Dockerfile', inputs.service) }}
+        platforms: ${{ steps.matrix.outputs.target_platforms }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+    - name: Generate SBOM
+      if: inputs.environment == 'prod'
+      uses: anchore/sbom-action@v0
+      with:
+        image: ghcr.io/${{ github.repository_owner }}/${{ inputs.service }}@${{ steps.build-image.outputs.digest }}
+        output-file: sbom-${{ inputs.service }}.spdx.json
+
+    - name: Upload SBOM artifact
+      if: inputs.environment == 'prod'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-${{ inputs.service }}
+        path: sbom-${{ inputs.service }}.spdx.json
+
+    - name: Install Cosign
+      if: inputs.environment == 'prod'
+      uses: sigstore/cosign-installer@v3
+      with:
+        cosign-release: 'v2.4.1'
+
+    - name: Cosign image
+      if: inputs.environment == 'prod'
+      env:
+        COSIGN_EXPERIMENTAL: "true"
+      run: |
+        IMG=ghcr.io/${{ github.repository_owner }}/${{ inputs.service }}@${{ steps.build-image.outputs.digest }}
+        cosign sign --yes "$IMG"

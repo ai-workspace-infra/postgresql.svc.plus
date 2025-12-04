@@ -13,14 +13,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Set up Go
-      if: inputs.service != 'dashboard'
-      uses: actions/setup-go@v4
+    - name: Prepare matrix context
+      id: matrix
+      uses: ../matrix-support
       with:
-        go-version: '1.22'
+        service: ${{ inputs.service }}
+        platform: ${{ inputs.platform }}
+        environment: ${{ inputs.environment }}
 
     - name: Run golangci-lint
       if: inputs.service != 'dashboard'
@@ -49,14 +48,6 @@ runs:
         ignore-unfixed: true
         format: table
         exit-code: "0"
-
-    - name: Set up Node.js
-      if: inputs.service == 'dashboard'
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: yarn
-        cache-dependency-path: dashboard/yarn.lock
 
     - name: Install dashboard dependencies
       if: inputs.service == 'dashboard'
