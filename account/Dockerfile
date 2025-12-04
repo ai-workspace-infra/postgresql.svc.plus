@@ -6,7 +6,7 @@ FROM ${GO_RUNTIME_IMAGE} AS builder
 ARG GO_VERSION="1.24.5"
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends make git ca-certificates \
+    && apt-get install -y --no-install-recommends curl make git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 # =======================================================
 # 安装 Go SDK（默认开启）
