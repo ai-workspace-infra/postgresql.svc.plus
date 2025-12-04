@@ -32,26 +32,27 @@ jobs:
       matrix:
         platform: ["linux/amd64", "linux/arm64"]
         service: ["dashboard", "rag-server", "account"]
-  steps:
-    - name: Code Quality
-      uses: ./.github/actions/code-quality
-      with:
-        service: ${{ matrix.service }}
-        platform: ${{ matrix.platform }}
+    steps:
+      - name: Code Quality
+        uses: ./.github/actions/code-quality
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
 
-    - name: Build
-      uses: ./.github/actions/build
-      with:
-        service: ${{ matrix.service }}
-        platform: ${{ matrix.platform }}
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
 
-    - name: Build Base Images
-      uses: ./.github/workflows/build-base-images.yml
-      secrets: inherit
-      with:
-        registry: ghcr.io
-        org: cloud-neutral-toolkit
-        push_images: true
+      - name: Build Base Images
+        id: base
+        uses: ./.github/workflows/build-base-images.yml
+        secrets: inherit
+        with:
+          registry: ghcr.io
+          org: cloud-neutral-toolkit
+          push_images: true
 
       - name: Build Service Images
         uses: ./.github/workflows/build-service-images.yml
@@ -66,14 +67,12 @@ jobs:
           openresty_geoip_digest: ${{ steps.base.outputs.openresty_geoip_digest }}
 
       - name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }}"
-        steps:
         uses: ./.github/actions/test
         with:
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
 
-      - name: - name: Security Check
-        steps:
+      - name: Security Check
         uses: ./.github/actions/security
         with:
           service: ${{ matrix.service }}
