@@ -71,9 +71,9 @@ jobs:
     strategy:
       matrix:
         service:
-          - { name: dashboard,    context: dashboard,    file: dashboard/Dockerfile }
-          - { name: rag-server,   context: rag-server,   file: rag-server/Dockerfile }
-          - { name: account,      context: account,      file: account/Dockerfile }
+          - { name: dashboard,    workdir: dashboard,    context: .., file: Dockerfile }
+          - { name: rag-server,   workdir: rag-server,   context: .., file: Dockerfile }
+          - { name: account,      workdir: account,      context: .., file: Dockerfile }
 
     runs-on: ubuntu-latest
 
@@ -109,6 +109,7 @@ jobs:
       # -----------------------------
       - uses: docker/build-push-action@v6
         id: build
+        working-directory: ${{ matrix.service.workdir }}
         with:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.file }}
