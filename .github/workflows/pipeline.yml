@@ -27,6 +27,9 @@ jobs:
     name: "CI • ${{ matrix.service }} @ ${{ matrix.platform }}"
     runs-on: ubuntu-latest
 
+    env:
+      ENVIRONMENT: dev
+
     strategy:
       fail-fast: false
       matrix:
@@ -36,24 +39,28 @@ jobs:
       - name: Code Quality
         uses: ./.github/actions/code-quality
         with:
+          environment: ${{ env.ENVIRONMENT }}
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
 
       - name: Build
         uses: ./.github/actions/build
         with:
+          environment: ${{ env.ENVIRONMENT }}
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
 
       - name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }}"
         uses: ./.github/actions/test
         with:
+          environment: ${{ env.ENVIRONMENT }}
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
 
       - name: Security Check
         uses: ./.github/actions/security
         with:
+          environment: ${{ env.ENVIRONMENT }}
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
 
@@ -73,8 +80,6 @@ jobs:
     uses: ./.github/workflows/build-service-images.yml
     secrets: inherit
     with:
-      registry: ghcr.io
-      org: cloud-neutral-toolkit
       push_images: true
 
   # -------------------------------------------------------------
@@ -86,6 +91,12 @@ jobs:
     needs: ci
     if: github.event_name == 'workflow_dispatch'
 
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ["linux/amd64"]
+        service: ["dashboard", "rag-server", "account"]
+
     env:
       ENVIRONMENT: ${{ github.event.inputs.environment }}
 
@@ -94,3 +105,5 @@ jobs:
         uses: ./.github/actions/deploy
         with:
           environment: ${{ env.ENVIRONMENT }}
+          platform: ${{ matrix.platform }}
+          service: ${{ matrix.service }}
