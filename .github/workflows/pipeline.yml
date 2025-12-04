@@ -45,27 +45,6 @@ jobs:
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
 
-      - name: Build Base Images
-        id: base
-        uses: ./.github/workflows/build-base-images.yml
-        secrets: inherit
-        with:
-          registry: ghcr.io
-          org: cloud-neutral-toolkit
-          push_images: true
-
-      - name: Build Service Images
-        uses: ./.github/workflows/build-service-images.yml
-        secrets: inherit
-        with:
-          registry: ghcr.io
-          org: cloud-neutral-toolkit
-          push_images: true
-          node_builder_digest: ${{ steps.base.outputs.node_builder_digest }}
-          node_runtime_digest: ${{ steps.base.outputs.node_runtime_digest }}
-          postgres_runtime_digest: ${{ steps.base.outputs.postgres_runtime_digest }}
-          openresty_geoip_digest: ${{ steps.base.outputs.openresty_geoip_digest }}
-
       - name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }}"
         uses: ./.github/actions/test
         with:
@@ -77,6 +56,26 @@ jobs:
         with:
           service: ${{ matrix.service }}
           platform: ${{ matrix.platform }}
+
+  build-base-images:
+    name: Build Base Images
+    needs: ci
+    uses: ./.github/workflows/build-base-images.yml
+    secrets: inherit
+    with:
+      registry: ghcr.io
+      org: cloud-neutral-toolkit
+      push_images: true
+
+  build-service-images:
+    name: Build Service Images
+    needs: build-base-images
+    uses: ./.github/workflows/build-service-images.yml
+    secrets: inherit
+    with:
+      registry: ghcr.io
+      org: cloud-neutral-toolkit
+      push_images: true
 
   # -------------------------------------------------------------
   # CD — Deploy（只在 workflow_dispatch 时跑）
@@ -93,6 +92,5 @@ jobs:
     steps:
       - name: Deploy Services
         uses: ./.github/actions/deploy
-        secrets: inherit
         with:
           environment: ${{ env.ENVIRONMENT }}
