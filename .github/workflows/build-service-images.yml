@@ -23,7 +23,27 @@ on:
         type: string
         default: ""
 
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      push_images:
+        description: "Push service images instead of local builds"
+        type: boolean
+        default: true
+      go_runtime_digest:
+        type: string
+        default: ""
+      postgres_runtime_digest:
+        type: string
+        default: ""
+      node_runtime_digest:
+        type: string
+        default: ""
+      node_builder_digest:
+        type: string
+        default: ""
+      openresty_geoip_digest:
+        type: string
+        default: ""
   push:
     branches: [ main ]
     paths:
@@ -39,6 +59,12 @@ permissions:
 env:
   REGISTRY: ghcr.io
   ORG: cloud-neutral-toolkit
+  GO_RUNTIME_DIGEST: ${{ inputs.go_runtime_digest || github.event.inputs.go_runtime_digest || '' }}
+  POSTGRES_RUNTIME_DIGEST: ${{ inputs.postgres_runtime_digest || github.event.inputs.postgres_runtime_digest || '' }}
+  NODE_RUNTIME_DIGEST: ${{ inputs.node_runtime_digest || github.event.inputs.node_runtime_digest || '' }}
+  NODE_BUILDER_DIGEST: ${{ inputs.node_builder_digest || github.event.inputs.node_builder_digest || '' }}
+  OPENRESTY_GEOIP_DIGEST: ${{ inputs.openresty_geoip_digest || github.event.inputs.openresty_geoip_digest || '' }}
+  PUSH_IMAGES: ${{ github.event_name == 'push' || (github.event_name == 'workflow_call' && inputs.push_images) || (github.event_name == 'workflow_dispatch' && github.event.inputs.push_images == 'true') }}
 
 jobs:
   build-service:
@@ -70,7 +96,7 @@ jobs:
         id: meta
         uses: ./.github/actions/auto-tag
         with:
-          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}
 
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
@@ -84,15 +110,15 @@ jobs:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.file }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ inputs.push_images }}
+          push: ${{ env.PUSH_IMAGES == 'true' || env.PUSH_IMAGES == true }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            GO_BASE_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/go-runtime@${{ inputs.go_runtime_digest }}
-            NODE_BUILDER_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-builder@${{ inputs.node_builder_digest }}
-            NODE_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-runtime@${{ inputs.node_runtime_digest }}
-            OPENRESTY_GEOIP_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/openresty-geoip@${{ inputs.openresty_geoip_digest }}
-            POSTGRES_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/postgres-runtime@${{ inputs.postgres_runtime_digest }}
+            GO_BASE_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/go-runtime@${{ env.GO_RUNTIME_DIGEST }}
+            NODE_BUILDER_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-builder@${{ env.NODE_BUILDER_DIGEST }}
+            NODE_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-runtime@${{ env.NODE_RUNTIME_DIGEST }}
+            OPENRESTY_GEOIP_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/openresty-geoip@${{ env.OPENRESTY_GEOIP_DIGEST }}
+            POSTGRES_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/postgres-runtime@${{ env.POSTGRES_RUNTIME_DIGEST }}
 
       # -----------------------------
       # SBOM
