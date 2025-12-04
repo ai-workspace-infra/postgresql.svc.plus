@@ -7,32 +7,20 @@ on:
         description: "Push service images instead of local builds"
         type: boolean
         default: true
-
-      # Optional overrides from parent workflow
       postgres_runtime_digest:
         type: string
-        required: false
         default: ""
       node_runtime_digest:
         type: string
-        required: false
         default: ""
       node_builder_digest:
         type: string
-        required: false
         default: ""
       openresty_geoip_digest:
         type: string
-        required: false
         default: ""
 
-    secrets:
-      GITHUB_TOKEN:
-        description: "Token inherited from the caller for registry operations"
-        required: true
-
   workflow_dispatch: {}
-
   push:
     branches: [ main ]
     paths:
