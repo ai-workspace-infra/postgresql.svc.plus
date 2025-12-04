@@ -1,4 +1,4 @@
-name: CloudNativeSuite Pipeline
+name: XControl Unified CI/CD Pipeline
 
 on:
   push:
@@ -36,6 +36,9 @@ jobs:
         platform: ["linux/amd64", "linux/arm64"]
         service: ["dashboard", "rag-server", "account"]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Code Quality
         uses: ./.github/actions/code-quality
         with:
@@ -101,6 +104,9 @@ jobs:
       ENVIRONMENT: ${{ github.event.inputs.environment }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Deploy Services
         uses: ./.github/actions/deploy
         with:
