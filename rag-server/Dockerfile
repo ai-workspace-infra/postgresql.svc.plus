@@ -1,7 +1,7 @@
 # =======================================================
 # Stage 1 — Builder
 # =======================================================
-ARG GO_RUNTIME_IMAGE
+ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
 ARG INSTALL_GO=true     # 为 builder 启用 Go SDK（go-runtime.Dockerfile 会处理）
 FROM ${GO_RUNTIME_IMAGE} AS builder
 
@@ -24,7 +24,7 @@ RUN make build && mkdir -p /out && cp rag-server /out/rag-server
 # =======================================================
 # Stage 2 — Runtime
 # =======================================================
-ARG GO_RUNTIME_IMAGE
+ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
 ARG INSTALL_GO=false     # runtime 不安装 Go SDK
 FROM ${GO_RUNTIME_IMAGE} AS runtime
 

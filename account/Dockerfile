@@ -1,7 +1,7 @@
 # ------------------------------
 # Stage 1 — Build
 # ------------------------------
-ARG GO_RUNTIME_IMAGE
+ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
 ARG INSTALL_GO=true
 FROM ${GO_RUNTIME_IMAGE} AS builder
 
@@ -17,7 +17,7 @@ RUN make build && make -pv /out/ && cp account /out/
 # ------------------------------
 # Stage 2 — Runtime
 # ------------------------------
-ARG GO_RUNTIME_IMAGE
+ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
 ARG INSTALL_GO=false     # runtime 不安装 Go SDK
 FROM ${GO_RUNTIME_IMAGE} AS runtime
 
