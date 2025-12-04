@@ -4,7 +4,7 @@
 FROM golang:1.22 AS builder
 
 WORKDIR /workspace/rag-server
-COPY rag-server/ .   # <-- 关键：只拷贝 rag-server 目录
+COPY . .   # <-- 关键：只拷贝 rag-server 目录
 
 RUN make build \
  && mkdir -p /out \

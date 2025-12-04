@@ -7,7 +7,8 @@ FROM ${GO_RUNTIME_IMAGE} AS builder
 FROM golang:1.22 AS builder
 
 WORKDIR /workspace/account
-COPY account/ .   # <-- 关键：只拷贝 rag-server 目录
+RUN ls
+COPY . .   # <-- 关键：只拷贝 rag-server 目录
 
 RUN make build \
  && mkdir -p /out \
