@@ -26,6 +26,11 @@ on:
         required: false
         default: ""
 
+    secrets:
+      GITHUB_TOKEN:
+        description: "Token inherited from the caller for registry operations"
+        required: true
+
   workflow_dispatch: {}
 
   push:
