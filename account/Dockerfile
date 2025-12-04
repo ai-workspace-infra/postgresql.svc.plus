@@ -17,9 +17,7 @@ RUN make build && make -pv /out/ && cp account /out/
 # ------------------------------
 # Stage 2 — Runtime
 # ------------------------------
-ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
-ARG INSTALL_GO=false     # runtime 不安装 Go SDK
-FROM ${GO_RUNTIME_IMAGE} AS runtime
+FROM ubuntu:24.04  AS runtime
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

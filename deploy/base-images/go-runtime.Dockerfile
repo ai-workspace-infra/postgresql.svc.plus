@@ -16,7 +16,6 @@ LABEL maintainer="XControl" \
 ENV CGO_ENABLED=0 \
     TZ=Etc/UTC
 
-ARG INSTALL_GO="false"
 ARG GO_VERSION="1.24.5"
 
 RUN set -eux; \
@@ -29,30 +28,27 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 # =======================================================
-# 可选：安装 Go SDK（用于 make build 的情况）
+# 安装 Go SDK（默认开启）
 # =======================================================
-RUN if [ "$INSTALL_GO" = "true" ]; then \
-      set -eux; \
-      arch="$(uname -m)"; \
-      case "$arch" in \
-          x86_64|amd64) goarch="amd64" ;; \
-          aarch64|arm64) goarch="arm64" ;; \
-          *) echo "Unsupported arch: $arch"; exit 1 ;; \
-      esac; \
-      tarball="go${GO_VERSION}.linux-${goarch}.tar.gz"; \
-      url="https://go.dev/dl/${tarball}"; \
-      echo "Installing Go ${GO_VERSION} for ${goarch}"; \
-      wget -q "$url" -O "/tmp/go.tgz"; \
-      rm -rf /usr/local/go; \
-      tar -C /usr/local -xzf "/tmp/go.tgz"; \
-      rm /tmp/go.tgz; \
-      echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/go.sh; \
-    fi
+RUN set -eux; \
+    arch="$(uname -m)"; \
+    case "$arch" in \
+        x86_64|amd64) goarch="amd64" ;; \
+        aarch64|arm64) goarch="arm64" ;; \
+        *) echo "Unsupported arch: $arch"; exit 1 ;; \
+    esac; \
+    tarball="go${GO_VERSION}.linux-${goarch}.tar.gz"; \
+    url="https://go.dev/dl/${tarball}"; \
+    echo "=== Installing Go ${GO_VERSION} (${goarch}) ==="; \
+    wget -q "$url" -O "/tmp/go.tgz"; \
+    rm -rf /usr/local/go; \
+    tar -C /usr/local -xzf "/tmp/go.tgz"; \
+    rm /tmp/go.tgz; \
+    echo 'export PATH=$PATH:/usr/local/go/bin' > /etc/profile.d/go.sh;
 
 ENV PATH="${PATH}:/usr/local/go/bin"
 
-# ---- 应用目录 ----
+# ---- 应用构建目录（builder 用） ----
 WORKDIR /app
 
-# ---- 默认 shell 入口（最终服务会覆盖 CMD） ----
 CMD ["/bin/sh"]
