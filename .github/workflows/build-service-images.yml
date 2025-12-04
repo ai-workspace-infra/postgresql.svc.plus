@@ -29,15 +29,15 @@ on:
 
       node_builder_image:
         type: string
-        default: ""
+        default: "ghcr.io/cloud-neutral-toolkit/node-builder:latest"
 
       node_runtime_image:
         type: string
-        default: ""
+        default: "ghcr.io/cloud-neutral-toolkit/node-runtime:latest"
 
       go_runtime_image:
         type: string
-        default: ""
+        default: "ghcr.io/cloud-neutral-toolkit/go-runtime:latest"
 
   push:
     branches: [ main ]
