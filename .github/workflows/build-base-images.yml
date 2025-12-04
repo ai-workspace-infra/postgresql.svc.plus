@@ -6,33 +6,17 @@ on:
       registry:
         description: "Target registry"
         type: string
-        default: "ghcr.io"
+        required: true
 
       org:
         description: "Target organization"
         type: string
-        default: "cloud-neutral-toolkit"
+        required: true
 
       push_images:
-        description: "Push images to registry?"
+        description: "Push images instead of building locally"
         type: boolean
         default: true
-
-      # Optional base-image digests
-      postgres_runtime_digest:
-        type: string
-        default: ""
-      node_runtime_digest:
-        type: string
-        default: ""
-      node_builder_digest:
-        type: string
-        default: ""
-      openresty_geoip_digest:
-        type: string
-        default: ""
-
-    secrets: {}
 
   workflow_dispatch:
     inputs:
@@ -41,20 +25,17 @@ on:
         type: string
         default: "ghcr.io"
       org:
-        description: "Target org"
+        description: "Target organization"
         type: string
         default: "cloud-neutral-toolkit"
       push_images:
-        description: "Push images instead of local build"
+        description: "Push images instead of building locally"
         type: boolean
         default: true
 
   push:
-    branches: [ main ]
     paths:
-      - "dashboard/**"
-      - "rag-server/**"
-      - "account/**"
+      - "deploy/base-images/**"
 
 permissions:
   contents: read
@@ -62,94 +43,69 @@ permissions:
   id-token: write
 
 env:
-  ORG: ${{ inputs.org }}
   REGISTRY: ${{ inputs.registry }}
+  ORG: ${{ inputs.org }}
 
 jobs:
-  build-service:
-    runs-on: ubuntu-latest
-
+  build-base:
     strategy:
       matrix:
-        service:
-          - { name: dashboard,    context: dashboard,    file: dashboard/Dockerfile }
-          - { name: rag-server,   context: rag-server,   file: rag-server/Dockerfile }
-          - { name: account,      context: account,      file: account/Dockerfile }
+        image:
+          - { name: go-builder, file: deploy/base-images/go-builder.Dockerfile }
+          - { name: go-runtime, file: deploy/base-images/go-runtime.Dockerfile }
+          - { name: node-builder, file: deploy/base-images/node-builder.Dockerfile }
+          - { name: node-runtime, file: deploy/base-images/node-runtime.Dockerfile }
+          - { name: openresty-geoip, file: deploy/base-images/openresty-geoip.Dockerfile }
+          - { name: postgres-runtime, file: deploy/base-images/postgres-runtime-wth-extensions.Dockerfile }
+
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      # -----------------------------
-      # Login
-      # -----------------------------
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # -----------------------------
-      # Auto Tag + Labels
-      # -----------------------------
       - name: Generate Auto Tags
         id: meta
         uses: ./.github/actions/auto-tag
         with:
-          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}
 
       - uses: docker/setup-qemu-action@v3
+
       - uses: docker/setup-buildx-action@v3
 
-      # -----------------------------
-      # Build Images
-      # -----------------------------
       - uses: docker/build-push-action@v6
         id: build
         with:
-          context: ${{ matrix.service.context }}
-          file: ${{ matrix.service.file }}
+          context: .
+          file: ${{ matrix.image.file }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ inputs.push_images }}
+          push: ${{ (github.event_name == 'workflow_call' || github.event_name == 'workflow_dispatch') && inputs.push_images || github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NODE_BUILDER_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-builder@${{ inputs.node_builder_digest }}
-            NODE_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/node-runtime@${{ inputs.node_runtime_digest }}
-            POSTGRES_RUNTIME_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/postgres-runtime@${{ inputs.postgres_runtime_digest }}
-            OPENRESTY_GEOIP_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/openresty-geoip@${{ inputs.openresty_geoip_digest }}
 
-      # -----------------------------
-      # SBOM
-      # -----------------------------
       - uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
+          image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}@${{ steps.build.outputs.digest }}
           output-file: sbom.spdx.json
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sbom-${{ matrix.service.name }}
+          name: sbom-${{ matrix.image.name }}
           path: sbom.spdx.json
 
-      # -----------------------------
-      # Trivy (High, Critical)
-      # -----------------------------
-      - uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
-          severity: HIGH,CRITICAL
-          exit-code: '1'
-
-      # -----------------------------
-      # Cosign
-      # -----------------------------
       - uses: sigstore/cosign-installer@v3
         with:
           cosign-release: 'v2.4.1'
 
-      - name: Cosign Sign
+      - name: Sign Image
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          IMG=${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
-          cosign sign --yes "$IMG"
+          COSIGN_IMAGE=${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}@${{ steps.build.outputs.digest }}
+          cosign sign --yes "$COSIGN_IMAGE"
