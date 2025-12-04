@@ -43,8 +43,8 @@ permissions:
   id-token: write
 
 env:
-  REGISTRY: ${{ inputs.registry }}
-  ORG: ${{ inputs.org }}
+  REGISTRY: ${{ inputs.registry || github.event.inputs.registry || 'ghcr.io' }}
+  ORG: ${{ inputs.org || github.event.inputs.org || 'cloud-neutral-toolkit' }}
 
 jobs:
   build-base:
