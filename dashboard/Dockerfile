@@ -1,7 +1,12 @@
+# =======================================================
+# Global ARGs — 必须在所有 FROM 之前声明（修复你的错误）
+# =======================================================
+ARG NODE_BUILDER_IMAGE=ghcr.io/cloud-neutral-toolkit/node-builder:latest
+ARG NODE_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/node-runtime:latest
+
 # -------------------------------------------------------
 # Stage 1 — Build (deps + app build via Makefile)
 # -------------------------------------------------------
-ARG NODE_BUILDER_IMAGE
 FROM ${NODE_BUILDER_IMAGE} AS builder
 
 WORKDIR /app
@@ -13,14 +18,12 @@ COPY . .
 # Run Makefile build (must produce .next + node_modules cleaned)
 RUN make build
 
-
 # -------------------------------------------------------
 # Stage 2 — Runtime image (minimal + production deps)
 # -------------------------------------------------------
-ARG NODE_RUNTIME_IMAGE
 FROM ${NODE_RUNTIME_IMAGE} AS runner
 
-WORKDIR /var/www/XControl/dashboard/
+WORKDIR /app
 ENV NODE_ENV=production \
     RUNTIME_ENV=prod \
     REGION=cn
