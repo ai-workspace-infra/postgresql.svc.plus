@@ -1,0 +1,81 @@
+name: Build
+description: Build artifacts for each service and platform.
+inputs:
+  service:
+    description: Target service name
+    required: true
+  platform:
+    description: Target platform (e.g., linux/amd64)
+    required: true
+  environment:
+    description: Deployment environment (dev or prod)
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Prepare Go toolchain
+      if: inputs.service != 'dashboard'
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - name: Build Go binaries
+      if: inputs.service != 'dashboard'
+      shell: bash
+      run: |
+        set -euo pipefail
+        platform="${{ inputs.platform }}"
+        goos="${platform%%/*}"
+        goarch="${platform##*/}"
+        mkdir -p build/${{ inputs.service }}/"${goos}-${goarch}"
+        declare -a targets
+        if [[ "${{ inputs.service }}" == "rag-server" ]]; then
+          targets=("rag-server/cmd/xcontrol-server" "rag-server/cmd/rag-server-cli")
+        elif [[ "${{ inputs.service }}" == "account" ]]; then
+          targets=("account/cmd/accountsvc")
+        else
+          targets=("./...")
+        fi
+        for target in "${targets[@]}"; do
+          binary_name=$(basename "$target")
+          GOOS="$goos" GOARCH="$goarch" go build -o build/${{ inputs.service }}/"${goos}-${goarch}"/"${binary_name}" "$target"
+        done
+
+    - name: Upload Go artifacts
+      if: inputs.service != 'dashboard'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.service }}-${{ inputs.platform }}-${{ inputs.environment }}
+        path: build/${{ inputs.service }}/
+
+    - name: Set up Node.js
+      if: inputs.service == 'dashboard'
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: yarn
+        cache-dependency-path: dashboard/yarn.lock
+
+    - name: Install dashboard dependencies
+      if: inputs.service == 'dashboard'
+      working-directory: dashboard
+      shell: bash
+      run: yarn install --frozen-lockfile
+
+    - name: Build dashboard
+      if: inputs.service == 'dashboard'
+      working-directory: dashboard
+      shell: bash
+      env:
+        NEXT_PUBLIC_ENV: ${{ inputs.environment }}
+      run: yarn build
+
+    - name: Upload dashboard build output
+      if: inputs.service == 'dashboard'
+      uses: actions/upload-artifact@v4
+      with:
+        name: dashboard-${{ inputs.platform }}-${{ inputs.environment }}
+        path: dashboard/.next

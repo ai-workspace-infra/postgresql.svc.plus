@@ -1,0 +1,94 @@
+name: CloudNativeSuite Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      allow_deploy:
+        description: "Allow deployment stage to run"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+x-matrix: &matrix
+  platform: [linux/amd64, linux/arm64]
+  service: [dashboard, rag-server, account]
+  environment: [dev, prod]
+
+jobs:
+  code-quality:
+    name: "Code quality • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ matrix.environment }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: *matrix
+    steps:
+      - uses: ./.github/actions/code-quality
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
+          environment: ${{ matrix.environment }}
+
+  build:
+    name: "Build • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ matrix.environment }})"
+    runs-on: ubuntu-latest
+    needs: code-quality
+    strategy:
+      fail-fast: false
+      matrix: *matrix
+    steps:
+      - uses: ./.github/actions/build
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
+          environment: ${{ matrix.environment }}
+
+  test:
+    name: "Test • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ matrix.environment }})"
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix: *matrix
+    steps:
+      - uses: ./.github/actions/test
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
+          environment: ${{ matrix.environment }}
+
+  security:
+    name: "Security • ${{ matrix.service }} @ ${{ matrix.platform }} (${{ matrix.environment }})"
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix: *matrix
+    steps:
+      - uses: ./.github/actions/security
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
+          environment: ${{ matrix.environment }}
+
+  deploy:
+    name: "Deploy • ${{ matrix.service }} (${{ matrix.environment }})"
+    runs-on: ubuntu-latest
+    needs: security
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.allow_deploy == 'true')
+    strategy:
+      fail-fast: false
+      matrix: *matrix
+    steps:
+      - uses: ./.github/actions/deploy
+        with:
+          service: ${{ matrix.service }}
+          platform: ${{ matrix.platform }}
+          environment: ${{ matrix.environment }}
