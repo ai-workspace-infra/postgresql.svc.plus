@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG_FILE="${CONFIG_PATH:-/etc/xcontrol/account/account.yaml}"
-DEFAULT_CONFIG="/etc/xcontrol/account/account.yaml"
+CONFIG_FILE="${CONFIG_PATH:-/etc/xcontrol/account.yaml}"
+DEFAULT_CONFIG="/etc/xcontrol/account.yaml"
 mkdir -p "$(dirname "${CONFIG_FILE}")"
 
 if [ ! -f "${CONFIG_FILE}" ]; then
@@ -27,4 +27,3 @@ if [ -n "${PORT:-}" ]; then
 fi
 
 exec /usr/local/bin/accountsvc --config "${CONFIG_FILE}" "$@"
-SCRIPT

@@ -7,21 +7,21 @@ on:
         description: "Push service images instead of local builds"
         type: boolean
         default: true
-      go_runtime_digest:
-        type: string
-        default: ""
-      postgres_runtime_digest:
-        type: string
-        default: ""
-      node_runtime_digest:
-        type: string
-        default: ""
       node_builder_digest:
         type: string
-        default: ""
+        default: "ghcr.io/cloud-neutral-toolkit/node-builder:latest"
       openresty_geoip_digest:
         type: string
-        default: ""
+        default: "ghcr.io/cloud-neutral-toolkit/openresty-geoip:latest"
+      node_runtime_digest:
+        type: string
+        default: "ghcr.io/cloud-neutral-toolkit/node-runtime:latest"
+      go_runtime_digest:
+        type: string
+        default: "ghcr.io/cloud-neutral-toolkit/go-runtime:latest"
+      postgres_runtime_digest:
+        type: string
+        default: "ghcr.io/cloud-neutral-toolkit/postgres-runtime:latest"
 
   workflow_dispatch:
     inputs:
