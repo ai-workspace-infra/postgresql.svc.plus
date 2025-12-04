@@ -8,7 +8,7 @@ on:
         type: boolean
         default: true
 
-      # Base image references (full repository URL allowed)
+      # Base image references (full image URL)
       node_builder_image:
         type: string
         default: "ghcr.io/cloud-neutral-toolkit/node-builder:latest"
@@ -20,7 +20,6 @@ on:
       go_runtime_image:
         type: string
         default: "ghcr.io/cloud-neutral-toolkit/go-runtime:latest"
-
 
   workflow_dispatch:
     inputs:
@@ -56,12 +55,12 @@ env:
   REGISTRY: ghcr.io
   ORG: cloud-neutral-toolkit
 
-  # Image references (tag or digest)
-  GO_RUNTIME_IMAGE:         ${{ inputs.go_runtime_image         || github.event.inputs.go_runtime_image         || '' }}
-  NODE_BUILDER_IMAGE:       ${{ inputs.node_builder_image       || github.event.inputs.node_builder_image       || '' }}
-  NODE_RUNTIME_IMAGE:       ${{ inputs.node_runtime_image       || github.event.inputs.node_runtime_image       || '' }}
+  # Base image references (tag or digest)
+  GO_RUNTIME_IMAGE:   ${{ inputs.go_runtime_image         || github.event.inputs.go_runtime_image         || '' }}
+  NODE_BUILDER_IMAGE: ${{ inputs.node_builder_image       || github.event.inputs.node_builder_image       || '' }}
+  NODE_RUNTIME_IMAGE: ${{ inputs.node_runtime_image       || github.event.inputs.node_runtime_image       || '' }}
 
-  # allow push under dispatch/push/call
+  # Push control
   PUSH_IMAGES: ${{ github.event_name == 'push'
     || (github.event_name == 'workflow_call'    && inputs.push_images)
     || (github.event_name == 'workflow_dispatch' && github.event.inputs.push_images == 'true') }}
@@ -73,18 +72,18 @@ jobs:
     strategy:
       matrix:
         service:
-          - { name: dashboard,    workdir: dashboard }
-          - { name: rag-server,   workdir: rag-server }
-          - { name: account,      workdir: account }
+          - { name: dashboard,  workdir: dashboard }
+          - { name: rag-server, workdir: rag-server }
+          - { name: account,    workdir: account }
 
     steps:
       # -------------------------------------------------------------
-      # Checkout
+      # Checkout source
       # -------------------------------------------------------------
       - uses: actions/checkout@v4
 
       # -------------------------------------------------------------
-      # Login GHCR
+      # Login to GHCR
       # -------------------------------------------------------------
       - uses: docker/login-action@v3
         with:
@@ -93,7 +92,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # -------------------------------------------------------------
-      # Auto Tagging
+      # Auto Tag
       # -------------------------------------------------------------
       - name: Generate Auto Tags
         id: meta
@@ -102,20 +101,13 @@ jobs:
           image: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}
 
       # -------------------------------------------------------------
-      # Buildx + QEMU
+      # Docker Buildx setup
       # -------------------------------------------------------------
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
       # -------------------------------------------------------------
-      # Prepare base image refs (_IMAGE_REF variables)
-      # Convert empty inputs to default values
-      # -------------------------------------------------------------
-      - name: Prepare base image references
-        run: ./.github/scripts/prepare-base-image-refs.sh
-
-      # -------------------------------------------------------------
-      # BUILD SERVICE IMAGE
+      # Build service image
       # -------------------------------------------------------------
       - name: Build & Push Service Image
         id: build
@@ -128,12 +120,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            GO_RUNTIME_IMAGE=${{ env.GO_RUNTIME_IMAGE_REF }}
-            NODE_BUILDER_IMAGE=${{ env.NODE_BUILDER_IMAGE_REF }}
-            NODE_RUNTIME_IMAGE=${{ env.NODE_RUNTIME_IMAGE_REF }}
+            GO_RUNTIME_IMAGE=${{ env.GO_RUNTIME_IMAGE }}
+            NODE_BUILDER_IMAGE=${{ env.NODE_BUILDER_IMAGE }}
+            NODE_RUNTIME_IMAGE=${{ env.NODE_RUNTIME_IMAGE }}
 
       # -------------------------------------------------------------
-      # SBOM
+      # SBOM Generation
       # -------------------------------------------------------------
       - uses: anchore/sbom-action@v0
         with:
@@ -146,7 +138,7 @@ jobs:
           path: sbom.spdx.json
 
       # -------------------------------------------------------------
-      # TRIVY SCAN
+      # Trivy Vulnerability Scan
       # -------------------------------------------------------------
       - uses: aquasecurity/trivy-action@0.28.0
         with:
@@ -155,13 +147,13 @@ jobs:
           exit-code: '1'
 
       # -------------------------------------------------------------
-      # COSIGN SIGN
+      # Cosign Signing
       # -------------------------------------------------------------
       - uses: sigstore/cosign-installer@v3
         with:
           cosign-release: 'v2.4.1'
 
-      - name: Cosign Sign
+      - name: Cosign Sign Image
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
