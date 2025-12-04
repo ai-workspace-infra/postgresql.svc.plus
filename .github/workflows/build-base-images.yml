@@ -1,4 +1,4 @@
-name: Build Service Images
+name: Build Base Images
 
 on:
   workflow_call:
