@@ -266,7 +266,7 @@ create-super-admin:
 # ⚙️ 编译与运行
 # =========================================
 
-build:
+build: init-go
 	@go build -o $(APP_NAME) $(MAIN_FILE)
 
 upgrade: build

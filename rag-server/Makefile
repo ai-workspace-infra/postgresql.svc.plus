@@ -42,7 +42,7 @@ init:
 	@echo ">>> 可选安装 air (开发热重载)"
 	@echo "如需安装，请运行: go install github.com/air-verse/air@latest"
 
-build:
+build: init
 	@echo ">>> 编译 $(APP_NAME)"
 	go build -o $(APP_NAME) $(MAIN_FILE)
 
