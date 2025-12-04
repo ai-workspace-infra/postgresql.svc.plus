@@ -2,18 +2,22 @@
 
 ARG GO_BASE_IMAGE
 
-FROM ${GO_BUILDER_IMAGE} AS builder
+FROM ${GO_BASE_IMAGE} AS builder
 WORKDIR /src
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates make \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/accountsvc ./account/cmd/accountsvc
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/account ./account/cmd/account
 
 # PROD Image
 
-FROM ${GO_RUNTIME_IMAGE} AS runtime
+FROM ${GO_BASE_IMAGE} AS runtime
+
 ENV CONFIG_PATH=/etc/xcontrol/account/account.yaml \
     PORT=8080
 
@@ -22,7 +26,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /out/accountsvc /usr/local/bin/accountsvc
+COPY --from=builder /out/account /usr/local/bin/account
 COPY account/config/account.yaml /etc/xcontrol/account/account.yaml
 COPY account-entrypoint.sh /usr/local/bin/account-entrypoint.sh
 RUN chmod +x /usr/local/bin/account-entrypoint.sh
