@@ -1,38 +1,35 @@
 # ------------------------------
 # Stage 1 — Build
 # ------------------------------
-ARG GO_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/go-runtime:latest
-FROM ${GO_RUNTIME_IMAGE} AS builder
+FROM golang:1.24 AS builder
 
-FROM golang:1.22 AS builder
+WORKDIR /src
 
-WORKDIR /workspace/account
-RUN ls
-COPY . .   # <-- 关键：只拷贝 rag-server 目录
+# 先复制 go.mod / go.sum，使 Docker 构建缓存层可复用
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN make build \
- && mkdir -p /out \
- && cp xcontrol-account /out/account
+# 再复制源码
+COPY . .
+
+# 编译
+RUN CGO_ENABLED=0 go build -o account ./cmd/accountsvc/main.go
 
 # ------------------------------
 # Stage 2 — Runtime
 # ------------------------------
-FROM ubuntu:24.04  AS runtime
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-       ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+FROM ubuntu:24.04
 
 WORKDIR /app
 
-COPY --from=builder /out/account /usr/local/bin/account
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN mkdir -p /etc/xcontrol/ && chmod +x /usr/local/bin/entrypoint.sh
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-VOLUME ["/etc/xcontrol/"]
+COPY --from=builder /src/account /usr/local/bin/account
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 8080
-
-ENTRYPOINT ["/usr/local/bin/account-entrypoint.sh"]
-CMD []
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
