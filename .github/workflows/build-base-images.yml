@@ -98,6 +98,15 @@ jobs:
           name: sbom-${{ matrix.image.name }}
           path: sbom.spdx.json
 
+      # -------------------------------------------------------------
+      # Trivy Vulnerability Scan
+      # -------------------------------------------------------------
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+
       - uses: sigstore/cosign-installer@v3
         with:
           cosign-release: 'v2.4.1'
