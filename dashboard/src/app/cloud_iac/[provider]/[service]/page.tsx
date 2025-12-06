@@ -3,12 +3,14 @@ export const dynamic = 'error'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import ServiceDetailView from '@components/iac/ServiceDetailView'
+import dynamic from 'next/dynamic'
 import { CATALOG, PROVIDERS } from '@lib/iac/catalog'
 import type { CatalogItem, ProviderKey } from '@lib/iac/types'
 
 import cloudIacIndex from '../../../../../public/_build/cloud_iac_index.json'
 import { isFeatureEnabled } from '@lib/featureToggles'
+
+const ServiceDetailView = dynamic(() => import('@components/iac/ServiceDetailView'), { ssr: false })
 
 type PageParams = {
   provider: string
