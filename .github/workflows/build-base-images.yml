@@ -55,6 +55,11 @@ env:
   REGISTRY: ${{ inputs.registry || github.event.inputs.registry || 'ghcr.io' }}
   ORG: ${{ inputs.org || github.event.inputs.org || 'cloud-neutral-toolkit' }}
 
+  # Push control
+  PUSH_IMAGES: ${{ github.event_name == 'push'
+    || (github.event_name == 'workflow_call'    && inputs.push_images)
+    || (github.event_name == 'workflow_dispatch' && github.event.inputs.push_images == 'true') }}
+
 jobs:
   build:
     strategy:
