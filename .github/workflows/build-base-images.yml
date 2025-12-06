@@ -110,29 +110,26 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Re-tag & Push image to Docker Hub
+      # -------------------------------------------------------------
+      # Re-tag & Push service image to Docker Hub
+      # -------------------------------------------------------------
+      - name: Re-tag & Push Image (Docker Hub)
         if: env.PUSH_IMAGES == 'true'
         env:
-          TARGET_NS: ${{ env.DOCKERHUB_NAMESPACE }}
+          TARGET_NS: ${{ inputs.dockerhub_namespace || github.event.inputs.dockerhub_namespace || 'manbuzhe2009' }}
         run: |
-          ORIGIN_IMG="${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}"
-          TARGET_REPO="docker.io/${TARGET_NS}/${{ matrix.service.name }}"
-          TAGS="${{ steps.meta.outputs.tags }}"
+          set -euo pipefail
 
-          echo "Origin: $ORIGIN_IMG"
-          echo "Target Namespace: $TARGET_NS"
-          echo "Target Repo: $TARGET_REPO"
+          SERVICE="${{ matrix.image.name }}"
+          ORIGIN_IMG="${{ env.REGISTRY }}/${{ env.ORG }}/${SERVICE}@${{ steps.build.outputs.digest }}"
+          TARGET_REPO="docker.io/${TARGET_NS}/${SERVICE}"
+          TAG_NAMES="${{ steps.meta.outputs.tag-names }}"
 
           docker pull "$ORIGIN_IMG"
 
-          # 为所有 tag 逐个推送
-          for TAG in $TAGS; do
-            SHORT_TAG=$(echo "$TAG" | sed -E 's|.*/||')  # 提取 tag 名称
-            echo "Tagging -> $TARGET_REPO:$SHORT_TAG"
-            docker tag "$ORIGIN_IMG" "$TARGET_REPO:$SHORT_TAG"
-            echo "Pushing -> $TARGET_REPO:$SHORT_TAG"
-            docker push "$TARGET_REPO:$SHORT_TAG"
-            echo "✓ Pushed: $TARGET_REPO:$SHORT_TAG"
+          for TAG in $TAG_NAMES; do
+            docker tag "$ORIGIN_IMG" "$TARGET_REPO:$TAG"
+            docker push "$TARGET_REPO:$TAG"
           done
 
   Security-service:
