@@ -3,8 +3,8 @@
 # =======================================================
 #
 # 默认改为使用官方 Node 镜像，避免无法访问私有 GHCR 镜像导致的构建失败。
-ARG NODE_BUILDER_IMAGE=node:20-bookworm
-ARG NODE_RUNTIME_IMAGE=node:20-bookworm-slim
+ARG NODE_BUILDER_IMAGE=node:22-bookworm
+ARG NODE_RUNTIME_IMAGE=node:22-bookworm-slim
 
 # -------------------------------------------------------
 # Stage 1 — Build (deps + app build via Makefile)
@@ -24,7 +24,7 @@ RUN apt-get update \
 COPY . .
 
 # Run Makefile build (must produce .next + node_modules cleaned)
-RUN make build
+RUN yarn next build
 
 # -------------------------------------------------------
 # Stage 2 — Runtime image (minimal + production deps)
