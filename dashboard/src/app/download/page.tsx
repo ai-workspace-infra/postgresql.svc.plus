@@ -7,7 +7,7 @@ import DownloadSummary from '../../components/download/DownloadSummary'
 import { buildDownloadSections, countFiles, findListing } from '../../lib/download-data'
 import { getDownloadListings } from '../../lib/download/dl-index-data-artifacts'
 import { getOfflinePackageSections, getOfflinePackageFileCount } from '../../lib/download/dl-index-data-offline-package'
-import type { DirEntry } from '../../../../types/download'
+import type { DirEntry } from '../../lib/download/types'
 import { isFeatureEnabled } from '@lib/featureToggles'
 
 export default async function DownloadHome() {
