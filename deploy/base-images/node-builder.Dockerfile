@@ -1,4 +1,4 @@
-FROM node:22-bullseye
+FROM node:22-bookworm
 
 LABEL maintainer="XControl" \
       description="Node.js 22 builder image with Yarn and Next.js tooling"
