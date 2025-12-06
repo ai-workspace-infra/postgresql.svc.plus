@@ -20,13 +20,10 @@ RUN apt-get update \
     && corepack enable \
     && corepack prepare yarn@4.12.0 --activate
 
-RUN yarn config set npmRegistryServer https://registry.npmmirror.com
-
 # Copy monorepo 内容
 COPY . .
 
 # 安装完整依赖（包含 devDependencies）
-# ⚡ 使用 Turbopack 编译并启用 standalone 输出
 RUN find . -name "package-lock.json" -delete
 RUN yarn install --immutable
 RUN yarn next build
