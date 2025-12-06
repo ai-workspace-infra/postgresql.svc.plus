@@ -163,6 +163,10 @@ jobs:
           docker pull "$ORIGIN_IMG"
 
           for TAG in $TAG_NAMES; do
+            if [ -z "$TAGS" ]; then
+              echo "TAG_NAMES is empty, falling back to 'latest'"
+              TAGS="latest"
+            fi
             docker tag "$ORIGIN_IMG" "$TARGET_REPO:$TAG"
             docker push "$TARGET_REPO:$TAG"
           done
