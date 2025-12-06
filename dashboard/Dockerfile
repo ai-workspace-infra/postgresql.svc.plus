@@ -11,7 +11,7 @@ ARG NODE_RUNTIME_IMAGE=node:22-bookworm-slim
 # -------------------------------------------------------
 FROM ${NODE_BUILDER_IMAGE} AS builder
 
-WORKDIR /app
+WORKDIR /app/dashboard
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Ensure build tooling (curl via apt) and Yarn (via Corepack) are available
@@ -23,24 +23,25 @@ RUN apt-get update \
 # Copy entire project
 COPY . .
 
-# Run Makefile build (must produce .next + node_modules cleaned)
-RUN yarn next build
+# Install dependencies and build the dashboard
+RUN yarn install --frozen-lockfile \
+    && yarn next build
 
 # -------------------------------------------------------
 # Stage 2 — Runtime image (minimal + production deps)
 # -------------------------------------------------------
 FROM ${NODE_RUNTIME_IMAGE} AS runner
 
-WORKDIR /app
+WORKDIR /app/dashboard
 ENV NODE_ENV=production \
     RUNTIME_ENV=prod \
     REGION=cn
 
 # Copy exact runtime artifacts
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dashboard/.next ./.next
+COPY --from=builder /app/dashboard/package*.json ./
+COPY --from=builder /app/dashboard/public ./public
+COPY --from=builder /app/dashboard/node_modules ./node_modules
 
 EXPOSE 3000
 
