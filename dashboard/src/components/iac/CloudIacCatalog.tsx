@@ -248,8 +248,8 @@ export default function CloudIacCatalog(props: CloudIacCatalogProps) {
                   <p className="text-sm text-gray-600">{item.description}</p>
 
                   <ul className="space-y-2 text-sm text-gray-600">
-                    {item.highlights.map((highlight) => (
-                      <li key={highlight} className="flex items-start gap-2">
+                    {item.highlights.map((highlight, index) => (
+                      <li key={`${item.key}-highlight-${index}`} className="flex items-start gap-2">
                         <span className="mt-1 h-1.5 w-1.5 rounded-full bg-purple-400" aria-hidden="true" />
                         <span>{highlight}</span>
                       </li>

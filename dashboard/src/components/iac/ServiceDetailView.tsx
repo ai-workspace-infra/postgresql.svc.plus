@@ -122,8 +122,11 @@ export default function ServiceDetailView({
           <p className="mt-4 text-sm text-gray-600 md:text-base">{descriptionCopy}</p>
 
           <ul className="mt-6 grid gap-3 text-sm text-gray-600 md:grid-cols-2">
-            {category.highlights.map((highlight) => (
-              <li key={highlight} className="flex items-start gap-2 rounded-2xl bg-gray-50/80 px-4 py-3">
+            {category.highlights.map((highlight, index) => (
+              <li
+                key={`${category.key}-highlight-${index}`}
+                className="flex items-start gap-2 rounded-2xl bg-gray-50/80 px-4 py-3"
+              >
                 <Settings2 className="mt-0.5 h-4 w-4 text-purple-500" aria-hidden="true" />
                 <span>{highlight}</span>
               </li>
@@ -200,8 +203,8 @@ export default function ServiceDetailView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {specRows.map((row) => (
-                    <tr key={row.label}>
+                  {specRows.map((row, index) => (
+                    <tr key={`${row.label}-${index}`}>
                       <td className="px-4 py-3 font-medium text-gray-900">{row.label}</td>
                       <td className="px-4 py-3 text-gray-700">{row.defaultValue}</td>
                       <td className="px-4 py-3 text-gray-500">{row.description}</td>
@@ -215,11 +218,11 @@ export default function ServiceDetailView({
           <div className="space-y-3">
             <div className="text-sm font-semibold text-gray-900">交付动作</div>
             <div className="grid gap-3 md:grid-cols-3">
-              {ACTION_CONFIG.map((action) => {
+              {ACTION_CONFIG.map((action, index) => {
                 const available = Boolean(integration && integration[action.field])
                 return (
                   <button
-                    key={action.key}
+                    key={`${action.key}-${index}`}
                     type="button"
                     disabled={!available}
                     onClick={() => available && openRunModal(action.key)}
@@ -246,8 +249,8 @@ export default function ServiceDetailView({
             资源规划预览
           </header>
           <ul className="mt-4 space-y-3 text-sm text-gray-600">
-            {resourcePreview.map((item) => (
-              <li key={item.title} className="rounded-2xl bg-gray-50/80 px-4 py-3">
+            {resourcePreview.map((item, index) => (
+              <li key={`${item.title}-${index}`} className="rounded-2xl bg-gray-50/80 px-4 py-3">
                 <div className="font-semibold text-gray-900">{item.title}</div>
                 <p className="mt-1 text-xs text-gray-500">{item.description}</p>
               </li>
@@ -261,8 +264,8 @@ export default function ServiceDetailView({
             成本预估
           </header>
           <div className="mt-4 grid gap-3">
-            {costPreview.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-3">
+            {costPreview.map((item, index) => (
+              <div key={`${item.title}-${index}`} className="rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-3">
                 <div className="flex items-baseline justify-between">
                   <div className="font-semibold text-gray-900">{item.title}</div>
                   <div className="text-sm font-semibold text-purple-600">
@@ -282,8 +285,8 @@ export default function ServiceDetailView({
             交付物与输出
           </header>
           <dl className="mt-4 space-y-3 text-sm text-gray-600">
-            {outputPreview.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-3">
+            {outputPreview.map((item, index) => (
+              <div key={`${item.title}-${index}`} className="rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-3">
                 <dt className="font-semibold text-gray-900">{item.title}</dt>
                 <dd className="mt-1 text-xs text-gray-500">
                   <span className="font-mono text-sm text-gray-700">{item.value}</span>
