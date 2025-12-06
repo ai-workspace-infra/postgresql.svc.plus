@@ -15,7 +15,7 @@ runs:
   steps:
     - name: Prepare matrix context
       id: matrix
-      uses: ../matrix-support
+      uses: ./.github/actions/matrix-support
       with:
         service: ${{ inputs.service }}
         platform: ${{ inputs.platform }}
