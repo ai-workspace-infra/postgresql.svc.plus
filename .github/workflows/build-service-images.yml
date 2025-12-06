@@ -160,18 +160,3 @@ jobs:
         run: |
           IMG=${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
           cosign sign --yes "$IMG"
-
-      # -------------------------------------------------------------
-      # Make GHCR Image Public
-      # -------------------------------------------------------------
-      - name: Make Image Public
-        if: env.PUSH_IMAGES == 'true' || env.PUSH_IMAGES == true
-        run: |
-          IMAGE="${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}"
-          PACKAGE="${{ matrix.service.name }}"
-          echo "Setting visibility of $IMAGE to public..."
-          gh api \
-            --method PATCH \
-            -H "Accept: application/vnd.github+json" \
-            /orgs/${{ env.ORG }}/packages/container/${PACKAGE}/visibility \
-            -f visibility="public"
