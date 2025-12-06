@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"xcontrol/rag-server/internal/service"
+	"rag-server/internal/service"
 )
 
 // registerNodeRoutes sets up node related endpoints.

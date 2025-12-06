@@ -168,9 +168,9 @@ type AuthCfg struct {
 }
 
 type Config struct {
-	Log    Log    `yaml:"log"`
-	Global Global `yaml:"global"`
-	Sync   Sync   `yaml:"sync"`
+	Log    Log     `yaml:"log"`
+	Global Global  `yaml:"global"`
+	Sync   Sync    `yaml:"sync"`
 	Auth   AuthCfg `yaml:"auth"`
 	Models struct {
 		Embedder  ModelCfg `yaml:"embedder"`

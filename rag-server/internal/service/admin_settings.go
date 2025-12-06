@@ -7,7 +7,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"xcontrol/rag-server/internal/model"
+	"rag-server/internal/model"
 )
 
 // ErrServiceDBNotInitialized indicates the service database has not been configured.

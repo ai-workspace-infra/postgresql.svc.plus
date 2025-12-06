@@ -12,11 +12,11 @@ import (
 type contextKey string
 
 const (
-	userIDKey   contextKey = "user_id"
-	emailKey    contextKey = "email"
-	rolesKey    contextKey = "roles"
-	serviceKey  contextKey = "service"
-	bearerPrefix = "Bearer "
+	userIDKey    contextKey = "user_id"
+	emailKey     contextKey = "email"
+	rolesKey     contextKey = "roles"
+	serviceKey   contextKey = "service"
+	bearerPrefix            = "Bearer "
 )
 
 // AuthMiddleware is a middleware that validates JWT access tokens
@@ -44,7 +44,7 @@ func (s *TokenService) AuthMiddleware() gin.HandlerFunc {
 		claims, err := s.ValidateAccessToken(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "invalid or expired token",
+				"error":  "invalid or expired token",
 				"detail": err.Error(),
 			})
 			c.Abort()
@@ -100,7 +100,7 @@ func RequireRole(role string) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusForbidden, gin.H{
-			"error": "insufficient permissions",
+			"error":         "insufficient permissions",
 			"required_role": role,
 		})
 		c.Abort()

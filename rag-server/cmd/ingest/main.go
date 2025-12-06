@@ -6,9 +6,9 @@ import (
 	"log"
 	"runtime"
 
-	cfgpkg "xcontrol/rag-server/internal/rag/config"
-	"xcontrol/rag-server/internal/rag/ingest"
-	"xcontrol/rag-server/proxy"
+	cfgpkg "rag-server/internal/rag/config"
+	"rag-server/internal/rag/ingest"
+	"rag-server/proxy"
 )
 
 func main() {

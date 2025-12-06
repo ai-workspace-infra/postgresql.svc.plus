@@ -18,26 +18,26 @@ type TokenPair struct {
 
 // Claims represents JWT access token claims
 type Claims struct {
-	UserID   string   `json:"user_id"`
-	Email    string   `json:"email"`
-	Roles    []string `json:"roles"`
-	Service  string   `json:"service"`
+	UserID  string   `json:"user_id"`
+	Email   string   `json:"email"`
+	Roles   []string `json:"roles"`
+	Service string   `json:"service"`
 	jwt.RegisteredClaims
 }
 
 // TokenService handles token generation and validation for RAG server
 type TokenService struct {
-	publicToken    string
-	refreshSecret  string
-	accessSecret   string
-	accessExpiry   time.Duration
-	refreshExpiry  time.Duration
+	publicToken   string
+	refreshSecret string
+	accessSecret  string
+	accessExpiry  time.Duration
+	refreshExpiry time.Duration
 }
 
 // AuthClient wraps TokenService for compatibility
 type AuthClient struct {
 	*TokenService
-	authURL    string
+	authURL     string
 	publicToken string
 }
 
@@ -73,22 +73,22 @@ func DefaultMiddlewareConfig(client *AuthClient) *MiddlewareConfig {
 
 // TokenConfig holds configuration for token service
 type TokenConfig struct {
-	AuthURL         string
-	PublicToken     string
-	RefreshSecret   string
-	AccessSecret    string
-	AccessExpiry    time.Duration
-	RefreshExpiry   time.Duration
+	AuthURL       string
+	PublicToken   string
+	RefreshSecret string
+	AccessSecret  string
+	AccessExpiry  time.Duration
+	RefreshExpiry time.Duration
 }
 
 // NewTokenService creates a new TokenService instance
 func NewTokenService(config TokenConfig) *TokenService {
 	return &TokenService{
-		publicToken:    config.PublicToken,
-		refreshSecret:  config.RefreshSecret,
-		accessSecret:   config.AccessSecret,
-		accessExpiry:   config.AccessExpiry,
-		refreshExpiry:  config.RefreshExpiry,
+		publicToken:   config.PublicToken,
+		refreshSecret: config.RefreshSecret,
+		accessSecret:  config.AccessSecret,
+		accessExpiry:  config.AccessExpiry,
+		refreshExpiry: config.RefreshExpiry,
 	}
 }
 

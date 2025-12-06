@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG_FILE="${CONFIG_PATH:-/etc/xcontrol/rag-server/server.yaml}"
-DEFAULT_CONFIG="/etc/xcontrol/rag-server/server.yaml"
+CONFIG_FILE="${CONFIG_PATH:-/etc/rag-server/server.yaml}"
+DEFAULT_CONFIG="/etc/rag-server/server.yaml"
 mkdir -p "$(dirname "${CONFIG_FILE}")"
 
 if [ ! -f "${CONFIG_FILE}" ]; then

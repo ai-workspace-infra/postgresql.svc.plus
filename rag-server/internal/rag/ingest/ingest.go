@@ -8,11 +8,11 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	cfgpkg "xcontrol/rag-server/internal/rag/config"
-	"xcontrol/rag-server/internal/rag/embed"
-	"xcontrol/rag-server/internal/rag/store"
-	rsync "xcontrol/rag-server/internal/rag/sync"
-	"xcontrol/rag-server/proxy"
+	cfgpkg "rag-server/internal/rag/config"
+	"rag-server/internal/rag/embed"
+	"rag-server/internal/rag/store"
+	rsync "rag-server/internal/rag/sync"
+	"rag-server/proxy"
 )
 
 // Options control ingestion behaviour.

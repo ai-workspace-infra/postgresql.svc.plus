@@ -16,12 +16,12 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"xcontrol/rag-server"
-	"xcontrol/rag-server/api"
-	"xcontrol/rag-server/config"
-	"xcontrol/rag-server/internal/auth"
-	rconfig "xcontrol/rag-server/internal/rag/config"
-	"xcontrol/rag-server/proxy"
+	"rag-server"
+	"rag-server/api"
+	"rag-server/config"
+	"rag-server/internal/auth"
+	rconfig "rag-server/internal/rag/config"
+	"rag-server/proxy"
 )
 
 var (

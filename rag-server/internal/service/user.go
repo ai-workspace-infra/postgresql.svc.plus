@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"gorm.io/gorm"
-	"xcontrol/rag-server/internal/model"
+	"rag-server/internal/model"
 )
 
 var db *gorm.DB

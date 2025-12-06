@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
-	"xcontrol/rag-server"
+	"rag-server"
 )
 
 // RegisterRoutes returns a server.Registrar that registers all API routes.

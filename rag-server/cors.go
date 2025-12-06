@@ -12,7 +12,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"xcontrol/rag-server/config"
+	"rag-server/config"
 )
 
 // UseCORS applies a restrictive CORS policy to the provided gin engine based on the

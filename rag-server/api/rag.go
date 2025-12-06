@@ -8,11 +8,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"xcontrol/rag-server/internal/rag"
-	rconfig "xcontrol/rag-server/internal/rag/config"
-	ragembed "xcontrol/rag-server/internal/rag/embed"
-	"xcontrol/rag-server/internal/rag/store"
-	"xcontrol/rag-server/proxy"
+	"rag-server/internal/rag"
+	rconfig "rag-server/internal/rag/config"
+	ragembed "rag-server/internal/rag/embed"
+	"rag-server/internal/rag/store"
+	"rag-server/proxy"
 )
 
 // ragService defines methods used by the RAG API. It allows tests to supply a

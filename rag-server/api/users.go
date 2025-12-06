@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"xcontrol/rag-server/internal/service"
+	"rag-server/internal/service"
 )
 
 // registerUserRoutes sets up user related endpoints.

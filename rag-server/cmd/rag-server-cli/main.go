@@ -15,12 +15,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	rconfig "xcontrol/rag-server/internal/rag/config"
-	"xcontrol/rag-server/internal/rag/embed"
-	"xcontrol/rag-server/internal/rag/ingest"
-	"xcontrol/rag-server/internal/rag/store"
-	rsync "xcontrol/rag-server/internal/rag/sync"
-	"xcontrol/rag-server/proxy"
+	rconfig "rag-server/internal/rag/config"
+	"rag-server/internal/rag/embed"
+	"rag-server/internal/rag/ingest"
+	"rag-server/internal/rag/store"
+	rsync "rag-server/internal/rag/sync"
+	"rag-server/proxy"
 )
 
 // main synchronizes configured repositories and ingests markdown files.

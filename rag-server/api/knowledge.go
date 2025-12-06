@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 
-	rsync "xcontrol/rag-server/internal/rag/sync"
-	"xcontrol/rag-server/proxy"
+	rsync "rag-server/internal/rag/sync"
+	"rag-server/proxy"
 )
 
 // registerKnowledgeRoutes sets up knowledge base endpoints.

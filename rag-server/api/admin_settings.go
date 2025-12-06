@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"xcontrol/rag-server/internal/service"
+	"rag-server/internal/service"
 )
 
 var allowedRoles = map[string]struct{}{

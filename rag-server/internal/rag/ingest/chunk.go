@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	cfgpkg "xcontrol/rag-server/internal/rag/config"
+	cfgpkg "rag-server/internal/rag/config"
 )
 
 // Chunk represents a piece of text prepared for embedding.
