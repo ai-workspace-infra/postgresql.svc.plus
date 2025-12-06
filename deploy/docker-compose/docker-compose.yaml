@@ -23,7 +23,7 @@ services:
       - db
 
   init:
-    image: postgres:17-alpine
+    image: ghcr.io/cloud-neutral-toolkit/postgres-runtime:latest
     container_name: xcontrol-init
     profiles: ["init"]
     depends_on:
@@ -45,9 +45,7 @@ services:
       - db
 
   account:
-    build:
-      context: *workspace
-      dockerfile: account/Dockerfile
+    image: ghcr.io/cloud-neutral-toolkit/account:latest 
     container_name: account
     restart: unless-stopped
     environment:
@@ -66,9 +64,7 @@ services:
       - db
 
   rag-server:
-    build:
-      context: *workspace
-      dockerfile: rag-server/Dockerfile
+    image: ghcr.io/cloud-neutral-toolkit/rag-server:latest 
     container_name: rag-server
     restart: unless-stopped
     environment:
@@ -87,9 +83,7 @@ services:
       - db
 
   dashboard:
-    build:
-      context: *workspace
-      dockerfile: dashboard/Dockerfile
+    image: ghcr.io/cloud-neutral-toolkit/dashboard:latest 
     container_name: dashboard
     restart: unless-stopped
     environment:
