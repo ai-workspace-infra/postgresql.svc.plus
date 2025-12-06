@@ -47,7 +47,8 @@ ENV NODE_ENV=production \
 # ---------------------------
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tini ca-certificates \
-    && apt-get upgrade -y \
+    && apt-get dist-upgrade -y \
+    && apt-get install -y --no-install-recommends --only-upgrade libpam-modules libpam-modules-bin libpam-runtime libpam0g zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 # ---------------------------
