@@ -123,18 +123,11 @@ jobs:
           SERVICE="${{ matrix.image.name }}"
           ORIGIN_IMG="${{ env.REGISTRY }}/${{ env.ORG }}/${SERVICE}@${{ steps.build.outputs.digest }}"
           TARGET_REPO="docker.io/${TARGET_NS}/${SERVICE}"
-          TAG_NAMES="${{ steps.meta.outputs.tag-names }}"
 
+          TAG="latest"
           docker pull "$ORIGIN_IMG"
-
-          for TAG in $TAG_NAMES; do
-            if [ -z "$TAGS" ]; then
-              echo "TAG_NAMES is empty, falling back to 'latest'"
-              TAGS="latest"
-            fi
-            docker tag "$ORIGIN_IMG" "$TARGET_REPO:$TAG"
-            docker push "$TARGET_REPO:$TAG"
-          done
+          docker tag "$ORIGIN_IMG" "$TARGET_REPO:$TAG"
+          docker push "$TARGET_REPO:$TAG"
 
   Security-service:
     runs-on: ubuntu-latest
