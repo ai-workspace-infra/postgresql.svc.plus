@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"xcontrol/account/config"
-	"xcontrol/account/internal/agentproto"
-	"xcontrol/account/internal/xrayconfig"
+	"account/config"
+	"account/internal/agentproto"
+	"account/internal/xrayconfig"
 )
 
 // Options configures the agent runtime.

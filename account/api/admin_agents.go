@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"xcontrol/account/internal/agentserver"
+	"account/internal/agentserver"
 )
 
 type agentStatusReader interface {

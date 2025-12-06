@@ -1,10 +1,10 @@
 package schema
 
 import (
-        "crypto/sha256"
-        _ "embed"
-        "encoding/hex"
-        "sync"
+	"crypto/sha256"
+	_ "embed"
+	"encoding/hex"
+	"sync"
 )
 
 //go:embed schema.sql

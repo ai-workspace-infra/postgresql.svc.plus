@@ -15,7 +15,7 @@ import (
 	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 
-	"xcontrol/account/internal/store"
+	"account/internal/store"
 )
 
 func main() {

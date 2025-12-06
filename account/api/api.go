@@ -21,9 +21,9 @@ import (
 	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 
-	"xcontrol/account/internal/auth"
-	"xcontrol/account/internal/service"
-	"xcontrol/account/internal/store"
+	"account/internal/auth"
+	"account/internal/service"
+	"account/internal/store"
 )
 
 const defaultSessionTTL = 24 * time.Hour

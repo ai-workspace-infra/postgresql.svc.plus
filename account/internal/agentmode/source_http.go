@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"xcontrol/account/internal/xrayconfig"
+	"account/internal/xrayconfig"
 )
 
 // HTTPClientSource retrieves Xray clients from the controller over HTTP.

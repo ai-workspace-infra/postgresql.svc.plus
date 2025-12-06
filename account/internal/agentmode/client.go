@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"xcontrol/account/internal/agentproto"
+	"account/internal/agentproto"
 )
 
 // ClientOptions configures the HTTP client used to communicate with the

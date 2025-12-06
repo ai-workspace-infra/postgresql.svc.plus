@@ -18,8 +18,8 @@ import (
 	"github.com/pquerna/otp/totp"
 	"golang.org/x/crypto/bcrypt"
 
-	"xcontrol/account/internal/service"
-	"xcontrol/account/internal/store"
+	"account/internal/service"
+	"account/internal/store"
 )
 
 type apiResponse struct {

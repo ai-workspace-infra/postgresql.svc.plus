@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"account/internal/migrate"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
-	"xcontrol/account/internal/migrate"
 )
 
 const (

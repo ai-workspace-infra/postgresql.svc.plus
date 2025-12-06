@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"xcontrol/account/internal/agentproto"
+	"account/internal/agentproto"
 )
 
 // Credential defines the authentication material assigned to a managed agent.

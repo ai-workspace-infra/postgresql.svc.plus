@@ -76,17 +76,17 @@ type Session struct {
 
 // Auth defines authentication configuration.
 type Auth struct {
-	Enable bool   `yaml:"enable"`
-	Token  Token  `yaml:"token"`
+	Enable bool  `yaml:"enable"`
+	Token  Token `yaml:"token"`
 }
 
 // Token defines token authentication configuration.
 type Token struct {
-	PublicToken    string        `yaml:"publicToken"`
-	RefreshSecret  string        `yaml:"refreshSecret"`
-	AccessSecret   string        `yaml:"accessSecret"`
-	AccessExpiry   time.Duration `yaml:"accessExpiry"`
-	RefreshExpiry  time.Duration `yaml:"refreshExpiry"`
+	PublicToken   string        `yaml:"publicToken"`
+	RefreshSecret string        `yaml:"refreshSecret"`
+	AccessSecret  string        `yaml:"accessSecret"`
+	AccessExpiry  time.Duration `yaml:"accessExpiry"`
+	RefreshExpiry time.Duration `yaml:"refreshExpiry"`
 }
 
 // SMTP defines outbound SMTP configuration used for transactional email.

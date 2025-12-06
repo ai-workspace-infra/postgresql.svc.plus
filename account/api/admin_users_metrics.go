@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"xcontrol/account/internal/service"
-	"xcontrol/account/internal/store"
+	"account/internal/service"
+	"account/internal/store"
 )
 
 func (h *handler) adminUsersMetrics(c *gin.Context) {

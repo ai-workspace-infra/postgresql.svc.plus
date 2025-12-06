@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"xcontrol/account/internal/utils"
+	"account/internal/utils"
 )
 
 const defaultSchemaPath = "account/sql/schema.sql"

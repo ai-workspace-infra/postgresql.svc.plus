@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"xcontrol/account/internal/agentproto"
+	"account/internal/agentproto"
 )
 
 func TestNewRegistryValidation(t *testing.T) {

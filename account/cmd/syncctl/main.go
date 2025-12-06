@@ -10,7 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"xcontrol/account/internal/syncer"
+	"account/internal/syncer"
 )
 
 func main() {

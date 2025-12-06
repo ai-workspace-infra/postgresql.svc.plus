@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	accountschema "xcontrol/account/sql"
+	accountschema "account/sql"
 )
 
 // AccountDump represents the serialized snapshot of account-related tables.

@@ -22,17 +22,17 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"xcontrol/account/api"
-	"xcontrol/account/config"
-	"xcontrol/account/internal/agentmode"
-	"xcontrol/account/internal/agentproto"
-	"xcontrol/account/internal/agentserver"
-	"xcontrol/account/internal/auth"
-	"xcontrol/account/internal/mailer"
-	"xcontrol/account/internal/model"
-	"xcontrol/account/internal/service"
-	"xcontrol/account/internal/store"
-	"xcontrol/account/internal/xrayconfig"
+	"account/api"
+	"account/config"
+	"account/internal/agentmode"
+	"account/internal/agentproto"
+	"account/internal/agentserver"
+	"account/internal/auth"
+	"account/internal/mailer"
+	"account/internal/model"
+	"account/internal/service"
+	"account/internal/store"
+	"account/internal/xrayconfig"
 )
 
 var (
@@ -149,11 +149,11 @@ func runServer(ctx context.Context, cfg *config.Config, logger *slog.Logger) err
 		}
 
 		tokenService = auth.NewTokenService(auth.TokenConfig{
-			PublicToken:    cfg.Auth.Token.PublicToken,
-			RefreshSecret:  cfg.Auth.Token.RefreshSecret,
-			AccessSecret:   cfg.Auth.Token.AccessSecret,
-			AccessExpiry:   accessExpiry,
-			RefreshExpiry:  refreshExpiry,
+			PublicToken:   cfg.Auth.Token.PublicToken,
+			RefreshSecret: cfg.Auth.Token.RefreshSecret,
+			AccessSecret:  cfg.Auth.Token.AccessSecret,
+			AccessExpiry:  accessExpiry,
+			RefreshExpiry: refreshExpiry,
 		})
 		logger.Info("token service initialized", "auth_enabled", cfg.Auth.Enable)
 	}

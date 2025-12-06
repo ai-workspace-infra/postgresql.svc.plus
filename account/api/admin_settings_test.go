@@ -13,9 +13,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"xcontrol/account/internal/model"
-	"xcontrol/account/internal/service"
-	"xcontrol/account/internal/store"
+	"account/internal/model"
+	"account/internal/service"
+	"account/internal/store"
 )
 
 type adminSettingsTestEnv struct {

@@ -3,7 +3,7 @@ package agentproto
 import (
 	"time"
 
-	"xcontrol/account/internal/xrayconfig"
+	"account/internal/xrayconfig"
 )
 
 // ClientListResponse represents the payload returned by the controller when an

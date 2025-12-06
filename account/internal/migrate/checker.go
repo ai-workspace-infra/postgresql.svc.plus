@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"xcontrol/account/internal/utils"
+	"account/internal/utils"
 )
 
 // Checker compares two PostgreSQL schemas (CN vs Global) and optionally fixes

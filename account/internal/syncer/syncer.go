@@ -18,7 +18,7 @@ import (
 	"golang.org/x/crypto/ssh/knownhosts"
 	"gopkg.in/yaml.v3"
 
-	"xcontrol/account/internal/migrate"
+	"account/internal/migrate"
 )
 
 // Syncer coordinates snapshot exports, transfers and imports between two
