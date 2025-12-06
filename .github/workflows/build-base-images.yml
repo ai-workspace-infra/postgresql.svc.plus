@@ -103,7 +103,7 @@ jobs:
       # -------------------------------------------------------------
       - uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service.name }}@${{ steps.build.outputs.digest }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.image.name }}@${{ steps.build.outputs.digest }}
           severity: HIGH,CRITICAL
           exit-code: '1'
 
