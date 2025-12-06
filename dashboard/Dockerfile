@@ -1,8 +1,10 @@
 # =======================================================
 # Global ARGs — 必须在所有 FROM 之前声明（修复你的错误）
 # =======================================================
-ARG NODE_BUILDER_IMAGE=ghcr.io/cloud-neutral-toolkit/node-builder:latest
-ARG NODE_RUNTIME_IMAGE=ghcr.io/cloud-neutral-toolkit/node-runtime:latest
+#
+# 默认改为使用官方 Node 镜像，避免无法访问私有 GHCR 镜像导致的构建失败。
+ARG NODE_BUILDER_IMAGE=node:20-bookworm
+ARG NODE_RUNTIME_IMAGE=node:20-bookworm-slim
 
 # -------------------------------------------------------
 # Stage 1 — Build (deps + app build via Makefile)
@@ -11,6 +13,12 @@ FROM ${NODE_BUILDER_IMAGE} AS builder
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Ensure build tooling (curl via apt) and Yarn (via Corepack) are available
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable
 
 # Copy entire project
 COPY . .
