@@ -3,43 +3,37 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-POSTGRES_VOL="postgres_data"
+COMPOSE_FILE="docker-compose.yaml"
 
-stop_all() {
-  docker compose -f docker-compose.yaml down -v || true
+usage() {
+  echo "Usage: $0 {up|init|certbot|reset|down}"
+  exit 1
 }
 
-wait_db() {
-  until docker exec "$(docker ps -qf 'ancestor=postgres:17-alpine')" \
-      pg_isready -U postgres >/dev/null 2>&1; do
-    sleep 2
-  done
+stop_all() {
+  docker compose -f "${COMPOSE_FILE}" down -v || true
 }
 
 case "${1:-}" in
-  certbot)
-    docker compose -f docker-compose.yaml run --rm certbot
+  up)
+    docker compose -f "${COMPOSE_FILE}" up -d --build
     ;;
   init)
-    stop_all
-    docker compose -f docker-compose.yaml run --rm zitadel-init
-    docker compose -f docker-compose.yaml up -d
+    docker compose -f "${COMPOSE_FILE}" up -d db redis
+    docker compose -f "${COMPOSE_FILE}" --profile init run --rm init
     ;;
-
-  update)
-    docker compose -f docker-compose.yaml pull
-    docker compose -f docker-compose.yaml up -d
+  certbot)
+    docker compose -f "${COMPOSE_FILE}" --profile bootstrap up --abort-on-container-exit certbot
     ;;
-
   reset)
     stop_all
-
-    docker volume rm -f "${POSTGRES_VOL}" || true
-    rm -rf ./data && mkdir -p ./data
+    rm -rf ./certbot/conf/live ./certbot/www
+    mkdir -p ./certbot/conf/live ./certbot/www
     ;;
-
+  down)
+    stop_all
+    ;;
   *)
-    echo "Usage: $0 {init|update|reset|certbot}"
-    exit 1
+    usage
     ;;
 esac

@@ -1,0 +1,50 @@
+server:
+  addr: ":8090"
+  readTimeout: 120s
+  writeTimeout: 120s
+  publicUrl: "https://api.svc.plus"
+  allowedOrigins:
+    - "https://api.svc.plus"
+    - "https://www.svc.plus"
+    - "https://accounts.svc.plus"
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+
+auth:
+  enable: false
+  authUrl: "https://accounts.svc.plus"
+  apiBaseUrl: "https://api.svc.plus"
+  publicToken: "xcontrol-public-token-2025"
+
+global:
+  redis:
+    addr: ""
+    password: ""
+  vectordb:
+    pgurl: "postgres://xcontrol:xcontrol@db:5432/rag?sslmode=disable"
+  datasources:
+    - name: XControl
+      repo: https://github.com/svc-design/XControl
+      path: docs
+
+sync:
+  repo:
+    proxy: ""
+
+models:
+  embedder:
+    provider: "chutes"
+    models:
+      - "bge-m3"
+    baseurl: "http://127.0.0.1:9000"
+    endpoint: "http://127.0.0.1:9000/v1/embeddings"
+  generator:
+    provider: "chutes"
+    models:
+      - "deepseek-r1:8b"
+    baseurl: "http://127.0.0.1:11434"
+    endpoint: "http://127.0.0.1:11434/v1/chat/completions"
+
+embedding:
+  max_batch: 64
+  dimension: 1024

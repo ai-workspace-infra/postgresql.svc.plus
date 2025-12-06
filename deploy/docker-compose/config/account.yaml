@@ -1,0 +1,66 @@
+mode: "server-agent"
+
+log:
+  level: info
+
+auth:
+  enable: true
+  token:
+    publicToken: "xcontrol-public-token-2024"
+    refreshSecret: "xcontrol-refresh-secret-2024"
+    accessSecret: "xcontrol-access-secret-2024"
+    accessExpiry: "1h"
+    refreshExpiry: "168h"
+
+server:
+  addr: ":8080"
+  readTimeout: 15s
+  writeTimeout: 15s
+  publicUrl: "https://accounts.svc.plus"
+  allowedOrigins:
+    - "https://accounts.svc.plus"
+    - "https://api.svc.plus"
+    - "https://www.svc.plus"
+    - "http://localhost:3000"
+    - "http://127.0.0.1:3000"
+    - "http://localhost:8080"
+    - "http://127.0.0.1:8080"
+  tls:
+    enabled: false
+    redirectHttp: false
+
+store:
+  driver: "postgres"
+  dsn: "postgres://xcontrol:xcontrol@db:5432/account?sslmode=disable"
+  maxOpenConns: 30
+  maxIdleConns: 10
+
+session:
+  ttl: 24h
+  cache: "memory"
+
+smtp:
+  host: "smtp.example.com"
+  port: 587
+  username: "apikey"
+  password: "change-me"
+  from: "XControl Account <no-reply@example.com>"
+  timeout: 10s
+  tls:
+    mode: "auto"
+    insecureSkipVerify: false
+
+xray:
+  sync:
+    enabled: false
+    interval: 5m
+    outputPath: "/usr/local/etc/xray/config.json"
+    templatePath: "account/config/xray.config.template.json"
+    validateCommand: []
+    restartCommand:
+      - "systemctl"
+      - "restart"
+      - "xray.service"
+
+agent:
+  id: "account-primary"
