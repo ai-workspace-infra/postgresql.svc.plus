@@ -51,9 +51,6 @@ jobs:
     strategy:
       matrix:
         image:
-          - { name: go-runtime, file: deploy/base-images/go-runtime.Dockerfile }
-          - { name: node-builder, file: deploy/base-images/node-builder.Dockerfile }
-          - { name: node-runtime, file: deploy/base-images/node-runtime.Dockerfile }
           - { name: openresty-geoip, file: deploy/base-images/openresty-geoip.Dockerfile }
           - { name: postgres-runtime, file: deploy/base-images/postgres-runtime-wth-extensions.Dockerfile }
 
