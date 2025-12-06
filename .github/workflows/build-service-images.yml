@@ -11,15 +11,15 @@ on:
       # Base image references (full image URL)
       node_builder_image:
         type: string
-        default: "ghcr.io/cloud-neutral-toolkit/node-builder:latest"
+        default: "node:22-bookworm"
 
       node_runtime_image:
         type: string
-        default: "ghcr.io/cloud-neutral-toolkit/node-runtime:latest"
+        default: "node:22-slim"
 
       go_runtime_image:
         type: string
-        default: "ghcr.io/cloud-neutral-toolkit/go-runtime:latest"
+        default: "golang:1.25"
 
   workflow_dispatch:
     inputs:
