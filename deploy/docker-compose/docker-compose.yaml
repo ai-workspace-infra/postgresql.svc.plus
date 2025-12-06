@@ -1,6 +1,6 @@
 services:
   db:
-    image: ghcr.io/cloud-neutral-toolkit/postgres-runtime:latest
+    image: manbuzhe2009/postgres-runtime:latest 
     container_name: xcontrol-db
     restart: unless-stopped
     environment:
@@ -37,7 +37,7 @@ services:
       - db
 
   rag-server:
-    image: ghcr.io/cloud-neutral-toolkit/rag-server:latest 
+    image: manbuzhe2009/rag-server:latest 
     container_name: rag-server
     restart: unless-stopped
     environment:
@@ -55,7 +55,7 @@ services:
       - db
 
   dashboard:
-    image: ghcr.io/cloud-neutral-toolkit/dashboard:latest 
+    image: manbuzhe2009/dashboard:latest 
     container_name: dashboard
     restart: unless-stopped
     environment:
