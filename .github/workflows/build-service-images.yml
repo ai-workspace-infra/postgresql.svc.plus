@@ -76,7 +76,7 @@ env:
     || (github.event_name == 'workflow_dispatch' && github.event.inputs.push_images == 'true') }}
 
 jobs:
-  build-service:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
@@ -169,6 +169,23 @@ jobs:
             docker push "$TARGET_REPO:$SHORT_TAG"
             echo "✓ Pushed: $TARGET_REPO:$SHORT_TAG"
           done
+
+  Security:
+    runs-on: ubuntu-latest
+    needs: build
+
+    strategy:
+      matrix:
+        service:
+          - { name: dashboard,  workdir: dashboard }
+          - { name: rag-server, workdir: rag-server }
+          - { name: account,    workdir: account }
+
+    steps:
+      # -------------------------------------------------------------
+      # Checkout source
+      # -------------------------------------------------------------
+      - uses: actions/checkout@v4
 
       # -------------------------------------------------------------
       # SBOM Generation

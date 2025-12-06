@@ -56,7 +56,7 @@ env:
   ORG: ${{ inputs.org || github.event.inputs.org || 'cloud-neutral-toolkit' }}
 
 jobs:
-  build-base:
+  build:
     strategy:
       matrix:
         image:
@@ -129,6 +129,23 @@ jobs:
             docker push "$TARGET_REPO:$SHORT_TAG"
             echo "✓ Pushed: $TARGET_REPO:$SHORT_TAG"
           done
+
+  Security-service:
+    runs-on: ubuntu-latest
+    needs: build
+
+    strategy:
+      matrix:
+        image:
+          - { name: openresty-geoip, file: deploy/base-images/openresty-geoip.Dockerfile }
+          - { name: postgres-runtime, file: deploy/base-images/postgres-runtime-wth-extensions.Dockerfile }
+
+    steps:
+      # -------------------------------------------------------------
+      # Checkout source
+      # -------------------------------------------------------------
+      - uses: actions/checkout@v4
+
 
       - uses: anchore/sbom-action@v0
         with:
