@@ -19,7 +19,7 @@ export PATH := /usr/local/go/bin:$(PATH)
 all: build
 
 init:
-	go mod init xcontrol/account
+	go mod init rag-server || true
 	go mod tidy
 	@echo ">>> 初始化 Go 依赖环境"
 	@if command -v go >/dev/null 2>&1; then \

@@ -1,4 +1,4 @@
-module xcontrol/account
+module rag-server
 
 go 1.25.1
 

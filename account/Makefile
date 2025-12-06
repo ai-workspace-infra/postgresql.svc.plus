@@ -67,7 +67,7 @@ help:
 init: init-go init-db
 
 init-go:
-	go mod init xcontrol/rag-server
+	go mod init account
 	go mod tidy
 	@echo ">>> 检查 Go 环境"
 	@if ! command -v go >/dev/null; then \
