@@ -1,5 +1,3 @@
-version: "3.9"
-
 x-workspace: &workspace ${XCONTROL_WORKSPACE:-..}
 
 services:
@@ -33,11 +31,15 @@ services:
       DB_USER: ${XCONTROL_DB_USER:-xcontrol}
       PGPASSWORD: ${XCONTROL_DB_PASSWORD:-xcontrol}
     command: >
-      sh -c "\
-        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d postgres -c \"SELECT 'CREATE DATABASE account OWNER ' || quote_ident(current_user) || ';' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'account') \gexec\" &&\
-        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d postgres -c \"SELECT 'CREATE DATABASE rag OWNER ' || quote_ident(current_user) || ';' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'rag') \gexec\" &&\
-        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d account -f /workspace/account/sql/schema.sql &&\
-        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d rag -f /workspace/rag-server/sql/schema.sql\
+      sh -c "
+        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d postgres \
+          -c \"SELECT 'CREATE DATABASE account OWNER ' || quote_ident(current_user) || ';'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'account') \gexec\" && \
+        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d postgres \
+          -c \"SELECT 'CREATE DATABASE rag OWNER ' || quote_ident(current_user) || ';'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'rag') \gexec\" && \
+        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d account -f /workspace/account/sql/schema.sql && \
+        psql -v ON_ERROR_STOP=1 -h db -U \"$DB_USER\" -d rag -f /workspace/rag-server/sql/schema.sql
       "
     volumes:
       - *workspace:/workspace:ro
