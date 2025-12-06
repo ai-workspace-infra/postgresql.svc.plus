@@ -3,6 +3,7 @@ NODE_VERSION := $(shell node -v 2>/dev/null || echo "Not Found")
 YARN := $(shell command -v yarn 2>/dev/null)
 MAGICK := $(shell command -v magick 2>/dev/null || command -v convert 2>/dev/null)
 OS := $(shell uname -s)
+YARN_VERSION ?= 4.12.0
 
 .PHONY: init ensure-deps dev build export clean info icon start stop restart test sync-dl-index
 
@@ -25,12 +26,13 @@ icon:
 	@echo "✅ Icons generated successfully."
 
 init:
-	@echo "🔧 Installing dependencies for dashboard..."
-	@if [ -z "$(YARN)" ]; then \
-		echo "⚠️  Yarn not found. Attempting to install..."; \
-		if [ "$(OS)" = "Darwin" ]; then \
-			if command -v brew >/dev/null 2>&1; then \
-				brew install yarn; \
+        @echo "🔧 Installing dependencies for dashboard..."
+        @corepack enable && corepack prepare yarn@$(YARN_VERSION) --activate
+        @if [ -z "$(YARN)" ]; then \
+                echo "⚠️  Yarn not found. Attempting to install..."; \
+                if [ "$(OS)" = "Darwin" ]; then \
+                        if command -v brew >/dev/null 2>&1; then \
+                                brew install yarn; \
 			else \
 				echo "❌ Homebrew not found. Please install Yarn manually."; exit 1; \
 			fi; \
@@ -42,16 +44,17 @@ init:
 			curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo && \
 			sudo yum install -y yarn; \
 		else \
-			echo "❌ Unsupported OS. Please install Yarn manually."; exit 1; \
-		fi; \
-	fi
-	yarn install
+                        echo "❌ Unsupported OS. Please install Yarn manually."; exit 1; \
+                fi; \
+        fi
+        yarn config set npmRegistryServer https://registry.npmmirror.com
+        yarn install --immutable
 
 ensure-deps:
-	@if [ ! -f .yarn/install-state.gz ] || [ ! -d node_modules ] || [ ! -d node_modules/sanitize-html ]; then \
-		echo "📦 Installing dependencies..."; \
-		yarn install; \
-	fi
+        @if [ ! -f .yarn/install-state.gz ] || [ ! -d node_modules ] || [ ! -d node_modules/sanitize-html ]; then \
+                echo "📦 Installing dependencies..."; \
+                yarn install --immutable; \
+        fi
 
 dev: ensure-deps
 	@echo "🚀 Starting Next.js dev server (dashboard)..."
@@ -77,10 +80,10 @@ test:
 	@yarn test || echo "No tests configured"
 
 build: init
-	yarn config set npmRegistryServer https://registry.npmmirror.com
-	@if [ -z "$(SKIP_SYNC)" ]; then \
-		$(MAKE) sync-dl-index; \
-		fi
+        yarn config set npmRegistryServer https://registry.npmmirror.com
+        @if [ -z "$(SKIP_SYNC)" ]; then \
+                $(MAKE) sync-dl-index; \
+                fi
 	@echo "🔨 Building dashboard..."
 	yarn next build
 

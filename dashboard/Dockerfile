@@ -20,6 +20,8 @@ RUN apt-get update \
     && corepack enable \
     && corepack prepare yarn@4.12.0 --activate
 
+RUN yarn config set npmRegistryServer https://registry.npmmirror.com
+
 # Copy monorepo 内容
 COPY . .
 
