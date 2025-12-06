@@ -5,6 +5,10 @@ import fallbackArtifacts from '../../../public/_build/artifacts-manifest.json'
 
 const ARTIFACTS_MANIFEST_URL = 'https://dl.svc.plus/dl-index/artifacts-manifest.json'
 const FALLBACK_LISTINGS_URL = 'https://dl.svc.plus/dl-index/offline-package-manifest.json'
+const REMOTE_ARTIFACTS_ENABLED = process.env.ALLOW_REMOTE_DL_FETCH === 'true'
+const LOCAL_FALLBACK_ARTIFACTS = Array.isArray(fallbackArtifacts)
+  ? (fallbackArtifacts as DirListing[])
+  : []
 
 async function fetchListings(url: string, useCache?: boolean): Promise<DirListing[]> {
   try {
@@ -20,31 +24,41 @@ async function fetchListings(url: string, useCache?: boolean): Promise<DirListin
     const data = await response.json()
     return Array.isArray(data) ? (data as DirListing[]) : []
   } catch (error) {
-    console.error(`Error fetching from ${url}:`, error)
+    if (REMOTE_ARTIFACTS_ENABLED) {
+      console.warn(`Error fetching from ${url}:`, error)
+    }
     return []
   }
 }
 
 async function loadDownloadListings(options?: { useCache?: boolean }): Promise<DirListing[]> {
-  const manifestListings = await fetchListings(ARTIFACTS_MANIFEST_URL, options?.useCache)
+  if (!REMOTE_ARTIFACTS_ENABLED && LOCAL_FALLBACK_ARTIFACTS.length > 0) {
+    return LOCAL_FALLBACK_ARTIFACTS
+  }
+
+  const manifestListings = REMOTE_ARTIFACTS_ENABLED
+    ? await fetchListings(ARTIFACTS_MANIFEST_URL, options?.useCache)
+    : []
 
   if (manifestListings.length > 0) {
     return manifestListings
   }
 
-  const fallbackListings = await fetchListings(FALLBACK_LISTINGS_URL, options?.useCache)
+  const fallbackListings = REMOTE_ARTIFACTS_ENABLED
+    ? await fetchListings(FALLBACK_LISTINGS_URL, options?.useCache)
+    : []
   if (fallbackListings.length > 0) {
     return fallbackListings
   }
 
   // Last resort: use local fallback data
-  return fallbackArtifacts as DirListing[]
+  return LOCAL_FALLBACK_ARTIFACTS
 }
 
 // 构建时数据获取：优先使用本地 fallback 数据
 async function loadDownloadListingsForBuildTime(): Promise<DirListing[]> {
   // 构建时优先使用本地数据，避免外部API调用导致构建失败
-  const localFallback = fallbackArtifacts as DirListing[]
+  const localFallback = LOCAL_FALLBACK_ARTIFACTS
 
   if (localFallback.length > 0) {
     return localFallback

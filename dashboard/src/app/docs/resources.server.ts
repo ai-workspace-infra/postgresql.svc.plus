@@ -7,6 +7,8 @@ import { buildAbsoluteDocUrl } from './utils'
 import type { DocCollection, DocResource, DocVersionOption } from './types'
 
 const DOCS_MANIFEST_URL = 'https://dl.svc.plus/dl-index/docs-manifest.json'
+const REMOTE_DOCS_ENABLED = process.env.ALLOW_REMOTE_DOCS_FETCH === 'true'
+const FALLBACK_DOCS_INDEX = Array.isArray(fallbackDocsIndex) ? (fallbackDocsIndex as RawDocResource[]) : []
 
 interface RawDocResource {
   slug?: unknown
@@ -43,35 +45,44 @@ async function fetchDocs(options?: { useCache?: boolean }): Promise<RawDocResour
     const data = await response.json()
     return Array.isArray(data) ? (data as RawDocResource[]) : []
   } catch (error) {
-    console.error('Error fetching docs manifest:', error)
+    if (REMOTE_DOCS_ENABLED) {
+      console.warn('Error fetching docs manifest:', error)
+    }
     return []
   }
 }
 
 async function loadDocs(options?: { useCache?: boolean }): Promise<RawDocResource[]> {
+  if (!REMOTE_DOCS_ENABLED) {
+    return FALLBACK_DOCS_INDEX
+  }
+
   const manifestDocs = await fetchDocs(options)
 
   if (manifestDocs.length > 0) {
     return manifestDocs
   }
 
-  const fallbackDocs = Array.isArray(fallbackDocsIndex) ? (fallbackDocsIndex as RawDocResource[]) : []
-  return fallbackDocs
+  return FALLBACK_DOCS_INDEX
 }
 
 // 构建时数据获取：优先使用本地 fallback，保证构建成功
 async function loadDocsForBuildTime(): Promise<RawDocResource[]> {
   // 构建时优先使用本地数据，避免外部API调用导致构建失败
-  const fallbackDocs = Array.isArray(fallbackDocsIndex) ? (fallbackDocsIndex as RawDocResource[]) : []
+  const fallbackDocs = FALLBACK_DOCS_INDEX
 
   if (fallbackDocs.length > 0) {
     return fallbackDocs
   }
 
   // fallback为空时，再尝试获取远程数据
-  console.warn('Fallback docs not found, attempting to fetch remote docs manifest...')
-  const manifestDocs = await fetchDocs({ useCache: true })
-  return manifestDocs
+  if (REMOTE_DOCS_ENABLED) {
+    console.warn('Fallback docs not found, attempting to fetch remote docs manifest...')
+    const manifestDocs = await fetchDocs({ useCache: true })
+    return manifestDocs
+  }
+
+  return []
 }
 
 async function getRawDocs(): Promise<RawDocResource[]> {
