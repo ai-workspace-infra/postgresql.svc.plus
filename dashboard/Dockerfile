@@ -1,48 +1,72 @@
 # =======================================================
-# Global ARGs — 必须在所有 FROM 之前声明（修复你的错误）
+# Global ARGs — 必须在所有 FROM 之前声明
 # =======================================================
-#
-# 默认改为使用官方 Node 镜像，避免无法访问私有 GHCR 镜像导致的构建失败。
 ARG NODE_BUILDER_IMAGE=node:22-bookworm
-ARG NODE_RUNTIME_IMAGE=node:22-bookworm-slim
+ARG NODE_RUNTIME_IMAGE=node:22-slim
 
 # -------------------------------------------------------
-# Stage 1 — Build (deps + app build via Makefile)
+# Stage 1 — Builder (Turbopack + standalone)
 # -------------------------------------------------------
 FROM ${NODE_BUILDER_IMAGE} AS builder
 
 WORKDIR /app/dashboard
-ENV NEXT_TELEMETRY_DISABLED=1
 
-# Ensure build tooling (curl via apt) and Yarn (via Corepack) are available
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_PRIVATE_TURBOPACK=1
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
-    && corepack enable
+    && corepack enable \
+    && corepack prepare yarn@4.12.0 --activate
 
-# Copy entire project
+# Copy monorepo 内容
 COPY . .
 
-# Install dependencies and build the dashboard
-RUN yarn install --frozen-lockfile \
-    && yarn next build
+# 安装完整依赖（包含 devDependencies）
+# ⚡ 使用 Turbopack 编译并启用 standalone 输出
+RUN find . -name "package-lock.json" -delete
+RUN yarn install --immutable
+RUN yarn next build
 
 # -------------------------------------------------------
-# Stage 2 — Runtime image (minimal + production deps)
+# Stage 2 — Runtime (极致瘦身)
 # -------------------------------------------------------
 FROM ${NODE_RUNTIME_IMAGE} AS runner
 
-WORKDIR /app/dashboard
+WORKDIR /app/dashboard/
+
 ENV NODE_ENV=production \
     RUNTIME_ENV=prod \
-    REGION=cn
+    REGION=cn \
+    PORT=3000
 
-# Copy exact runtime artifacts
-COPY --from=builder /app/dashboard/.next ./.next
-COPY --from=builder /app/dashboard/package*.json ./
+# ---------------------------
+# 安装 tini（修复子进程 + 更快退出）
+# ---------------------------
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tini ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+# ---------------------------
+# 导入 standalone 的运行产物
+# ---------------------------
+COPY --from=builder /app/dashboard/.next/standalone ./
+COPY --from=builder /app/dashboard/.next/static ./static
 COPY --from=builder /app/dashboard/public ./public
-COPY --from=builder /app/dashboard/node_modules ./node_modules
+
+# ---------------------------
+# 额外瘦身（可减少 15–40 MB）
+# ---------------------------
+#RUN rm -rf node_modules/next/dist/compiled/@vercel/og/* \
+#    && rm -rf node_modules/sharp/vendor/* \
+#    && find node_modules -name "*.md" -delete \
+#    && find node_modules -name "*.map" -delete
+
+# （如果 Edge Runtime 里用不到 font/SWC 也可移除，比现在更狠）
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start", "--", "-p", "3000"]
+CMD ["node", "server.js"]
