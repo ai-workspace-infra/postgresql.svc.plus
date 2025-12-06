@@ -14,16 +14,17 @@ WORKDIR /app/dashboard
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PRIVATE_TURBOPACK=1
 
+# ---------------------------
+# 基础镜像升级到最新
+# ---------------------------
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
+    && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/* \
     && corepack enable \
     && corepack prepare yarn@4.12.0 --activate
 
-# Copy monorepo 内容
 COPY . .
-
-# 安装完整依赖（包含 devDependencies）
 RUN find . -name "package-lock.json" -delete
 RUN yarn install --immutable
 RUN yarn next build
@@ -42,12 +43,12 @@ ENV NODE_ENV=production \
 
 # ---------------------------
 # 安装 tini（修复子进程 + 更快退出）
+# 基础镜像升级到最新
 # ---------------------------
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tini ca-certificates \
+    && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
 
 # ---------------------------
 # 导入 standalone 的运行产物
@@ -67,5 +68,7 @@ COPY --from=builder /app/dashboard/public ./public
 # （如果 Edge Runtime 里用不到 font/SWC 也可移除，比现在更狠）
 
 EXPOSE 3000
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
 
 CMD ["node", "server.js"]
