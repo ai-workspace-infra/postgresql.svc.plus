@@ -67,7 +67,10 @@ help:
 init: init-go init-db
 
 init-go:
-	go mod init account
+	@if [ ! -f go.mod ]; then \
+		echo ">>> go.mod not found, initializing module"; \
+		go mod init account; \
+	fi
 	go mod tidy
 	@echo ">>> 检查 Go 环境"
 	@if ! command -v go >/dev/null; then \

@@ -19,7 +19,10 @@ export PATH := /usr/local/go/bin:$(PATH)
 all: build
 
 init:
-	go mod init rag-server || true
+	@if [ ! -f go.mod ]; then \
+		echo ">>> go.mod not found, initializing module"; \
+		go mod init rag-server; \
+	fi
 	go mod tidy
 	@echo ">>> 初始化 Go 依赖环境"
 	@if command -v go >/dev/null 2>&1; then \
