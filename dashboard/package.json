@@ -64,5 +64,8 @@
     "tsx": "^4.7.1",
     "typescript": "^5.4.2",
     "vitest": "^4.0.7"
+  },
+  "resolutions": {
+    "glob": "10.5.0"
   }
 }
