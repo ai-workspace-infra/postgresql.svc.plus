@@ -1,0 +1,44 @@
+service: network
+environment: dev
+module:
+  name: shared-vpc
+  source: terraform-google-modules/network/google
+  version: "~> 9.1"
+inputs:
+  project_id: xcontrol-dev-network
+  network_name: dev-shared-vpc
+  routing_mode: REGIONAL
+  delete_default_routes_on_create: true
+  subnets:
+    - name: dev-apps-a
+      ip_cidr_range: 10.20.0.0/20
+      region: us-central1
+      secondary_ip_ranges:
+        pods: 10.100.0.0/18
+        services: 10.110.0.0/20
+    - name: dev-apps-b
+      ip_cidr_range: 10.20.16.0/20
+      region: us-east1
+  firewall_rules:
+    ssh_jump:
+      description: Allow SSH from bastion
+      priority: 1000
+      direction: INGRESS
+      ranges: ["10.0.0.0/8"]
+      target_tags: ["bastion"]
+      allow:
+        - protocol: tcp
+          ports: ["22"]
+    health_checks:
+      description: Allow Google health checkers
+      priority: 1001
+      direction: INGRESS
+      ranges:
+        - 35.191.0.0/16
+        - 130.211.0.0/22
+      allow:
+        - protocol: tcp
+          ports: ["80", "443"]
+labels:
+  environment: dev
+  owner: platform

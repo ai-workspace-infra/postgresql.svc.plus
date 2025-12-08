@@ -1,0 +1,36 @@
+environment: dev
+project:
+  id: xcontrol-dev-apps
+  name: XControl Dev Applications
+  billing_account: "AAAAAA-BBBBBB-CCCCCC"
+  parent:
+    type: folder
+    id: "folders/345678901234"
+  labels:
+    environment: dev
+    owner: app-team
+networking:
+  shared_vpc_host: dev-shared-vpc
+  subnetwork: dev-apps-a
+  region: us-central1
+service_accounts:
+  - name: terraform-runner
+    description: CI/CD pipeline principal
+    roles:
+      - roles/editor
+      - roles/iam.serviceAccountUser
+  - name: runtime
+    description: Workload identity for application services
+    roles:
+      - roles/logging.logWriter
+      - roles/monitoring.metricWriter
+      - roles/storage.objectViewer
+artifact_registry:
+  repository_id: dev-containers
+  location: us-central1
+  formats:
+    - docker
+    - generic
+toggles:
+  enable_kms: true
+  enable_secret_manager: true

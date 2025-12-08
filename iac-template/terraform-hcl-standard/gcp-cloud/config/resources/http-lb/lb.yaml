@@ -1,0 +1,37 @@
+service: http_load_balancer
+environment: dev
+module:
+  name: global-http-lb
+  source: terraform-google-modules/lb-http/google
+  version: "~> 9.0"
+inputs:
+  project: xcontrol-dev-network
+  name: dev-http
+  address: dev-http-lb
+  ssl:
+    managed_certificates:
+      - dev-apps.xcontrol.dev
+  backends:
+    - group: web-mig
+      port: 8080
+      health_check:
+        type: HTTP
+        check_interval_sec: 10
+        healthy_threshold: 3
+        unhealthy_threshold: 3
+        timeout_sec: 5
+        request_path: /healthz
+  url_map:
+    default_service: web-mig
+    host_rules:
+      - hosts: ["*.xcontrol.dev"]
+        path_matcher: web
+    path_matchers:
+      - name: web
+        default_service: web-mig
+        path_rules:
+          - paths: ["/api/*"]
+            service: web-mig
+labels:
+  environment: dev
+  owner: platform

@@ -1,0 +1,26 @@
+service: network_load_balancer
+environment: dev
+module:
+  name: internal-tcp-lb
+  source: terraform-google-modules/lb/google
+  version: "~> 5.0"
+inputs:
+  project: xcontrol-dev-network
+  region: us-central1
+  name: dev-internal
+  protocol: TCP
+  port_range: "5432"
+  network: dev-shared-vpc
+  subnetwork: dev-apps-a
+  backend:
+    group: web-mig
+    health_check:
+      check_interval_sec: 10
+      timeout_sec: 5
+      healthy_threshold: 3
+      unhealthy_threshold: 3
+      tcp_health_check:
+        port: 5432
+labels:
+  environment: dev
+  owner: platform

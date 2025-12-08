@@ -1,0 +1,25 @@
+service: memorystore_redis
+environment: dev
+module:
+  name: redis-ha
+  source: terraform-google-modules/memorystore/google
+  version: "~> 8.0"
+inputs:
+  project: xcontrol-dev-data
+  region: us-central1
+  name: dev-cache
+  tier: STANDARD_HA
+  memory_size_gb: 8
+  redis_version: REDIS_7_0
+  transit_encryption_mode: SERVER_AUTHENTICATION
+  authorized_network: dev-shared-vpc
+  connect_mode: PRIVATE_SERVICE_ACCESS
+  maintenance_policy:
+    weekly_maintenance_window:
+      day: FRIDAY
+      start_time:
+        hours: 22
+        minutes: 0
+labels:
+  environment: dev
+  owner: data-team

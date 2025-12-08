@@ -1,0 +1,33 @@
+environment: dev
+landing_zone:
+  organization_id: "123456789012"
+  billing_account: "AAAAAA-BBBBBB-CCCCCC"
+  folder_name: platform-dev
+  audit_project_id: xcontrol-dev-audit
+  monitoring_project_id: xcontrol-dev-monitor
+  log_export:
+    bucket_name: xcontrol-dev-audit-logs
+    retention_days: 365
+    location: US
+  security_baseline:
+    enable_config: true
+    enable_security_command_center: true
+    enable_vpc_sc: true
+    default_shielded_vm: true
+  iam:
+    groups:
+      - name: platform-admins@xcontrol.dev
+        roles:
+          - roles/resourcemanager.folderAdmin
+          - roles/billing.user
+      - name: secops@xcontrol.dev
+        roles:
+          - roles/logging.admin
+          - roles/securitycenter.admin
+  billing_export:
+    dataset_id: dev_billing
+    project_id: xcontrol-dev-monitor
+labels:
+  environment: dev
+  owner: platform
+  cost_center: shared-services
