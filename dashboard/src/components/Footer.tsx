@@ -8,9 +8,9 @@ export default function Footer() {
   const toggleTheme = useThemeStore((state) => state.toggleTheme)
   const socials = [
     { label: 'GitHub', icon: Github, href: 'https://github.com/CloudNativeSuite/' },
+    { label: 'Repository', icon: Link, href: 'https://hub.docker.com/u/cloudneutral' },
     { label: 'Docs', icon: BookOpen, href: '#' },
     { label: 'Globe', icon: Globe, href: '#' },
-    { label: 'API', icon: Link, href: '#' },
     { label: '微信公众号', icon: MessageCircle, href: '#' },
     { label: '小红书', icon: Sparkles, href: '#' },
   ]
