@@ -21,7 +21,7 @@ on:
       dockerhub_namespace:
         description: "Docker Hub namespace (user/org)"
         type: string
-        default: "manbuzhe2009"
+        default: "cloudneutral"
 
   workflow_dispatch:
     inputs:
@@ -40,7 +40,7 @@ on:
       dockerhub_namespace:
         description: "Docker Hub namespace (user/org)"
         type: string
-        default: "manbuzhe2009"
+        default: "cloudneutral"
 
   push:
     paths:
@@ -116,7 +116,7 @@ jobs:
       - name: Re-tag & Push Image (Docker Hub)
         if: env.PUSH_IMAGES == 'true'
         env:
-          TARGET_NS: ${{ inputs.dockerhub_namespace || github.event.inputs.dockerhub_namespace || 'manbuzhe2009' }}
+          TARGET_NS: ${{ inputs.dockerhub_namespace || github.event.inputs.dockerhub_namespace || 'cloudneutral' }}
         run: |
           set -euo pipefail
 

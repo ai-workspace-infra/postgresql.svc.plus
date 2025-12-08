@@ -34,7 +34,7 @@ on:
       dockerhub_namespace:
         description: "Docker Hub namespace (user/org)"
         type: string
-        default: "manbuzhe2009"
+        default: "cloudneutral"
 
       node_builder_image:
         type: string
@@ -151,7 +151,7 @@ jobs:
       - name: Re-tag & Push Service Image (Docker Hub)
         if: env.PUSH_IMAGES == 'true'
         env:
-          TARGET_NS: ${{ inputs.dockerhub_namespace || github.event.inputs.dockerhub_namespace || 'manbuzhe2009' }}
+          TARGET_NS: ${{ inputs.dockerhub_namespace || github.event.inputs.dockerhub_namespace || 'cloudneutral' }}
         run: |
           set -euo pipefail
 
