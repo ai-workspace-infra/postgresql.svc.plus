@@ -51,9 +51,10 @@ on:
   push:
     branches: [ main ]
     paths:
+      - "account/**"
       - "dashboard/**"
       - "rag-server/**"
-      - "account/**"
+      - "xcontrol-init/**"
 
 permissions:
   contents: read
@@ -82,9 +83,10 @@ jobs:
     strategy:
       matrix:
         service:
+          - { name: account,    workdir: account }
           - { name: dashboard,  workdir: dashboard }
           - { name: rag-server, workdir: rag-server }
-          - { name: account,    workdir: account }
+          - { name: xcontrol-init,    workdir: xcontrol-init }
 
     steps:
       # -------------------------------------------------------------
@@ -172,8 +174,9 @@ jobs:
       matrix:
         service:
           - { name: dashboard,  workdir: dashboard }
-          - { name: rag-server, workdir: rag-server }
           - { name: account,    workdir: account }
+          - { name: rag-server, workdir: rag-server }
+          - { name: xcontrol-init,    workdir: xcontrol-init }
 
     steps:
       # -------------------------------------------------------------
