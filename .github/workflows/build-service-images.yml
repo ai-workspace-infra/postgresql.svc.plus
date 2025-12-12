@@ -86,7 +86,7 @@ jobs:
           - { name: account,    workdir: account,     dockerfile: account/Dockerfile }
           - { name: dashboard,  workdir: dashboard,   dockerfile: dashboard/Dockerfile }
           - { name: rag-server, workdir: rag-server,  dockerfile: rag-server/Dockerfile }
-          - { name: xcontrol-init,    workdir: /,             dockerfile: xcontrol-init/Dockerfile }
+          - { name: xcontrol-init,    workdir: .,             dockerfile: xcontrol-init/Dockerfile }
 
     steps:
       # -------------------------------------------------------------
@@ -176,7 +176,7 @@ jobs:
           - { name: dashboard,  workdir: dashboard,   dockerfile: dashboard/Dockerfile }
           - { name: account,    workdir: account,     dockerfile: account/Dockerfile }
           - { name: rag-server, workdir: rag-server,  dockerfile: rag-server/Dockerfile }
-          - { name: xcontrol-init,    workdir: /,             dockerfile: xcontrol-init/Dockerfile }
+          - { name: xcontrol-init,    workdir: .,             dockerfile: xcontrol-init/Dockerfile }
 
     steps:
       # -------------------------------------------------------------
