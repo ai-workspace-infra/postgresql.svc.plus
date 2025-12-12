@@ -1,21 +1,18 @@
 # ============================================================
 # Stage 1: Build createadmin (Go tool)
+# 构建时使用仓库根目录作为构建上下文，例如：
+# docker build -f xcontrol-init/Dockerfile .
 # ============================================================
 FROM golang:1.25 AS builder
 
 WORKDIR /workspace
 
 # ------------------------------------------------------------
-# 复制 account/rag-server 模块源码
-# ------------------------------------------------------------
-COPY ../account ./account
-COPY ../rag-server ./rag-server
-
-# ------------------------------------------------------------
-# 下载依赖（仅 account 模块的依赖即可满足 createadmin）
+# 复制 account 模块源码
 # ------------------------------------------------------------
 COPY account/go.mod account/go.sum ./account/
 RUN cd account && go mod download
+COPY account ./account
 
 # ------------------------------------------------------------
 # 构建 createadmin 可执行文件
