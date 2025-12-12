@@ -8,9 +8,12 @@ FROM golang:1.25 AS builder
 WORKDIR /workspace
 
 # ------------------------------------------------------------
-# 复制 account 模块源码
+# 复制 account 和 rag-server 模块源码
 # ------------------------------------------------------------
-COPY account/go.mod account/go.sum ./account/
+COPY account ./account
+COPY rag-server ./rag-server
+
+
 RUN cd account && go mod download
 COPY account ./account
 
@@ -50,7 +53,7 @@ COPY --from=builder /createadmin /usr/local/bin/createadmin
 # ------------------------------------------------------------
 # 拷贝初始化脚本（init-db.sh）
 # ------------------------------------------------------------
-COPY scripts/init-db.sh /usr/local/bin/init-db.sh
+COPY xcontrol-init/scripts/init-db.sh /usr/local/bin/init-db.sh
 RUN chmod +x /usr/local/bin/init-db.sh
 
 # ------------------------------------------------------------

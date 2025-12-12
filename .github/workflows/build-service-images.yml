@@ -83,10 +83,10 @@ jobs:
     strategy:
       matrix:
         service:
-          - { name: account,    workdir: account }
-          - { name: dashboard,  workdir: dashboard }
-          - { name: rag-server, workdir: rag-server }
-          - { name: xcontrol-init,    workdir: xcontrol-init }
+          - { name: account,    workdir: account,     dockerfile: account/Dockerfile }
+          - { name: dashboard,  workdir: dashboard,   dockerfile: dashboard/Dockerfile }
+          - { name: rag-server, workdir: rag-server,  dockerfile: rag-server/Dockerfile }
+          - { name: xcontrol-init,    workdir: /,             dockerfile: xcontrol-init/Dockerfile }
 
     steps:
       # -------------------------------------------------------------
@@ -126,7 +126,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.service.workdir }}
-          file: ${{ matrix.service.workdir }}/Dockerfile
+          file: ${{ matrix.service.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: ${{ env.PUSH_IMAGES == 'true' || env.PUSH_IMAGES == true }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -173,10 +173,10 @@ jobs:
     strategy:
       matrix:
         service:
-          - { name: dashboard,  workdir: dashboard }
-          - { name: account,    workdir: account }
-          - { name: rag-server, workdir: rag-server }
-          - { name: xcontrol-init,    workdir: xcontrol-init }
+          - { name: dashboard,  workdir: dashboard,   dockerfile: dashboard/Dockerfile }
+          - { name: account,    workdir: account,     dockerfile: account/Dockerfile }
+          - { name: rag-server, workdir: rag-server,  dockerfile: rag-server/Dockerfile }
+          - { name: xcontrol-init,    workdir: /,             dockerfile: xcontrol-init/Dockerfile }
 
     steps:
       # -------------------------------------------------------------
