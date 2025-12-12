@@ -1,6 +1,6 @@
 services:
   db:
-    image: manbuzhe2009/postgres-runtime:latest 
+    image: cloudneutral/postgres-runtime:latest 
     container_name: xcontrol-db
     restart: unless-stopped
     environment:
@@ -37,7 +37,7 @@ services:
       - db
 
   rag-server:
-    image: manbuzhe2009/rag-server:latest 
+    image: cloudneutral/rag-server:latest 
     container_name: rag-server
     restart: unless-stopped
     environment:
@@ -55,7 +55,7 @@ services:
       - db
 
   dashboard:
-    image: manbuzhe2009/dashboard:latest 
+    image: cloudneutral/dashboard:latest 
     container_name: dashboard
     restart: unless-stopped
     environment:
@@ -127,7 +127,7 @@ services:
     command: >
       certonly --webroot
       --webroot-path=/var/www/certbot
-      --email ${XCONTROL_CERTBOT_EMAIL:-manbuzhe2009@qq.com}
+      --email ${XCONTROL_CERTBOT_EMAIL:-cloudneutral@qq.com}
       --agree-tos
       --no-eff-email
       --keep-until-expiring
