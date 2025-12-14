@@ -4,7 +4,7 @@ import * as React from "react"
 import { X } from "lucide-react"
 import { Button } from "./button"
 import { Card } from "./card"
-import { cn } from "@internal/neurapress/lib/utils"
+import { cn } from "@/lib/utils"
 
 interface AdBannerProps {
   id?: string // 广告ID，用于本地存储

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { CodeThemeId } from '@internal/neurapress/config/code-themes'
+import type { CodeThemeId } from '@/config/code-themes'
 
 export interface StyleOptions {
   // Layout

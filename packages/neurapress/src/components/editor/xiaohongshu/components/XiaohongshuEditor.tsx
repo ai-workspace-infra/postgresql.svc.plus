@@ -1,6 +1,6 @@
 'use client'
 
-import { Textarea } from '@internal/neurapress/components/ui/textarea'
+import { Textarea } from '@/components/ui/textarea'
 import { XiaohongshuMarkdownToolbar } from './XiaohongshuMarkdownToolbar'
 
 interface XiaohongshuEditorProps {

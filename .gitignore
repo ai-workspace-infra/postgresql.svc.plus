@@ -35,6 +35,8 @@ dashboard/.yarn/
 dashboard/config/.runtime-env-config.yaml
 dashboard/config/.runtime-env-config.cn.yaml
 dashboard/config/.runtime-env-config.global.yaml
+packages/neurapress/.github/
+packages/neurapress/.git/
 
 # Test files and test data
 tests/local/

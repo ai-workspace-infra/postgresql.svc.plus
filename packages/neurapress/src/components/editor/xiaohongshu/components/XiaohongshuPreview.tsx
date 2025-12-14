@@ -1,7 +1,7 @@
 'use client'
 
 import { ZoomIn, ZoomOut, Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { cn } from '@internal/neurapress/lib/utils'
+import { cn } from '@/lib/utils'
 import { xiaohongshuTemplates, type XiaohongshuTemplateId, type PageMode, type PageNumberPosition } from '../constants'
 
 interface XiaohongshuPreviewProps {

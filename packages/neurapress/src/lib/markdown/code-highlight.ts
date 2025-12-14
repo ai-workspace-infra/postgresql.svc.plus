@@ -16,7 +16,7 @@ import 'prismjs/components/prism-rust'
 import 'prismjs/components/prism-sql'
 import 'prismjs/components/prism-docker'
 import 'prismjs/components/prism-nginx'
-import type { CodeThemeId } from '@internal/neurapress/config/code-themes'
+import type { CodeThemeId } from '@/config/code-themes'
 import { getTokenStyles } from './styles'
 
 // Helper function to recursively process tokens

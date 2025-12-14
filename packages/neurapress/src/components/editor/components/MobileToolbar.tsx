@@ -1,6 +1,6 @@
 import { Copy, Save, Settings } from 'lucide-react'
-import { cn } from '@internal/neurapress/lib/utils'
-import { Sheet, SheetContent, SheetTrigger } from '@internal/neurapress/components/ui/sheet'
+import { cn } from '@/lib/utils'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { WechatStylePicker } from '../../template/WechatStylePicker'
 
 interface MobileToolbarProps {

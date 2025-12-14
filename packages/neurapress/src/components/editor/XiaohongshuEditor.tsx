@@ -3,7 +3,7 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { useState } from 'react'
-import { cn } from '@internal/neurapress/lib/utils'
+import { cn } from '@/lib/utils'
 import { Copy, Eye, Pencil } from 'lucide-react'
 
 export default function XiaohongshuEditor() {

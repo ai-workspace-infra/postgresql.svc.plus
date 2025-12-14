@@ -1,11 +1,11 @@
 'use client'
 
 import { Save, Copy, Palette, Image as ImageIcon, Settings, FileText } from 'lucide-react'
-import { Button } from '@internal/neurapress/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@internal/neurapress/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@internal/neurapress/components/ui/dialog'
-import { Label } from '@internal/neurapress/components/ui/label'
-import { Logo } from '@internal/neurapress/components/icons/Logo'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Logo } from '@/components/icons/Logo'
 import Link from 'next/link'
 import { 
   xiaohongshuTemplates, 

@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
-import { templates } from '@internal/neurapress/config/wechat-templates'
-import { convertToWechat, getCodeThemeStyles, type RendererOptions } from '@internal/neurapress/lib/markdown'
-import { type CodeThemeId } from '@internal/neurapress/config/code-themes'
-import { useToast } from '@internal/neurapress/components/ui/use-toast'
-import { initializeMermaid } from '@internal/neurapress/lib/markdown/mermaid-utils'
+import { templates } from '@/config/wechat-templates'
+import { convertToWechat, getCodeThemeStyles, type RendererOptions } from '@/lib/markdown'
+import { type CodeThemeId } from '@/config/code-themes'
+import { useToast } from '@/components/ui/use-toast'
+import { initializeMermaid } from '@/lib/markdown/mermaid-utils'
 
 interface UsePreviewContentProps {
   value: string

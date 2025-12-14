@@ -1,5 +1,5 @@
 import type { StyleOptions, RendererOptions } from './types'
-import { codeThemes, type CodeThemeId } from '@internal/neurapress/config/code-themes'
+import { codeThemes, type CodeThemeId } from '@/config/code-themes'
 
 // 将样式对象转换为 CSS 字符串
 export function cssPropertiesToString(style: StyleOptions = {}): string {

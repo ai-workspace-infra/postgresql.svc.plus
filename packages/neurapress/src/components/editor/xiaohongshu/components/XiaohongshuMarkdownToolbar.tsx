@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { Button } from '@internal/neurapress/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@internal/neurapress/components/ui/tooltip'
-import { Separator } from '@internal/neurapress/components/ui/separator'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Separator } from '@/components/ui/separator'
 import {
   Bold,
   Italic,

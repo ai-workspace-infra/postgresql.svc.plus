@@ -1,8 +1,8 @@
 'use client'
 
-import { codeThemes, type CodeThemeId } from '@internal/neurapress/config/code-themes'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@internal/neurapress/components/ui/select'
-import { Label } from '@internal/neurapress/components/ui/label'
+import { codeThemes, type CodeThemeId } from '@/config/code-themes'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 
 interface CodeThemeSelectorProps {
   value: CodeThemeId
