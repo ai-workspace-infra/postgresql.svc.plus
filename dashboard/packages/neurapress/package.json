@@ -1,8 +1,0 @@
-{
-  "name": "@internal/neurapress",
-  "version": "0.0.0",
-  "private": true,
-  "main": "src/index.ts",
-  "license": "MIT",
-  "description": "Lightweight NeuraPress shims for the dashboard Markdown studio."
-}
