@@ -149,12 +149,12 @@ export default function EditorShell({ store, fallbackStore, mode }: EditorShellP
     setContent(defaultContent)
   }
 
-  const headline = isChinese ? '编辑器' : 'Editor'
+  const headline = isChinese ? '原版编辑器' : 'Original editor core'
   const subtitle =
     mode === 'public'
       ? isChinese
-        ? '无需登录 · 草稿仅存储在本地，未来支持云端同步'
-        : 'No sign-in required · Drafts stay in this browser; cloud sync is planned'
+        ? '沿用 NeuraPress 在线编辑核心 · 无需登录 · 草稿仅存储在本地'
+        : 'Powered by the vendored NeuraPress core · No sign-in required · Drafts stay local'
       : isChinese
         ? '登录后将开放云端保存，当前版本使用本地草稿箱'
         : 'Cloud save will be enabled for signed-in users; currently using local drafts'
@@ -183,11 +183,12 @@ export default function EditorShell({ store, fallbackStore, mode }: EditorShellP
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-indigo-300">{headline}</p>
-          <h1 className="mt-2 text-3xl font-bold text-white lg:text-4xl">NeuraPress · {isChinese ? '内容工作台' : 'Content Studio'}</h1>
+          <h1 className="mt-2 text-3xl font-bold text-white lg:text-4xl">NeuraPress · {isChinese ? '在线编辑核心' : 'Online editing core'}</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200 lg:text-base">{subtitle}</p>
           <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-100">
             {status ?? storeNotice ?? (isChinese ? '仅本地保存 · 未来支持云端账号' : 'Local-only save · SaaS sync coming soon')}
           </div>
+          <p className="mt-2 text-xs text-indigo-100/80">{isChinese ? '左侧展示的是 vendor/neurapress 的原版在线编辑器内核，保持与上游一致的操作体验。' : 'The left pane runs the upstream NeuraPress online editor core from vendor/neurapress to mirror the original experience.'}</p>
         </div>
         <div className="hidden flex-col items-end gap-2 text-right text-xs text-slate-400 sm:flex">
           <span>{mode === 'public' ? (isChinese ? '无需登录 · 本地存储' : 'No sign-in required · Local storage only') : isChinese ? '登录后将提供云端草稿' : 'Cloud drafts will be available after sign-in'}</span>
@@ -271,29 +272,6 @@ export default function EditorShell({ store, fallbackStore, mode }: EditorShellP
         </div>
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 text-sm text-slate-200 shadow-lg shadow-indigo-900/30">
-          <h3 className="text-base font-semibold text-white">{isChinese ? '集成说明' : 'Integration notes'}</h3>
-          <p className="mt-2 leading-6 text-slate-300">
-            {isChinese
-              ? 'NeuraPress 作为编辑器内核以 vendor 方式引入，路由、权限与存储策略由本站包装。'
-              : 'NeuraPress is vendored as the editor core; routing, permissions, and storage strategy are provided by this site.'}
-          </p>
-          <p className="mt-2 text-xs text-slate-400">
-            {isChinese
-              ? '当前版本仅支持本地草稿。云端草稿与模板管理将于 SaaS 版本开放。'
-              : 'Local drafts only for now. Cloud drafts and template management will ship with the SaaS tier.'}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 text-sm text-slate-200 shadow-lg shadow-indigo-900/30">
-          <h3 className="text-base font-semibold text-white">{isChinese ? '版权声明' : 'Credit & license'}</h3>
-          <p className="mt-2 leading-6 text-slate-300">
-            {isChinese
-              ? '上游 NeuraPress 由 tianyaxiang 基于 MIT 协议发布。本集成保留原作者署名，并在 vendor 目录存放 LICENSE 与 NOTICE。'
-              : 'Upstream NeuraPress is published by tianyaxiang under MIT. This integration preserves attribution with LICENSE and NOTICE under vendor.'}
-          </p>
-        </div>
-      </div>
     </div>
   )
 }
