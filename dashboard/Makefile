@@ -28,25 +28,27 @@ icon:
 init:
 	@echo "🔧 Installing dependencies for dashboard..."
 	@corepack enable && corepack prepare yarn@$(YARN_VERSION) --activate
+	@echo "🧹 Removing npm lockfiles to mirror Docker build..."
+	@find . -name "package-lock.json" -delete
 	@if [ -z "$(YARN)" ]; then \
-            echo "⚠️  Yarn not found. Attempting to install..."; \
-            if [ "$(OS)" = "Darwin" ]; then \
-                    if command -v brew >/dev/null 2>&1; then \
-                            brew install yarn; \
-		else \
-			echo "❌ Homebrew not found. Please install Yarn manually."; exit 1; \
-		fi; \
-	elif [ -f /etc/debian_version ]; then \
-		curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
-		echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
-		sudo apt update && sudo apt install -y yarn; \
-	elif [ -f /etc/redhat-release ]; then \
-		curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo && \
-		sudo yum install -y yarn; \
-	else \
-                    echo "❌ Unsupported OS. Please install Yarn manually."; exit 1; \
-            fi; \
-    fi
+		 echo "⚠️  Yarn not found. Attempting to install..."; \
+		 if [ "$(OS)" = "Darwin" ]; then \
+			 if command -v brew >/dev/null 2>&1; then \
+				 brew install yarn; \
+			 else \
+				 echo "❌ Homebrew not found. Please install Yarn manually."; exit 1; \
+			 fi; \
+		 elif [ -f /etc/debian_version ]; then \
+			 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - && \
+			 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list && \
+			 sudo apt update && sudo apt install -y yarn; \
+		 elif [ -f /etc/redhat-release ]; then \
+			 curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo && \
+			 sudo yum install -y yarn; \
+		 else \
+			 echo "❌ Unsupported OS. Please install Yarn manually."; exit 1; \
+		 fi; \
+	fi
 	yarn config set npmRegistryServer https://registry.npmmirror.com
 	yarn install --immutable
 
@@ -82,10 +84,10 @@ test:
 build: init
 	yarn config set npmRegistryServer https://registry.npmmirror.com
 	@if [ -z "$(SKIP_SYNC)" ]; then \
-		$(MAKE) sync-dl-index; \
+		 $(MAKE) sync-dl-index; \
 	fi
 	@echo "🔨 Building dashboard..."
-	yarn next build
+	NEXT_TELEMETRY_DISABLED=1 NEXT_PRIVATE_TURBOPACK=1 yarn next build
 
 sync-dl-index:
 	@echo "📥 Fetching download & docs manifests..."
