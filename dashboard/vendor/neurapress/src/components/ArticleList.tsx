@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { cn } from '@neurapress/lib/utils'
+import { Button } from '@neurapress/components/ui/button'
 import {
   Sheet,
   SheetContent,
@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
+} from '@neurapress/components/ui/sheet'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,12 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { ScrollArea } from '@/components/ui/scroll-area'
+} from "@neurapress/components/ui/alert-dialog"
+import { ScrollArea } from '@neurapress/components/ui/scroll-area'
 import { FileText, Trash2, Menu, Plus, Save, Edit2, Check } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
-import { ToastAction } from '@/components/ui/toast'
-import { Input } from '@/components/ui/input'
+import { useToast } from '@neurapress/components/ui/use-toast'
+import { ToastAction } from '@neurapress/components/ui/toast'
+import { Input } from '@neurapress/components/ui/input'
 
 interface Article {
   id: string

@@ -1,7 +1,7 @@
 import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
-import { Separator } from '@/components/ui/separator'
+import { Button } from '@neurapress/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@neurapress/components/ui/tooltip'
+import { Separator } from '@neurapress/components/ui/separator'
 import {
   Bold,
   Italic,

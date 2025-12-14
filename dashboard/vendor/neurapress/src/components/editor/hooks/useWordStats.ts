@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { convertToWechat } from '@/lib/markdown'
+import { convertToWechat } from '@neurapress/lib/markdown'
 
 // 计算阅读时间（假设每分钟阅读300字）
 const calculateReadingTime = (text: string): string => {

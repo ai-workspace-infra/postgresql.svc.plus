@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@neurapress/components/ui/dialog'
+import { Label } from '@neurapress/components/ui/label'
+import { Input } from '@neurapress/components/ui/input'
+import { Button } from '@neurapress/components/ui/button'
 import { Settings } from 'lucide-react'
-import { type RendererOptions } from '@/lib/markdown'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { type RendererOptions } from '@neurapress/lib/markdown'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@neurapress/components/ui/select'
 
 const themeColors = [
   { name: '经典黑', value: '#1a1a1a' },

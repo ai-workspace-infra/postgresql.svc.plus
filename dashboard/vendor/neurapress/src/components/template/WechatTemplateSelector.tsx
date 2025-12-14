@@ -2,8 +2,8 @@
 
 import { Check, ChevronDown } from "lucide-react"
 import * as SelectPrimitive from '@radix-ui/react-select'
-import { cn } from "@/lib/utils"
-import { templates } from '@/config/wechat-templates'
+import { cn } from "@neurapress/lib/utils"
+import { templates } from '@neurapress/config/wechat-templates'
 
 export function WechatTemplateSelector({ 
   onSelectAction 

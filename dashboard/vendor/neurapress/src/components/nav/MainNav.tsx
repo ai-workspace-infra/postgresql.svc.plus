@@ -2,11 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { Logo } from '@/components/icons/Logo'
+import { cn } from '@neurapress/lib/utils'
+import { ThemeToggle } from '@neurapress/components/theme-toggle'
+import { Logo } from '@neurapress/components/icons/Logo'
 import { Github } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@neurapress/components/ui/button'
 
 const navigation = [
   { name: '微信公众号', href: '/wechat' },

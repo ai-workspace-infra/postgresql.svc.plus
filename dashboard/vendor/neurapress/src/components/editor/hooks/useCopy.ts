@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useToast } from '@/components/ui/use-toast'
-import { initializeMermaid } from '@/lib/markdown/mermaid-utils'
+import { useToast } from '@neurapress/components/ui/use-toast'
+import { initializeMermaid } from '@neurapress/lib/markdown/mermaid-utils'
 
 export const useCopy = () => {
   const { toast } = useToast()

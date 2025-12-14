@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import '@/styles/code-themes.css'
+import '@neurapress/styles/code-themes.css'
 import 'katex/dist/katex.min.css'
-import { ThemeProvider } from '@/components/theme/ThemeProvider'
-import { cn } from '@/lib/utils'
-import { Toaster } from '@/components/ui/toaster'
-import { GoogleAnalytics } from '@/components/GoogleAnalytics'
+import { ThemeProvider } from '@neurapress/components/theme/ThemeProvider'
+import { cn } from '@neurapress/lib/utils'
+import { Toaster } from '@neurapress/components/ui/toaster'
+import { GoogleAnalytics } from '@neurapress/components/GoogleAnalytics'
 
 const inter = Inter({ subsets: ['latin'] })
 

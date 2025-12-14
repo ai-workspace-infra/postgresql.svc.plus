@@ -1,12 +1,12 @@
 'use client'
 
 import { type RefObject } from 'react'
-import { cn } from '@/lib/utils'
-import { templates } from '@/config/wechat-templates'
+import { cn } from '@neurapress/lib/utils'
+import { templates } from '@neurapress/config/wechat-templates'
 import { EditorPreview } from './EditorPreview'
 import { MarkdownToolbar } from './MarkdownToolbar'
 import { type PreviewSize } from '../constants'
-import { type CodeThemeId } from '@/config/code-themes'
+import { type CodeThemeId } from '@neurapress/config/code-themes'
 
 interface DesktopEditorProps {
   editorRef: RefObject<HTMLDivElement>

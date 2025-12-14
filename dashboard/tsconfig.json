@@ -17,6 +17,7 @@
     "jsx": "react-jsx",
     "baseUrl": ".",             // 👈 根路径基准
     "paths": {
+      "@/*": ["vendor/neurapress/src/*"],
       "@components/*": ["src/components/*"],
       "@i18n/*": ["src/i18n/*"],
       "@lib/*": ["src/lib/*"],
@@ -27,7 +28,9 @@
       "@theme": ["src/components/theme"],
       "@theme/*": ["src/components/theme/*"],
       "@templates/*": ["src/modules/templates/*"],
-      "@src/*": ["src/*"]
+      "@src/*": ["src/*"],
+      "@neurapress": ["vendor/neurapress/src/index.ts"],
+      "@neurapress/*": ["vendor/neurapress/src/*"]
     },
     "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
     "plugins": [{ "name": "next" }]

@@ -5,8 +5,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+} from "@neurapress/components/ui/dialog"
+import { Button } from "@neurapress/components/ui/button"
 import { HelpCircle } from 'lucide-react'
 
 const cheatSheet = [

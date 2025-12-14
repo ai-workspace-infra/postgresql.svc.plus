@@ -1,13 +1,13 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@neurapress/lib/utils'
 import { PREVIEW_SIZES, type PreviewSize } from '../constants'
 import { Loader2, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react'
-import { templates } from '@/config/wechat-templates'
+import { templates } from '@neurapress/config/wechat-templates'
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { type CodeThemeId } from '@/config/code-themes'
+import { type CodeThemeId } from '@neurapress/config/code-themes'
 import { useTheme } from 'next-themes'
-import '@/styles/code-themes.css'
+import '@neurapress/styles/code-themes.css'
 import mermaid from 'mermaid'
 import { useScrollSync } from '../hooks/useScrollSync'
 

@@ -1,5 +1,5 @@
-import XiaohongshuMarkdownEditor from '@/components/editor/xiaohongshu/XiaohongshuMarkdownEditor'
-import { Toaster } from '@/components/ui/toaster'
+import XiaohongshuMarkdownEditor from '@neurapress/components/editor/xiaohongshu/XiaohongshuMarkdownEditor'
+import { Toaster } from '@neurapress/components/ui/toaster'
 
 export default function XiaohongshuPage() {
   return (

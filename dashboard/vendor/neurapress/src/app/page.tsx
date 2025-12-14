@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { MainNav } from '@/components/nav/MainNav'
-import { Logo } from '@/components/icons/Logo'
+import { Button } from '@neurapress/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@neurapress/components/ui/card'
+import { MainNav } from '@neurapress/components/nav/MainNav'
+import { Logo } from '@neurapress/components/icons/Logo'
 import {
   FileText,
   Smartphone,

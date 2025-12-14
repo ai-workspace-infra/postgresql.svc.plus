@@ -1,4 +1,4 @@
-import type { RendererOptions } from '@/lib/markdown'
+import type { RendererOptions } from '@neurapress/lib/markdown'
 
 export interface Template {
   id: string

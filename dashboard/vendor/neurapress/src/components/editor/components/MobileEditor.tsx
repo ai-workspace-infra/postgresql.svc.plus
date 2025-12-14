@@ -1,12 +1,12 @@
 'use client'
 
 import { type RefObject } from 'react'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@neurapress/components/ui/tabs'
+import { Button } from '@neurapress/components/ui/button'
 import { Copy } from 'lucide-react'
 import { EditorPreview } from './EditorPreview'
 import { type PreviewSize } from '../constants'
-import { type CodeThemeId } from '@/config/code-themes'
+import { type CodeThemeId } from '@neurapress/config/code-themes'
 
 interface MobileEditorProps {
   textareaRef: RefObject<HTMLTextAreaElement>
