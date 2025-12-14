@@ -49,8 +49,7 @@ const nextConfig = {
       "@theme": path.join(__dirname, "src", "components", "theme"),
       "@templates": path.join(__dirname, "src", "modules", "templates"),
       "@src": path.join(__dirname, "src"),
-      "@": path.join(__dirname, "vendor", "neurapress", "src"),
-      "@neurapress": path.join(__dirname, "vendor", "neurapress", "src"),
+      "@": path.join(__dirname, "src"),
     };
 
     // 添加模块搜索路径
@@ -63,6 +62,7 @@ const nextConfig = {
     return config;
   },
   reactStrictMode: true,
+  transpilePackages: ['@internal/neurapress'],
   typedRoutes: false,
   turbopack: {
     root: path.resolve(__dirname),

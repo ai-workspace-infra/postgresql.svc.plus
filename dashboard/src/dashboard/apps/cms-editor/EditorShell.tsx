@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '@i18n/LanguageProvider'
-import { neurapressSample, renderMarkdown } from '@neurapress'
+import { neurapressSample, renderMarkdown } from '@internal/neurapress'
 import type { DraftStore } from './storage'
 
 const defaultContent = `# 编辑器 / Editor
@@ -188,7 +188,7 @@ export default function EditorShell({ store, fallbackStore, mode }: EditorShellP
           <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-100">
             {status ?? storeNotice ?? (isChinese ? '仅本地保存 · 未来支持云端账号' : 'Local-only save · SaaS sync coming soon')}
           </div>
-          <p className="mt-2 text-xs text-indigo-100/80">{isChinese ? '左侧展示的是 vendor/neurapress 的原版在线编辑器内核，保持与上游一致的操作体验。' : 'The left pane runs the upstream NeuraPress online editor core from vendor/neurapress to mirror the original experience.'}</p>
+          <p className="mt-2 text-xs text-indigo-100/80">{isChinese ? '左侧展示的是 packages/neurapress 的原版在线编辑器内核，保持与上游一致的操作体验。' : 'The left pane runs the upstream NeuraPress online editor core from packages/neurapress to mirror the original experience.'}</p>
         </div>
         <div className="hidden flex-col items-end gap-2 text-right text-xs text-slate-400 sm:flex">
           <span>{mode === 'public' ? (isChinese ? '无需登录 · 本地存储' : 'No sign-in required · Local storage only') : isChinese ? '登录后将提供云端草稿' : 'Cloud drafts will be available after sign-in'}</span>

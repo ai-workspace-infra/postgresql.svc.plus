@@ -20,6 +20,7 @@
     "test:e2e": "playwright test --config tests/e2e/playwright.config.ts"
   },
   "dependencies": {
+    "@internal/neurapress": "file:../packages/neurapress",
     "dompurify": "^3.2.6",
     "gray-matter": "^4.0.3",
     "html2canvas": "^1.4.1",

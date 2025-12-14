@@ -12,16 +12,16 @@ This repository contains the API server, agent code and a Next.js-based UI.
 - **xcontrol-server**
 - **markdown studio** (NeuraPress-based, MIT-licensed) available at `/editor` (public)
   and `/dashboard/cms` (SaaS shell). The upstream license and NOTICE live under
-  `dashboard/vendor/neurapress`, keeping attribution to
+  `packages/neurapress`, keeping attribution to
   [tianyaxiang](https://github.com/tianyaxiang/neurapress).
 
 ### NeuraPress integration · 集成说明
 
 The `/editor` route ships the original NeuraPress online editing core vendored under
-`dashboard/vendor/neurapress`. Routing, authentication, and storage selection are layered on
+`packages/neurapress`. Routing, authentication, and storage selection are layered on
 top inside XControl, while the editing experience stays aligned with the upstream project.
 
-上游 NeuraPress 由 tianyaxiang 以 MIT 协议发布。本项目在 `dashboard/vendor/neurapress` 中保留
+上游 NeuraPress 由 tianyaxiang 以 MIT 协议发布。本项目在 `packages/neurapress` 中保留
 LICENSE 与 NOTICE 以持续标注版权与来源。
 
 
