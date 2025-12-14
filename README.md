@@ -10,6 +10,11 @@ This repository contains the API server, agent code and a Next.js-based UI.
 - **ui-panel**
 - **xcontrol-cli**
 - **xcontrol-server**
+- **markdown studio** (NeuraPress-based, MIT-licensed) available at `/editor` (public)
+  and `/dashboard/cms` (SaaS shell). The upstream license and NOTICE live under
+  `dashboard/vendor/neurapress`, keeping attribution to
+  [tianyaxiang](https://github.com/tianyaxiang/neurapress).
+
 
 All UI components provide both Chinese and English interfaces.
 

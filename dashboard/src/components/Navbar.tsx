@@ -234,6 +234,7 @@ export default function Navbar() {
     docs: isChinese ? '文档' : 'Docs',
     download: isChinese ? '下载' : 'Download',
     openSource: isChinese ? '开源项目' : 'Open source',
+    editor: isChinese ? '编辑器' : 'Editor',
     moreServices: isChinese ? '更多服务' : 'More services',
   }
 
@@ -273,6 +274,12 @@ export default function Navbar() {
   ]
 
   const downloadLink = { key: 'download', label: labels.download, href: '/download' }
+
+  const editorLink = {
+    key: 'editor',
+    label: labels.editor,
+    href: '/editor',
+  }
 
   const openSourceProjects = [
     { key: 'xstream', label: 'XStream', href: '/xstream' },
@@ -350,6 +357,13 @@ export default function Navbar() {
                     ))}
                   </div>
                 </div>
+                <Link
+                  key={editorLink.key}
+                  href={editorLink.href}
+                  className="text-sm opacity-80 transition hover:text-white hover:opacity-100"
+                >
+                  {editorLink.label}
+                </Link>
                 {serviceItems.length > 0 ? (
                   <div className="group relative">
                     <button className="flex items-center gap-1 text-sm opacity-80 transition hover:text-white hover:opacity-100">
@@ -506,6 +520,14 @@ export default function Navbar() {
                       {link.label}
                     </Link>
                   ))}
+                  <Link
+                    key={editorLink.key}
+                    href={editorLink.href}
+                    className="py-2 text-sm opacity-80 transition hover:opacity-100"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {editorLink.label}
+                  </Link>
                   {serviceItems.length > 0 ? (
                     <div>
                       <button
