@@ -1,4 +1,4 @@
 'use client'
 
-export * from './editor'
-export * from './lib/markdown'
+export * from './components'
+export * from './lib'
