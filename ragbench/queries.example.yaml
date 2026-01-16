@@ -1,9 +1,0 @@
-api_base: "http://127.0.0.1:8080"
-k: 10
-queries:
-  - id: Q001
-    query: "What is Hybrid Search in RAG?"
-    expected_doc_ids: ["doc12#p3", "doc5#p7"]
-  - id: Q002
-    query: "How to migrate embedding dimensions in pgvector?"
-    expected_doc_ids: ["doc20#p1"]
