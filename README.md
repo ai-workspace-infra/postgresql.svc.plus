@@ -1,149 +1,196 @@
-# XControl
+# PostgreSQL Service Plus
 
-XControl is a modular multi-tenant management platform written in Go. The project integrates several optional components to provide a visual control plane for traffic statistics, configuration export and multi-node management.
+生产就绪的 PostgreSQL 运行时,包含向量搜索、中文分词、消息队列等扩展,支持多种安全部署模式。
 
-This repository contains the API server, agent code and a Next.js-based UI.
-
-## Components
-
-- **dashboard**
-- **ui-panel**
-- **xcontrol-cli**
-- **xcontrol-server**
-- **markdown studio** (NeuraPress-based, MIT-licensed) available at `/editor` (public)
-  and `/dashboard/cms` (SaaS shell). The upstream license and NOTICE live under
-  `packages/neurapress`, keeping attribution to
-  [tianyaxiang](https://github.com/tianyaxiang/neurapress).
-
-### NeuraPress integration · 集成说明
-
-The `/editor` route ships the original NeuraPress online editing core vendored under
-`packages/neurapress`. Routing, authentication, and storage selection are layered on
-top inside XControl, while the editing experience stays aligned with the upstream project.
-
-上游 NeuraPress 由 tianyaxiang 以 MIT 协议发布。本项目在 `packages/neurapress` 中保留
-LICENSE 与 NOTICE 以持续标注版权与来源。
-
-
-All UI components provide both Chinese and English interfaces.
-
-## Tech Stack
-
-| Category         | Technology                 | Version                    |
-|------------------|----------------------------|----------------------------|
-| Gateway          | OpenResty                  | 1.27.1.2                   |
-| BackendFramework | Go                         | 1.24                       |
-| FrontFramework   | Deno/Fresh/Preact/signals  | 2.5.6/v1.7.3/10.22.0/1.2.2 |
-| Cache            | Redis                      | 8.2.0                      |
-| Database         | PostgreSQL + pgvector      | 16                         |
-| Model (Local)    | HuggingFace Hub + Ollama | baai/bge-m3, llama2:13b      |
-| Model (Online)   | Chutes.AI  | baai/bge-m3, moonshotai/Kimi-K2-Instruct   |
-
-## LangChainGo 核心功能集成一览
-
-XControl 通过 LangChainGo 统一接入多种大模型，并为 AskAI、CLI 与 Server 提供链式调用能力：
-
-- **LLM 接口层（Model I/O）**：统一调用 Hugging Face、Ollama、OpenAI 兼容模型接口。
-- **Chains（链式流程）**：将 prompt、检索结果、工具调用等组合成完整流程，支持 RAG、聊天、代码生成等场景。
-- **工具与 Agent 体系**：定义 Web 搜索、实现 ReAct 风格的工具调用。
-- **向量检索与数据接入**：适配 PGVector 向量存储。
-- **文档加载与分块**：提供 Document Loaders 与 Text Splitters，用于处理长文本与构建向量检索块。
-- **Memory 与历史追踪**：支持 Conversation Buffer 等对话记忆机制，增强交互体验。
-
-
-## CMS configuration
-
-A unified CMS setup is defined in [`config/cms.json`](config/cms.json). The schema at [`config/cms.schema.json`](config/cms.schema.json) ensures templates, themes, extensions and content sources stay in sync across deployments.
-
-- Refer to [`docs/cms/README.md`](docs/cms/README.md) for usage instructions, extension development notes and theme customization guidelines.
-- Follow the migration playbook in [`docs/cms/migration-guide.md`](docs/cms/migration-guide.md) when switching existing sites to the CMS architecture.
-
-## Supported Platforms
-
-Tested on **Ubuntu 22.04 x64** and **macOS 26 arm64**.
-
-## Installation
+## 🚀 快速开始
 
 ```bash
-make install
-make init-db   # initialize database (optional)
+# 1. 构建镜像
+make build-postgres-image
+
+# 2. 生成证书
+cd deploy/docker && ./generate-certs.sh
+
+# 3. 启动服务 (PostgreSQL + Stunnel TLS 隧道)
+docker-compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d
+
+# 4. 客户端连接 (通过 TLS 隧道)
+psql "host=localhost port=5433 user=postgres dbname=postgres"
 ```
 
-## Frontend configuration
+**详细指南**: 查看 [docs/QUICKSTART.md](docs/QUICKSTART.md)
 
-The Next.js dashboard now resolves service endpoints through `dashboard/config/runtime-service-config.yaml`. The runtime
-configuration selects values based on `NEXT_PUBLIC_RUNTIME_ENV` (falling back to `NODE_ENV` and the file's
-`defaultEnvironment`). Use `NEXT_PUBLIC_ACCOUNT_SERVICE_URL` for ad-hoc overrides, otherwise adjust the YAML file to specify
-environment-specific URLs such as `http://localhost:8080` for development/test and `https://accounts.svc.plus` for production.
+## 📦 核心特性
 
-## Account service configuration
+### 多模型数据库
 
-`account/config/account.yaml` now accepts a `server.publicUrl` value such as `https://accounts.svc.plus:8443`. The account service
-uses this URL to derive a default CORS origin and to document the externally reachable host. Set `server.allowedOrigins` when you
-need to expose additional browser clients; omit it to fall back to the public URL or the local development origins
-(`http://localhost:3001` and `http://127.0.0.1:3001`).
+一个 PostgreSQL 实例替代多个专用数据库:
 
-## Features
-- **XCloudFlow** Multi-cloud IaC engine built with Pulumi SDK and Go. GitHub →
-- **KubeGuard** Kubernetes cluster application and node-level backup system. GitHub →
-- **XConfig** Lightweight task execution & configuration orchestration engine. GitHub →
-- **CodePRobot** AI-driven GitHub Issue to Pull Request generator and code patching tool. GitHub →
-- **OpsAgent** AIOps-powered intelligent monitoring, anomaly detection and RCA. GitHub →
-- **XStream** Cross-border developer proxy accelerator for global accessibility. GitHub →
+| 传统方案 | PostgreSQL 扩展 | 用途 |
+|---------|----------------|------|
+| Pinecone | **pgvector** | 向量嵌入和语义搜索 |
+| Elasticsearch | **pg_jieba + pg_trgm** | 中文分词和全文搜索 |
+| Kafka | **pgmq** | 轻量级消息队列 |
+| MongoDB | **JSONB + GIN** | 文档存储 |
+| Redis | **hstore + UNLOGGED** | 高速键值缓存 |
 
-The [docs](./docs) directory contains a more detailed [overview](./docs/overview.md) and design documents for each module.
+### 安全架构
 
-## Building
-```
-make build
-```
-This produces a binary under `bin/xcontrol`. Run `make agent` to build the node agent.
+- ✅ PostgreSQL 只监听容器内部 (127.0.0.1:5432)
+- ✅ 所有外部访问通过 **stunnel4 TLS 隧道** (HTTPS 端点)
+- ✅ 客户端使用本地 stunnel (localhost:15432)
+- ✅ 应用无需配置 SSL,透明加密
+- ✅ 支持双向 TLS 认证
 
-## Testing
-```
-make test
-```
+### 6 种部署模式
 
-## Deployment
+| 模式 | 复杂度 | HTTPS | TLS隧道 | 适用场景 |
+|------|--------|-------|---------|----------|
+| 基础 + Stunnel | ⭐ | ❌ | ✅ | 开发测试 |
+| Nginx + Certbot | ⭐⭐ | ✅ 自动 | ✅ | 小型生产 |
+| Caddy | ⭐⭐ | ✅ 自动 | ✅ | 小型生产 |
+| Kubernetes/Helm | ⭐⭐⭐ | 手动 | ✅ | 企业生产 |
+
+## 📚 文档
+
+### 快速导航
+
+- **[快速开始](docs/QUICKSTART.md)** - 5分钟快速部署
+- **[项目结构](docs/PROJECT_STRUCTURE.md)** - 了解项目组织
+- **[完整文档索引](docs/README.md)** - 所有文档列表
+
+### 部署指南
+
+- **[Docker 部署](docs/deployment/docker-deployment.md)** - Docker Compose 完整指南
+- **[Helm 部署](docs/deployment/helm-deployment.md)** - Kubernetes 生产部署
+- **[基础镜像](docs/deployment/base-images.md)** - 镜像构建说明
+
+### 安全指南
+
+- **[Stunnel 服务端](docs/guides/stunnel-server.md)** - TLS 隧道服务端配置
+- **[Stunnel 客户端](docs/guides/stunnel-client.md)** - 客户端部署和应用连接
+
+## 🔧 Makefile 命令
 
 ```bash
-make start
+make help                    # 显示帮助信息
+make build-postgres-image    # 构建 PostgreSQL 镜像
+make push-postgres-image     # 推送镜像到仓库
+make test-postgres          # 本地测试
+make deploy-docker          # Docker Compose 部署
+make deploy-helm            # Helm 部署
+make clean                  # 清理测试容器
 ```
 
-This launches the server, dashboard and panel. Use `make stop` to stop all components.
+## 🏗️ 架构图
 
-The API server also accepts a custom configuration file:
+### 安全访问架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  应用服务器 (任意位置)                                          │
+│                                                             │
+│  ┌──────────────┐                                          │
+│  │  应用程序     │  普通 PostgreSQL 连接                      │
+│  │  (DB/API/Web) │  localhost:15432                         │
+│  └──────┬───────┘  无需 sslmode                             │
+│         ↓                                                   │
+│  ┌──────────────┐                                          │
+│  │ stunnel 客户端│                                          │
+│  └──────┬───────┘                                          │
+└─────────┼─────────────────────────────────────────────────┘
+          │
+          │ HTTPS/TLS 加密 (Internet)
+          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  数据库服务器                                                 │
+│                                                             │
+│  ┌──────────────┐                                          │
+│  │ stunnel 服务端│  0.0.0.0:5433 (HTTPS 端点)                │
+│  └──────┬───────┘                                          │
+│         │ 解密转发                                           │
+│         ↓                                                   │
+│  ┌──────────────┐                                          │
+│  │  PostgreSQL  │  127.0.0.1:5432 (内部隔离)                │
+│  └──────────────┘                                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## 💡 使用示例
+
+### Python 应用
+
+```python
+import psycopg2
+
+# 通过 stunnel 客户端连接 - 无需 SSL 配置
+conn = psycopg2.connect(
+    host="localhost",  # stunnel 客户端
+    port=15432,
+    user="postgres",
+    password="password",
+    database="dbname"
+)
+```
+
+### Node.js 应用
+
+```javascript
+const { Client } = require('pg');
+
+const client = new Client({
+  host: 'localhost',  // stunnel 客户端
+  port: 15432,
+  user: 'postgres',
+  password: 'password',
+  database: 'dbname'
+  // 无需 SSL 配置
+});
+```
+
+### 环境变量
 
 ```bash
-xcontrol-server --config path/to/server.yaml
+DATABASE_URL=postgresql://postgres:password@localhost:15432/dbname
 ```
 
-## Logging
+## 🔐 安全特性
 
-Both `xcontrol-cli` and `xcontrol-server` accept a `--log-level` flag to control verbosity. The level may be one of `debug`, `info`, `warn`, or `error`:
+1. **网络隔离**: PostgreSQL 不直接暴露
+2. **强制加密**: 所有连接通过 TLS 1.2/1.3
+3. **证书验证**: 支持双向 TLS 认证
+4. **审计日志**: 完整的连接日志
+5. **自动证书**: Nginx + Certbot 或 Caddy
 
-```bash
-xcontrol-cli --log-level debug
-xcontrol-server --log-level warn
-```
+## 📊 性能优化
 
-The server's log level can also be set in the configuration file:
+- 预配置的 PostgreSQL 性能参数
+- SSD 优化 (random_page_cost = 1.1)
+- 连接池支持 (PgBouncer)
+- 资源限制和健康检查
 
-```yaml
-log:
-  level: info
-```
+## 🛠️ 技术栈
 
-The flag value takes precedence over the configuration file.
+- **PostgreSQL**: 16.4 (PGDG)
+- **扩展**: pgvector 0.8.1, pg_jieba 2.0.1, pgmq 1.8.0
+- **TLS 隧道**: stunnel4
+- **反向代理**: Nginx + Certbot 或 Caddy
+- **容器编排**: Docker Compose 或 Kubernetes/Helm
 
-## Changelog
+## 📝 许可证
 
-See [docs/changelog.md](./docs/changelog.md) for a list of completed changes, including all work from Milestone&nbsp;1.
+MIT License - 详见 [LICENSE](LICENSE) 文件
 
-## Roadmap
+## 🤝 贡献
 
-The roadmap below is also available in [docs/Roadmap.md](./docs/Roadmap.md).
+欢迎贡献! 请查看文档并提交 Pull Request。
 
-## License
+## 📞 支持
 
-This project is licensed under the terms of the [MIT License](./LICENSE).
+- **文档**: [docs/](docs/)
+- **问题**: GitHub Issues
+- **中文文档**: [docs/精简总结.md](docs/精简总结.md)
+
+---
+
+**一个 PostgreSQL,替代多个数据库** 🚀

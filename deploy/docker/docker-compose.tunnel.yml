@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  stunnel:
+    image: dweomer/stunnel
+    container_name: stunnel-server
+    restart: unless-stopped
+
+    ports:
+      # TLS 加密端口 - 外部访问入口
+      - "${STUNNEL_PORT:-5433}:5433"
+
+    volumes:
+      - ./stunnel-server.conf:/etc/stunnel/stunnel.conf:ro
+      - ./certs:/etc/stunnel/certs:ro
+      - stunnel_logs:/var/log/stunnel
+
+    networks:
+      - postgres_network
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 5433 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Alternative: Use stunnel for client-side TLS termination
+  stunnel-client:
+    image: dweomer/stunnel
+    container_name: stunnel-client
+    restart: unless-stopped
+
+    ports:
+      - "${STUNNEL_CLIENT_PORT:-5434}:5434"
+
+    volumes:
+      - ./stunnel-client.conf:/etc/stunnel/stunnel.conf:ro
+      - ./certs:/etc/stunnel/certs:ro
+
+    networks:
+      - postgres_network
+
+    profiles:
+      - client
+
+volumes:
+  stunnel_logs:
+    driver: local

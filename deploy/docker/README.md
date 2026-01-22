@@ -1,0 +1,397 @@
+# Docker Deployment Guide
+
+This directory contains Docker Compose configurations for deploying PostgreSQL with extensions.
+
+## Quick Start
+
+1. **Copy environment template**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit `.env` file** and set secure passwords:
+   ```bash
+   POSTGRES_PASSWORD=your_secure_password
+   ```
+
+3. **Start PostgreSQL**:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Verify deployment**:
+   ```bash
+   docker-compose ps
+   docker-compose logs postgres
+   ```
+
+## Deployment Modes
+
+### 1. Basic PostgreSQL Only
+
+Default mode - just PostgreSQL with extensions:
+
+```bash
+docker-compose up -d
+```
+
+### 2. With pgAdmin (Web UI)
+
+Include pgAdmin for database management:
+
+```bash
+docker-compose --profile admin up -d
+```
+
+Access pgAdmin at `http://localhost:5050`
+
+### 3. With Nginx + Certbot (Automatic SSL)
+
+Use Nginx with Certbot for automatic Let's Encrypt SSL certificates:
+
+```bash
+# Initialize SSL certificates (first time only)
+chmod +x init-letsencrypt.sh
+DOMAIN=db.yourdomain.com EMAIL=your@email.com ./init-letsencrypt.sh
+
+# Start services
+docker-compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
+```
+
+See [Nginx + Certbot deployment](#nginx--certbot-deployment) below.
+
+### 4. With Caddy Reverse Proxy
+
+Use Caddy for automatic HTTPS and reverse proxy:
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.caddy.yml up -d
+```
+
+See [Caddy deployment](#caddy-deployment) below.
+
+### 5. With TLS over TCP Tunnel (stunnel)
+
+For secure TCP connections to remote databases:
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d
+```
+
+See [TLS Tunnel deployment](#tls-tunnel-deployment) below.
+
+## Testing Extensions
+
+Connect to PostgreSQL and test extensions:
+
+```bash
+# Using docker exec
+docker-compose exec postgres psql -U postgres
+
+# Or using psql client
+psql -h localhost -U postgres -d postgres
+```
+
+Then in psql:
+
+```sql
+-- Create extensions
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_jieba;
+CREATE EXTENSION IF NOT EXISTS pgmq;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS hstore;
+
+-- List installed extensions
+\dx
+
+-- Test pgvector
+CREATE TABLE items (id bigserial PRIMARY KEY, embedding vector(3));
+INSERT INTO items (embedding) VALUES ('[1,2,3]'), ('[4,5,6]');
+SELECT * FROM items ORDER BY embedding <-> '[3,1,2]' LIMIT 5;
+
+-- Test pg_jieba (Chinese tokenization)
+SELECT * FROM to_tsvector('jiebacfg', '我爱北京天安门');
+
+-- Test pgmq (message queue)
+SELECT pgmq.create('my_queue');
+SELECT pgmq.send('my_queue', '{"hello": "world"}');
+SELECT * FROM pgmq.read('my_queue', 30, 1);
+```
+
+## Nginx + Certbot Deployment
+
+Nginx with Certbot provides automatic Let's Encrypt SSL certificates with more control than Caddy.
+
+### Prerequisites
+
+- A domain name pointing to your server's IP address
+- Ports 80 and 443 open in your firewall
+- Valid email address for Let's Encrypt notifications
+
+### Initial Setup
+
+1. **Edit Nginx configuration**:
+   
+   Edit `nginx-postgres.conf` and replace `db.example.com` with your actual domain:
+   
+   ```nginx
+   server_name your-domain.com;
+   ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+   ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+   ```
+
+2. **Initialize SSL certificates**:
+   
+   ```bash
+   chmod +x init-letsencrypt.sh
+   DOMAIN=your-domain.com EMAIL=your@email.com ./init-letsencrypt.sh
+   ```
+   
+   This script will:
+   - Create a temporary self-signed certificate
+   - Start Nginx
+   - Request a real Let's Encrypt certificate
+   - Reload Nginx with the new certificate
+
+3. **Start all services**:
+   
+   ```bash
+   docker-compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
+   ```
+
+### Testing Mode
+
+For testing, use Let's Encrypt staging environment to avoid rate limits:
+
+```bash
+STAGING=1 DOMAIN=your-domain.com EMAIL=your@email.com ./init-letsencrypt.sh
+```
+
+### Certificate Management
+
+**View certificate information**:
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.nginx.yml run --rm certbot certificates
+```
+
+**Manual certificate renewal**:
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.nginx.yml run --rm certbot renew
+```
+
+**Automatic renewal**: The certbot container checks for renewal every 12 hours automatically.
+
+### Nginx Features
+
+- ✅ Automatic SSL certificate issuance and renewal
+- ✅ HTTP to HTTPS redirect
+- ✅ HSTS support (optional)
+- ✅ Health check endpoint at `/health`
+- ✅ Metrics endpoint at `/metrics` (if using postgres_exporter)
+- ✅ pgAdmin proxy at `/pgadmin/` (if using --profile admin)
+- ✅ Gzip compression
+- ✅ TLS 1.2/1.3 support
+
+### Accessing Services
+
+- **Health check**: `https://your-domain.com/health`
+- **pgAdmin**: `https://your-domain.com/pgadmin/`
+- **PostgreSQL**: Connect directly to port 5432
+
+### Troubleshooting
+
+**Certificate request fails**:
+```bash
+# Check DNS resolution
+nslookup your-domain.com
+
+# Check if ports are open
+nc -zv your-domain.com 80
+nc -zv your-domain.com 443
+
+# View certbot logs
+docker-compose -f docker-compose.yml -f docker-compose.nginx.yml logs certbot
+```
+
+**Nginx won't start**:
+```bash
+# Test Nginx configuration
+docker-compose -f docker-compose.yml -f docker-compose.nginx.yml exec nginx nginx -t
+
+# View Nginx logs
+docker-compose -f docker-compose.yml -f docker-compose.nginx.yml logs nginx
+```
+
+## Caddy Deployment
+
+Caddy provides automatic HTTPS with Let's Encrypt and reverse proxy capabilities.
+
+### Configuration
+
+Edit `Caddyfile` to customize your domain and routing:
+
+```caddyfile
+db.yourdomain.com {
+    reverse_proxy postgres:5432
+    tls your-email@example.com
+}
+```
+
+### Start with Caddy
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.caddy.yml up -d
+```
+
+### Benefits
+
+- Automatic HTTPS certificates
+- HTTP/2 support
+- Automatic certificate renewal
+- Simple configuration
+
+## TLS Tunnel Deployment
+
+Use stunnel to create encrypted TCP tunnels for PostgreSQL connections.
+
+### Use Cases
+
+- Secure connections to remote PostgreSQL instances
+- Encrypt PostgreSQL traffic without modifying the database
+- Connect to databases that don't support native TLS
+
+### Configuration
+
+Edit `stunnel.conf`:
+
+```ini
+[postgres-tunnel]
+client = yes
+accept = 127.0.0.1:5433
+connect = remote-db.example.com:5432
+```
+
+### Start with Tunnel
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d
+```
+
+### Connect through Tunnel
+
+```bash
+psql -h localhost -p 5433 -U postgres -d postgres
+```
+
+## Data Persistence
+
+PostgreSQL data is stored in a Docker volume:
+
+```bash
+# List volumes
+docker volume ls | grep postgres
+
+# Backup data
+docker-compose exec postgres pg_dump -U postgres postgres > backup.sql
+
+# Restore data
+cat backup.sql | docker-compose exec -T postgres psql -U postgres postgres
+```
+
+## Maintenance
+
+### View Logs
+
+```bash
+docker-compose logs -f postgres
+```
+
+### Restart Services
+
+```bash
+docker-compose restart postgres
+```
+
+### Stop Services
+
+```bash
+docker-compose down
+```
+
+### Remove All Data (⚠️ Destructive)
+
+```bash
+docker-compose down -v
+```
+
+## Performance Tuning
+
+Edit `postgresql.conf` to tune performance:
+
+```conf
+# Memory settings
+shared_buffers = 256MB
+effective_cache_size = 1GB
+work_mem = 16MB
+
+# Connection settings
+max_connections = 100
+
+# Write-ahead log
+wal_buffers = 16MB
+checkpoint_completion_target = 0.9
+```
+
+Restart to apply changes:
+
+```bash
+docker-compose restart postgres
+```
+
+## Security Best Practices
+
+1. **Change default passwords** in `.env`
+2. **Use strong passwords** (20+ characters)
+3. **Limit network exposure** - bind to localhost only if possible
+4. **Enable SSL/TLS** for production deployments
+5. **Regular backups** - automate with cron
+6. **Update regularly** - rebuild image with latest security patches
+
+## Troubleshooting
+
+### Container won't start
+
+```bash
+# Check logs
+docker-compose logs postgres
+
+# Check if port is already in use
+lsof -i :5432
+```
+
+### Permission issues
+
+```bash
+# Fix volume permissions
+docker-compose down
+docker volume rm postgresql-svc-plus_postgres_data
+docker-compose up -d
+```
+
+### Connection refused
+
+```bash
+# Check if service is healthy
+docker-compose ps
+
+# Test connection from container
+docker-compose exec postgres pg_isready -U postgres
+```
+
+## Next Steps
+
+- Configure backups (see `scripts/backup.sh`)
+- Set up monitoring (Prometheus + Grafana)
+- Configure replication for high availability
+- Implement connection pooling (PgBouncer)

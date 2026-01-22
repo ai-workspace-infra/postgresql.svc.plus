@@ -1,60 +1,60 @@
-models/
-pg_jieba/
-hf_cache/
-server/server/
-docs/init-bak-20250813.sql
-!light-idp/idp-server/internal/models/
+# Environment files
+.env
+*.env
+!.env.example
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.csr
+certs/
+!deploy/docker/generate-certs.sh
+
+# Docker volumes
+postgres_data/
+pgadmin_data/
+caddy_data/
+caddy_config/
+stunnel_logs/
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.sql
+*.dump
+backups/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # macOS
 .DS_Store
-ui/.DS_Store
-ui/*/.DS_Store
+.AppleDouble
+.LSOverride
 
-# Node.js dependencies
-ui/dl/node_modules/
-ui/docs/node_modules/
+# Helm
+*.tgz
+charts/
 
-# Next.js build output
-ui/dl/.next/
-ui/dl/out/
-
-# Contentlayer cache
-ui/docs/.contentlayer/
-
-# Lock files (如果不希望追踪)
-ui/docs/yarn.lock
-
-# Yarn lock in dl (如果你只保留根目录的 lock)
-ui/dl/yarn.lock
-account/xcontrol-account
-account/xcontrol-account.log
-server/xcontrol-server
-server/xcontrol-server.log
-ui/dashboard/.yarn/
-dashboard/.yarn/
-dashboard/config/.runtime-env-config.yaml
-dashboard/config/.runtime-env-config.cn.yaml
-dashboard/config/.runtime-env-config.global.yaml
-dashboard/packages/neurapress/.github/
-pdashboar/dackages/neurapress/.git/
-
-# Test files and test data
-tests/local/
-tests/output/
-tests/temp/
-test-results/
-*.test.log
-*.test.output
-coverage/
-.nyc_output/
-*.test-cache/
-*.test-data/
-.env.test
-.env.local
-.env.*.local
+# Temporary files
+tmp/
+temp/
+*.tmp
 
 # Build artifacts
-build/
+bin/
 dist/
-out/
-target/
+build/
+
+# Temporary scripts (for project setup)
+cleanup-old-files.sh
+organize-docs.sh
+rename-md-to-english.sh
+git-commit-feature.sh
