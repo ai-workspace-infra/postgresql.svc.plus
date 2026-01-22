@@ -1,0 +1,188 @@
+name: Deploy to VM
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      deploy_mode:
+        description: 'Deployment mode'
+        required: true
+        type: choice
+        options:
+          - basic
+          - nginx-certbot
+          - caddy
+          - stunnel
+          - full
+      vm_host:
+        description: 'VM hostname or IP'
+        required: true
+      postgres_password:
+        description: 'PostgreSQL password (use secrets in production!)'
+        required: true
+
+env:
+  DEPLOY_USER: deploy
+  DEPLOY_PATH: /opt/postgresql-svc-plus
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ github.event.inputs.vm_host }} >> ~/.ssh/known_hosts
+
+      - name: Copy files to VM
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }} \
+            "mkdir -p ${{ env.DEPLOY_PATH }}"
+          
+          scp -i ~/.ssh/deploy_key -r \
+            deploy/docker/* \
+            ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }}:${{ env.DEPLOY_PATH }}/
+
+      - name: Deploy - Basic Mode
+        if: github.event.inputs.deploy_mode == 'basic'
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            # Create .env file
+            cat > .env << ENVEOF
+            POSTGRES_PASSWORD=${{ github.event.inputs.postgres_password }}
+            POSTGRES_USER=postgres
+            POSTGRES_DB=postgres
+            ENVEOF
+            
+            # Pull latest image
+            docker-compose pull
+            
+            # Start services
+            docker-compose up -d
+            
+            # Wait for PostgreSQL
+            sleep 10
+            docker-compose exec -T postgres pg_isready -U postgres
+          EOF
+
+      - name: Deploy - Nginx + Certbot
+        if: github.event.inputs.deploy_mode == 'nginx-certbot'
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            # Create .env file
+            cat > .env << ENVEOF
+            POSTGRES_PASSWORD=${{ github.event.inputs.postgres_password }}
+            DOMAIN=${{ secrets.DOMAIN }}
+            EMAIL=${{ secrets.CERTBOT_EMAIL }}
+            ENVEOF
+            
+            # Generate certificates
+            chmod +x generate-certs.sh init-letsencrypt.sh
+            ./generate-certs.sh
+            
+            # Initialize Let's Encrypt (if domain is configured)
+            if [ -n "${{ secrets.DOMAIN }}" ]; then
+              DOMAIN=${{ secrets.DOMAIN }} EMAIL=${{ secrets.CERTBOT_EMAIL }} ./init-letsencrypt.sh
+            fi
+            
+            # Start services
+            docker-compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
+          EOF
+
+      - name: Deploy - Caddy
+        if: github.event.inputs.deploy_mode == 'caddy'
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            cat > .env << ENVEOF
+            POSTGRES_PASSWORD=${{ github.event.inputs.postgres_password }}
+            CADDY_DOMAIN=${{ secrets.DOMAIN }}
+            CADDY_EMAIL=${{ secrets.CERTBOT_EMAIL }}
+            ENVEOF
+            
+            docker-compose -f docker-compose.yml -f docker-compose.caddy.yml up -d
+          EOF
+
+      - name: Deploy - Stunnel
+        if: github.event.inputs.deploy_mode == 'stunnel'
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            cat > .env << ENVEOF
+            POSTGRES_PASSWORD=${{ github.event.inputs.postgres_password }}
+            STUNNEL_PORT=5433
+            ENVEOF
+            
+            chmod +x generate-certs.sh
+            ./generate-certs.sh
+            
+            docker-compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d
+          EOF
+
+      - name: Deploy - Full Stack
+        if: github.event.inputs.deploy_mode == 'full'
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            cat > .env << ENVEOF
+            POSTGRES_PASSWORD=${{ github.event.inputs.postgres_password }}
+            DOMAIN=${{ secrets.DOMAIN }}
+            EMAIL=${{ secrets.CERTBOT_EMAIL }}
+            STUNNEL_PORT=5433
+            ENVEOF
+            
+            chmod +x generate-certs.sh init-letsencrypt.sh
+            ./generate-certs.sh
+            
+            if [ -n "${{ secrets.DOMAIN }}" ]; then
+              DOMAIN=${{ secrets.DOMAIN }} EMAIL=${{ secrets.CERTBOT_EMAIL }} ./init-letsencrypt.sh
+            fi
+            
+            docker-compose \
+              -f docker-compose.yml \
+              -f docker-compose.nginx.yml \
+              -f docker-compose.tunnel.yml \
+              --profile admin \
+              up -d
+          EOF
+
+      - name: Verify deployment
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ github.event.inputs.vm_host }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            echo "=== Container Status ==="
+            docker-compose ps
+            
+            echo "=== PostgreSQL Health ==="
+            docker-compose exec -T postgres pg_isready -U postgres || true
+            
+            echo "=== Extension Check ==="
+            docker-compose exec -T postgres psql -U postgres -c "\dx" || true
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key

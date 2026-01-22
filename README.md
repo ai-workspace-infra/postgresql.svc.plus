@@ -51,6 +51,23 @@ psql "host=localhost port=5433 user=postgres dbname=postgres"
 | Caddy | ⭐⭐ | ✅ 自动 | ✅ | 小型生产 |
 | Kubernetes/Helm | ⭐⭐⭐ | 手动 | ✅ | 企业生产 |
 
+### 🔄 CI/CD 自动化
+
+**GitHub Actions 工作流**:
+- ✅ 自动构建和推送镜像
+- ✅ 一键部署到 VM (Docker Compose)
+- ✅ 一键部署到 K8s/K3s (Helm)
+- ✅ 多环境支持 (dev/staging/prod)
+
+**快速部署**:
+```bash
+# GitHub Actions → Deploy to VM → Run workflow
+# 或
+# GitHub Actions → Deploy to Kubernetes → Run workflow
+```
+
+**详细指南**: [CI/CD 配置](docs/guides/github-actions-cicd.md) | [快速参考](docs/guides/CICD_QUICKREF.md)
+
 ## 📚 文档
 
 ### 快速导航
