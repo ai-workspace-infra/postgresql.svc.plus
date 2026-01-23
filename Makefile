@@ -143,6 +143,10 @@ git-purge:
 	fi
 	@bash scripts/clean_git_history.sh $(PATHS)
 
+test-local-mac:
+	@echo "🍎 Starting macOS local integration test..."
+	@bash test-cases/local/macos-client/run_test.sh
+
 clean:
 	@echo "🧹 Cleaning up test containers..."
 	-@docker stop postgres-test 2>/dev/null || true
