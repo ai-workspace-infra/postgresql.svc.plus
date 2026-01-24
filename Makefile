@@ -2,7 +2,7 @@
 
 .PHONY: help build-postgres-image push-postgres-image test-postgres \
         deploy-docker deploy-helm clean init reset selftest selftest-strict \
-        gitleaks-detect git-purge
+        gitleaks-detect git-purge test-local-mac test-local-macos
 
 # Image configuration
 POSTGRES_IMAGE_NAME ?= postgres-extensions
@@ -29,6 +29,8 @@ help:
 	@echo "  reset                 - Reset environment (clean containers, volumes, certs)"
 	@echo "  selftest              - Run linting and self-tests (Mode 1)"
 	@echo "  selftest-strict       - Run self-tests in strict mode (Mode 2)"
+	@echo "  test-local-mac        - Run macOS local integration test"
+	@echo "  test-local-macos      - Alias for test-local-mac"
 	@echo "  gitleaks-detect       - Scan for secrets in Git history"
 	@echo "  git-purge             - Purge history of specific paths (e.g., make git-purge PATHS=\"file1 dir2\")"
 	@echo "  deploy-docker         - Deploy using Docker Compose (legacy, use init instead)"
@@ -146,6 +148,8 @@ git-purge:
 test-local-mac:
 	@echo "🍎 Starting macOS local integration test..."
 	@bash test-cases/local/macos-client/run_test.sh
+
+test-local-macos: test-local-mac
 
 clean:
 	@echo "🧹 Cleaning up test containers..."
