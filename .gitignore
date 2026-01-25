@@ -2,6 +2,7 @@
 .env
 *.env
 !.env.example
+deploy/docker/.env
 
 # Certificates and keys
 *.pem

@@ -2,7 +2,8 @@
 
 .PHONY: help build-postgres-image push-postgres-image test-postgres \
         deploy-docker deploy-helm clean init reset selftest selftest-strict \
-        gitleaks-detect git-purge test-local-mac test-local-macos
+        gitleaks-detect git-purge test-local-mac test-local-macos benchmarks \
+        benchmarks-case-set
 
 # Image configuration
 POSTGRES_IMAGE_NAME ?= postgres-extensions
@@ -19,6 +20,13 @@ PGMQ_VERSION ?= v1.8.0
 DOCKER_REGISTRY ?= 
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)$(POSTGRES_FULL_IMAGE)
 
+# Benchmarks defaults
+BENCH_CASE ?= scripts/benchmarks/cases/db_pgbench_mixed_default.sh
+PGHOST ?= 127.0.0.1
+PGPORT ?= 15432
+PGUSER ?= postgres
+PGDATABASE ?= postgres
+
 help:
 	@echo "PostgreSQL Service Plus - Available targets:"
 	@echo ""
@@ -31,6 +39,9 @@ help:
 	@echo "  selftest-strict       - Run self-tests in strict mode (Mode 2)"
 	@echo "  test-local-mac        - Run macOS local integration test"
 	@echo "  test-local-macos      - Alias for test-local-mac"
+	@echo "  benchmarks           - Run benchmark case (default: mixed workload via stunnel-client)"
+	@echo "                         e.g. make benchmarks PGHOST=127.0.0.1 PGPORT=15432 PGUSER=postgres PGDATABASE=postgres"
+	@echo "  benchmarks-case-set  - Run benchmark case set and append results to docs/benchmarks.md"
 	@echo "  gitleaks-detect       - Scan for secrets in Git history"
 	@echo "  git-purge             - Purge history of specific paths (e.g., make git-purge PATHS=\"file1 dir2\")"
 	@echo "  deploy-docker         - Deploy using Docker Compose (legacy, use init instead)"
@@ -43,6 +54,9 @@ help:
 	@echo "  DOCKER_REGISTRY       = $(DOCKER_REGISTRY)"
 	@echo "  PG_MAJOR              = $(PG_MAJOR)"
 	@echo "  PG_VERSION            = $(PG_VERSION)"
+	@echo "  BENCH_CASE            = $(BENCH_CASE)"
+	@echo "  PGHOST/PGPORT/PGUSER/PGDATABASE (for benchmarks, default PGPORT=15432)"
+	@echo "  ENV_FILE/PGHOST/PGPORT (for benchmarks-case-set)"
 
 build-postgres-image:
 	@echo "🔨 Building PostgreSQL $(PG_VERSION) with extensions..."
@@ -150,6 +164,16 @@ test-local-mac:
 	@bash test-cases/local/macos-client/run_test.sh
 
 test-local-macos: test-local-mac
+
+benchmarks:
+	@echo "🔧 BENCH_CASE=$(BENCH_CASE)"
+	@echo "🔧 PGHOST=$(PGHOST) PGPORT=$(PGPORT) PGUSER=$(PGUSER) PGDATABASE=$(PGDATABASE)"
+	PGHOST=$(PGHOST) PGPORT=$(PGPORT) \
+	PGUSER=$(PGUSER) PGDATABASE=$(PGDATABASE) \
+	bash $(BENCH_CASE)
+
+benchmarks-case-set:
+	@bash scripts/benchmarks/run_case_set.sh
 
 clean:
 	@echo "🧹 Cleaning up test containers..."
