@@ -7,7 +7,7 @@ docker-compose ps
 docker-compose logs postgres
 ```
 
-检查 `.env` 中 `POSTGRES_PASSWORD` 是否为空。
+检查 `deploy/docker/.env` 中 `POSTGRES_PASSWORD` 是否为空（模板为 `deploy/docker/.env.example`）。
 
 ## 2) 无法连接数据库
 

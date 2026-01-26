@@ -47,7 +47,7 @@ verify  = 2
 psql "host=127.0.0.1 port=15432 user=postgres dbname=postgres"
 ```
 
-> 数据库密码保存在服务器的 `deploy/docker/.env` 中。
+> 数据库密码保存在服务器的 `deploy/docker/.env` 中（由脚本生成；模板为 `deploy/docker/.env.example`）。
 
 ## 下一步
 

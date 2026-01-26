@@ -10,7 +10,7 @@
 make build-postgres-image
 cd deploy/docker
 cp .env.example .env
-# 编辑 .env 设置 POSTGRES_PASSWORD
+# 编辑 .env（来自 .env.example）设置 POSTGRES_PASSWORD
 docker-compose up -d
 ```
 
