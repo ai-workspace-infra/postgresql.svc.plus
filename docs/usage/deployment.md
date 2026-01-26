@@ -17,10 +17,24 @@ docker-compose up -d
 docker-compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d
 ```
 
+如需自签名证书，可先执行：
+
+```bash
+cd deploy/docker
+bash generate-certs.sh
+```
+
 ### 证书管理（可选）
 
 - Caddy：`docker-compose -f docker-compose.yml -f docker-compose.caddy.yml up -d`
 - Nginx + Certbot：`docker-compose -f docker-compose.yml -f docker-compose.nginx.yml up -d`
+
+### 可选：pgAdmin 管理界面
+
+```bash
+cd deploy/docker
+docker-compose --profile admin up -d
+```
 
 ## 2) 云服务器一键部署（Vhost）
 

@@ -6,12 +6,16 @@
 
 ```bash
 make help
+make init
 make build-postgres-image
 make test-postgres
 make deploy-docker
 make deploy-helm
+make selftest
 make clean
 ```
+
+> `make deploy-docker` 在 Makefile 中标记为 legacy，建议优先使用 `make init` 或手动执行 Compose。
 
 ## 关键脚本
 

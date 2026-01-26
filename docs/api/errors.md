@@ -12,4 +12,5 @@
 
 - 查看 stunnel 日志：`docker-compose logs -f stunnel`
 - 查看 PostgreSQL 日志：`docker-compose logs -f postgres`
+- Helm 环境可用：`kubectl logs -l app.kubernetes.io/name=postgresql`
 - 使用 `openssl s_client` 测试 TLS 握手

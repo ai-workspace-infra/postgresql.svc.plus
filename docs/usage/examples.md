@@ -1,5 +1,7 @@
 # 使用示例
 
+> 如未启用扩展，请先执行 `CREATE EXTENSION IF NOT EXISTS ...;`（例如 `vector`/`pg_jieba`/`pgmq`）。
+
 ## pgvector：向量检索
 
 ```sql
