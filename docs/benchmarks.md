@@ -36,3 +36,89 @@
 | bge-m3:latest | 200 | 0.022 | 0.022 | 1024 | 4 | 0 | 0.00 | 181.50 | 0.0530 | 0.0542 |
 
 说明：Dim = 向量维度；Samples = 每请求输入条数；InTok = usage.prompt_tokens；Tok/s = InTok/Total；Samples/s = Samples/Total。
+
+---
+
+# 数据库基准性能测试
+
+以下为 PostgreSQL 的基准测试指引，重点补充**混合读写场景**。建议在稳定环境下执行（固定 CPU/内存、关闭其他负载），并记录硬件与版本信息以便对比。
+
+## 环境与前提
+
+- 已启动 stunnel-client（本地监听 `127.0.0.1:15432`）
+- 已设置数据库账号与密码
+- 使用本机 `pgbench`（PostgreSQL 官方基准工具）
+
+## 场景：混合读写（默认 TPC-B 类负载）
+
+该场景包含读写混合事务，适合作为 OLTP 基准的基线。
+
+测试结果（最新一次）：
+
+| Date | Mode | Scale | Clients | Threads | Duration(s) | Txn | TPS(no conn) | Avg Latency(ms) | Init Conn(ms) |
+|------|------|-------|---------|---------|-------------|-----|--------------|-----------------|---------------|
+| 2026-01-25 | TPC-B (mixed) | 50 | 16 | 4 | 120 | 2213 | 18.740381 | 843.851 | 3809.723 |
+
+1) 初始化数据集（建议先从小规模开始）：
+
+```bash
+PGHOST=127.0.0.1 PGPORT=15432 \
+pgbench -i -s 50 -U "${PGUSER:-postgres}" "${PGDATABASE:-postgres}"
+```
+
+2) 运行混合负载测试（示例：并发 16、持续 120 秒）：
+
+```bash
+PGHOST=127.0.0.1 PGPORT=15432 \
+pgbench -c 16 -j 4 -T 120 -P 10 -r \
+  -U "${PGUSER:-postgres}" "${PGDATABASE:-postgres}"
+```
+
+## 场景：混合读写（80/20 读写比例，可选）
+
+若需要更贴近“读多写少”的业务，可用自定义脚本模拟 80% 读 / 20% 写的混合事务：
+
+1) 在本机创建脚本：
+
+```bash
+cat > /tmp/pgbench_mixed_80_20.sql <<'SQL'
+\set random_account random(1, 100000)
+\set random_teller  random(1, 10)
+\set random_branch  random(1, 1)
+\set delta random(-5000, 5000)
+
+-- 80% 读
+SELECT abalance FROM pgbench_accounts WHERE aid = :random_account;
+
+-- 20% 写（单条更新）
+UPDATE pgbench_accounts
+SET abalance = abalance + :delta
+WHERE aid = :random_account;
+SQL
+```
+
+2) 运行混合负载测试：
+
+```bash
+PGHOST=127.0.0.1 PGPORT=15432 \
+pgbench -c 16 -j 4 -T 120 -P 10 -r \
+  -f /tmp/pgbench_mixed_80_20.sql \
+  -U "${PGUSER:-postgres}" "${PGDATABASE:-postgres}"
+```
+
+## 记录模板（建议填写）
+
+| 维度 | 值 |
+|------|-----|
+| 环境 | CPU/内存/磁盘/OS |
+| PostgreSQL 版本 |  |
+| 数据规模（-s） |  |
+| 并发（-c） |  |
+| 线程（-j） |  |
+| 时长（-T） |  |
+| TPS（含连接） |  |
+| TPS（不含连接） |  |
+| 平均延迟 |  |
+| P95 延迟 |  |
+
+> 建议保存 `pgbench` 原始输出，便于后续对比不同配置（如 `postgresql.conf` 调优、存储类型或 TLS 方案）。
