@@ -1,176 +1,22 @@
-# Helm Chart
+# Helm Chart 部署
 
-How to deploy XControl via Helm.
+推荐阅读：`docs/usage/deployment.md`
 
-## Nginx 配置
+## 安装
 
-Helm 部署既可以运行 Next.js Node 进程，也可以直接托管静态导出的页面。以下分别给出两种配置示例，便于在不同集群环境复用。
-
-### 动态渲染（Node.js 代理）
-
-如果希望在 Pod 内运行 Next.js 服务器，请将以下内容写入 `/usr/local/openresty/nginx/conf/sites-available/cn-homepage.svc.plus.conf`：
-
-```nginx
-server {
-  listen 80;
-  server_name www.svc.plus cn-homepage.svc.plus;
-  return 301 https://$host$request_uri;
-}
-
-server {
-  listen 443 ssl;
-  server_name www.svc.plus cn-homepage.svc.plus;
-
-  ssl_certificate     /etc/ssl/svc.plus.pem;
-  ssl_certificate_key /etc/ssl/svc.plus.rsa.key;
-  ssl_protocols       TLSv1.2 TLSv1.3;
-  ssl_ciphers         HIGH:!aNULL:!MD5;
-
-  location /api/ {
-    proxy_pass http://127.0.0.1:8080;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
-
-  location = /api/askai {
-    access_by_lua_block {
-      local redis = require "resty.redis"
-      local r = redis:new()
-      r:set_timeout(200)
-      local ok, err = r:connect("127.0.0.1", 6379)
-      if not ok then
-        ngx.log(ngx.ERR, "Redis connect error: ", err)
-        return ngx.exit(500)
-      end
-
-      local user = ngx.var.arg_user or ngx.var.remote_addr
-      local today = os.date("%Y%m%d")
-      local key = "limit:user:" .. user .. ":" .. today
-
-      local count, err = r:incr(key)
-      if count == 1 then r:expire(key, 86400) end
-      if count > 200 then
-        ngx.status = 429
-        ngx.header["Content-Type"] = "text/plain; charset=utf-8"
-        ngx.say("Too Many Requests: daily limit reached")
-        return ngx.exit(429)
-      end
-    }
-
-    proxy_pass http://127.0.0.1:8080;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
-
-  location ^~ /_next/ {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-  }
-
-  location /favicon.ico {
-    proxy_pass http://127.0.0.1:3000;
-  }
-
-  location / {
-    proxy_pass http://127.0.0.1:3000;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-  }
-
-  location ~ /\. {
-    deny all;
-  }
-}
+```bash
+helm install postgresql ./deploy/helm/postgresql \
+  --set auth.password=your-secure-password \
+  --set persistence.size=10Gi
 ```
 
-### 静态导出（无 Node 依赖）
+## 启用 stunnel sidecar
 
-完成 `yarn build:static` 后，可直接托管 `dashboard/out` 目录：
-
-```nginx
-server {
-  listen 80;
-  server_name cn-homepage.svc.plus;
-  return 301 https://cn-homepage.svc.plus$request_uri;
-}
-
-server {
-  listen 443 ssl http2;
-  server_name cn-homepage.svc.plus;
-
-  ssl_certificate /etc/ssl/svc.plus.pem;
-  ssl_certificate_key /etc/ssl/svc.plus.rsa.key;
-  ssl_protocols TLSv1.2 TLSv1.3;
-  ssl_ciphers HIGH:!aNULL:!MD5;
-
-  root /var/www/XControl/dashboard/out;
-  index index.html;
-
-  error_page 404 /404/index.html;
-  error_page 500 502 503 504 /500/index.html;
-
-  location / {
-    try_files $uri $uri/ /index.html;
-  }
-
-  location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?)$ {
-    expires 30d;
-    access_log off;
-    add_header Cache-Control "public";
-  }
-
-  location /api/ {
-    proxy_pass http://127.0.0.1:8080/api/;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-  }
-
-  location ~ /\. {
-    deny all;
-  }
-}
-
-server {
-  listen 443 ssl http2;
-  server_name artifact.svc.plus;
-
-  ssl_certificate /etc/ssl/svc.plus.pem;
-  ssl_certificate_key /etc/ssl/svc.plus.rsa.key;
-  ssl_protocols TLSv1.2 TLSv1.3;
-  ssl_ciphers HIGH:!aNULL:!MD5;
-
-  root /data/update-server;
-  index index.html;
-
-  autoindex on;
-  autoindex_exact_size off;
-  autoindex_localtime on;
-
-  location / {
-    add_header Accept-Ranges bytes;
-    try_files $uri $uri/ =404;
-  }
-
-  location ~* \.(dmg|zip|tar\.gz|deb|rpm|exe|pkg|AppImage|apk|ipa)$ {
-    expires 7d;
-    access_log off;
-    add_header Cache-Control "public";
-    add_header Accept-Ranges bytes;
-    try_files $uri =404;
-  }
-
-  location ~ /\. {
-    deny all;
-  }
-}
+```bash
+helm install postgresql ./deploy/helm/postgresql \
+  --set auth.password=your-secure-password \
+  --set stunnel.enabled=true \
+  --set stunnel.certificatesSecret=stunnel-certs
 ```
+
+默认配置详见 `deploy/helm/postgresql/values.yaml`。
