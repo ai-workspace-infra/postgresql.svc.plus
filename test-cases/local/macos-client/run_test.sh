@@ -53,7 +53,7 @@ if ! ps -p $STUNNEL_PID > /dev/null; then
 fi
 
 echo "🧪 Running SQL Tests..."
-echo "Target: localhost:15432 -> postgresql.onwalk.net:443"
+echo "Target: localhost:15432 -> postgresql.svc.plus:443"
 
 # Default password if not set
 export PGPASSWORD=${PGPASSWORD:-otdcRLTJamszk3AE}
