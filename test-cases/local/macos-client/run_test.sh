@@ -23,6 +23,35 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 STUNNEL_CONF="$DIR/stunnel.conf"
 SQL_FILE="$DIR/verify_extensions.sql"
 
+# Build an effective stunnel config with optional overrides
+STUNNEL_CONF_EFFECTIVE="$STUNNEL_CONF"
+TMP_CONF=""
+CAFILE=""
+for p in /etc/ssl/cert.pem \
+         /usr/local/etc/openssl@3/cert.pem \
+         /opt/homebrew/etc/openssl@3/cert.pem \
+         /usr/local/etc/openssl@1.1/cert.pem \
+         /opt/homebrew/etc/openssl@1.1/cert.pem; do
+    if [ -f "$p" ]; then
+        CAFILE="$p"
+        break
+    fi
+done
+
+if [ -n "$CAFILE" ] || [ -n "${STUNNEL_INSECURE:-}" ]; then
+    TMP_CONF="$(mktemp /tmp/stunnel-conf.XXXXXX)"
+    cp "$STUNNEL_CONF" "$TMP_CONF"
+    if [ -n "$CAFILE" ]; then
+        perl -0pi -e "s|^CAfile\\s*=.*$|CAfile = $CAFILE|m" "$TMP_CONF"
+        echo "🔐 Using CA bundle: $CAFILE"
+    fi
+    if [ -n "${STUNNEL_INSECURE:-}" ]; then
+        perl -0pi -e 's|^verify\\s*=.*$|verify = 0|m; s|^checkHost\\s*=|; checkHost =|m' "$TMP_CONF"
+        echo "⚠️  STUNNEL_INSECURE=1 set: TLS verification disabled"
+    fi
+    STUNNEL_CONF_EFFECTIVE="$TMP_CONF"
+fi
+
 # Check if port 15432 is free
 if lsof -i :15432 >/dev/null; then
     echo -e "${RED}❌ Port 15432 is already in use. Please free it first (e.g., kill running stunnel).${NC}"
@@ -30,7 +59,7 @@ if lsof -i :15432 >/dev/null; then
 fi
 
 echo "🚀 Starting Stunnel..."
-stunnel "$STUNNEL_CONF" > /tmp/stunnel-test-stdout.log 2>&1 &
+stunnel "$STUNNEL_CONF_EFFECTIVE" > /tmp/stunnel-test-stdout.log 2>&1 &
 STUNNEL_PID=$!
 echo "📝 Stunnel PID: $STUNNEL_PID"
 
@@ -38,6 +67,9 @@ cleanup() {
     echo ""
     echo "🛑 Stopping Stunnel..."
     kill $STUNNEL_PID 2>/dev/null || true
+    if [ -n "$TMP_CONF" ] && [ -f "$TMP_CONF" ]; then
+        rm -f "$TMP_CONF"
+    fi
     echo "🧹 Done."
 }
 trap cleanup EXIT
@@ -45,8 +77,16 @@ trap cleanup EXIT
 echo "⏳ Waiting for tunnel to initialize (2s)..."
 sleep 2
 
-# Check if process is still running
-if ! ps -p $STUNNEL_PID > /dev/null; then
+# Check if process is still running (ps may be restricted)
+if ! ps -p $STUNNEL_PID >/dev/null 2>&1; then
+    if ! kill -0 $STUNNEL_PID 2>/dev/null; then
+        echo -e "${RED}❌ Stunnel failed to start. Check logs:${NC}"
+        cat /tmp/stunnel-test-mac.log
+        exit 1
+    fi
+fi
+
+if ! kill -0 $STUNNEL_PID 2>/dev/null; then
     echo -e "${RED}❌ Stunnel failed to start. Check logs:${NC}"
     cat /tmp/stunnel-test-mac.log
     exit 1
