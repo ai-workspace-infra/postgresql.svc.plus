@@ -19,7 +19,7 @@ service-specific images can build faster and remain consistent.
   latest npm, and build essentials for compiling native Next.js dependencies.
 - **Node.js runtime** (`node-runtime.Dockerfile`): Slim Node.js 22 runtime ready
   for production Next.js deployments.
-- **stunnel runtime** (`stunnel.Dockerfile`): Minimal stunnel image for
+- **stunnel runtime** (`stunnel-server.Dockerfile`): Minimal stunnel image for
   PostgreSQL TLS tunnel service (inspired by
   [`dweomer/dockerfiles-stunnel`](https://github.com/dweomer/dockerfiles-stunnel),
   supports ARM64/AMD64 via Buildx).
@@ -48,18 +48,18 @@ make docker-node-builder
 make docker-node-runtime
 
 # stunnel runtime (local build)
-docker build -f deploy/base-images/stunnel.Dockerfile -t stunnel-runtime:local deploy/base-images
+docker build -f deploy/base-images/stunnel-server.Dockerfile -t stunnel-runtime:local deploy/base-images
 
 # stunnel runtime (arm64 local build)
 docker buildx build --platform linux/arm64/v8 \
-  -f deploy/base-images/stunnel.Dockerfile \
+  -f deploy/base-images/stunnel-server.Dockerfile \
   -t stunnel-runtime:arm64-local \
   --load \
   deploy/base-images
 
 # stunnel runtime (multi-arch push)
 docker buildx build --platform linux/amd64,linux/arm64/v8 \
-  -f deploy/base-images/stunnel.Dockerfile \
+  -f deploy/base-images/stunnel-server.Dockerfile \
   -t <registry>/stunnel-runtime:latest \
   --push \
   deploy/base-images

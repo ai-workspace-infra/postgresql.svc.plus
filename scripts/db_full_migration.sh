@@ -171,12 +171,12 @@ if [ "\$arch" = "aarch64" ] || [ "\$arch" = "arm64" ]; then
     if ! docker image inspect "\$local_tag" >/dev/null 2>&1; then
       if docker buildx version >/dev/null 2>&1; then
         docker buildx build --platform linux/arm64/v8 \
-          -f deploy/base-images/stunnel.Dockerfile \
+          -f deploy/base-images/stunnel-client.Dockerfile \
           -t "\$local_tag" \
           --load \
           deploy/base-images
       else
-        docker build -f deploy/base-images/stunnel.Dockerfile -t "\$local_tag" deploy/base-images
+        docker build -f deploy/base-images/stunnel-client.Dockerfile -t "\$local_tag" deploy/base-images
       fi
     fi
     if grep -q '^STUNNEL_IMAGE=' "\$ENV_FILE"; then
