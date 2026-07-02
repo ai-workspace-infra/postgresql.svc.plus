@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgresql-svc-plus:${PG_MAJOR:-16}
+    image: "postgres-extensions:17"
     container_name: postgresql-svc-plus
     restart: unless-stopped
 
@@ -26,7 +26,7 @@ services:
     # command: postgres -c config_file=/etc/postgresql/postgresql.conf
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -h 127.0.0.1" ]
+      test: [ "CMD-SHELL", "pg_isready -q -d ${POSTGRES_DB:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5
