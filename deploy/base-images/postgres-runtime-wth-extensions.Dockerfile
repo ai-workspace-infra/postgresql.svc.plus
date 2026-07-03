@@ -76,6 +76,9 @@ LABEL maintainer="Cloud-Neutral Toolkit" \
 # Copy .so + extension files from builder
 COPY --from=builder /usr/lib/postgresql/${PG_MAJOR}/lib/ /usr/lib/postgresql/${PG_MAJOR}/lib/
 COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/extension/ /usr/share/postgresql/${PG_MAJOR}/extension/
+# pg_jieba installs its dictionaries (jieba.dict.utf8 etc.) into tsearch_data;
+# without them the tokenizer aborts the backend (signal 6) on CREATE EXTENSION.
+COPY --from=builder /usr/share/postgresql/${PG_MAJOR}/tsearch_data/ /usr/share/postgresql/${PG_MAJOR}/tsearch_data/
 
 # Fix collation version mismatch warning automatically on startup
 # We simply create a small script that the official entrypoint will run
