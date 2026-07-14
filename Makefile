@@ -83,22 +83,24 @@ push-postgres-image: build-postgres-image
 
 test-postgres: build-postgres-image
 	@echo "🧪 Starting test PostgreSQL container..."
+	@docker rm -f postgres-test 2>/dev/null || true
 	docker run -d \
 		--name postgres-test \
-		-e POSTGRES_PASSWORD=testpass \
-		-p 5432:5432 \
+		-e POSTGRES_PASSWORD=$${POSTGRES_PASSWORD:-testpass} \
+		-e POSTGRES_DB=$${POSTGRES_DB:-postgres} \
+		-p 127.0.0.1:$(PGPORT):5432 \
 		$(POSTGRES_FULL_IMAGE)
 	@echo "⏳ Waiting for PostgreSQL to be ready..."
 	@sleep 5
 	@echo "✅ Testing extensions..."
-	@docker exec postgres-test psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS vector;" || true
-	@docker exec postgres-test psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS pg_jieba;" || true
-	@docker exec postgres-test psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS pgmq;" || true
-	@docker exec postgres-test psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" || true
-	@docker exec postgres-test psql -U postgres -c "\dx" | grep -E "vector|jieba|pgmq|trgm"
+	@docker exec postgres-test psql -U postgres -d $${POSTGRES_DB:-postgres} -c "CREATE EXTENSION IF NOT EXISTS vector;" || true
+	@docker exec postgres-test psql -U postgres -d $${POSTGRES_DB:-postgres} -c "CREATE EXTENSION IF NOT EXISTS pg_jieba;" || true
+	@docker exec postgres-test psql -U postgres -d $${POSTGRES_DB:-postgres} -c "CREATE EXTENSION IF NOT EXISTS pgmq;" || true
+	@docker exec postgres-test psql -U postgres -d $${POSTGRES_DB:-postgres} -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" || true
+	@docker exec postgres-test psql -U postgres -d $${POSTGRES_DB:-postgres} -c "\dx" | grep -E "vector|jieba|pgmq|trgm"
 	@echo "✅ Test container running. Connect with:"
-	@echo "   psql -h localhost -U postgres -d postgres"
-	@echo "   Password: testpass"
+	@echo "   psql -h localhost -U postgres -d $${POSTGRES_DB:-postgres}"
+	@echo "   Password: $${POSTGRES_PASSWORD:-testpass}"
 	@echo ""
 	@echo "Stop with: make clean"
 
