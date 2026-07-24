@@ -70,7 +70,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ inputs.image_tag }},enable=${{ inputs.image_tag != '' }}
-            type=sha,format=short,enable=${{ inputs.image_tag == '' }}
+            type=sha,format=long,enable=${{ inputs.image_tag == '' }}
             type=raw,value=latest,enable=${{ inputs.push_latest }}
 
       - name: Build And Push Image
