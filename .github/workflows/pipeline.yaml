@@ -56,13 +56,20 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.env.outputs.environment }}
+      # 不声明这一行, 下游的 needs.prep.outputs.push_latest 会解析成空字符串
+      # 而不是报错, metadata-action 收到 enable= 就报 "Invalid value for
+      # enable attribute" —— 错误出现在消费端, 与真正缺失的地方隔着一个 job。
+      push_latest: ${{ steps.env.outputs.push_latest }}
     steps:
       - name: Check Out Repository
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - name: Resolve Environment
         id: env
-        run: .github/scripts/utils/resolve-env.sh
+        # $3 只在 workflow_dispatch/workflow_call 触发时展开成 true/false;
+        # push/pull_request 下 inputs 这个 context 不存在, 展开为空字符串 ——
+        # 脚本内部按 EVENT_NAME 分支消解这个歧义。
+        run: .github/scripts/utils/resolve-env.sh "" "" "${{ inputs.push_latest }}"
 
   build-and-push-images:
     needs: prep
