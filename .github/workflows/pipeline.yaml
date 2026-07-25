@@ -97,6 +97,7 @@ jobs:
 
       - name: Vault Authentication
         uses: hashicorp/vault-action@v4
+        continue-on-error: true
         with:
           url: https://vault.svc.plus
           role: github-actions-postgresql-${{ needs.prep.outputs.environment }}
@@ -149,6 +150,7 @@ jobs:
 
       - name: Vault Authentication
         uses: hashicorp/vault-action@v4
+        continue-on-error: true
         with:
           url: https://vault.svc.plus
           role: github-actions-postgresql-${{ needs.prep.outputs.environment }}
