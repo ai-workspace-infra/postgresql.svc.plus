@@ -57,15 +57,20 @@ jobs:
       - name: Check Out Repository
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
+      # url/secrets 曾经写的是 vault.onwalk.net + secret/data/ci/ghcr —— 两者
+      # 都不存在:实际的 Vault 部署在 svc.plus(onwalk.net 是发布域名, 不是
+      # 基础设施域名), 而 GHCR 推送凭据统一放在 kv/data/CICD(见其余四个
+      # 业务仓与 platform-ops-toolkit)。前者报 DNS 解析失败, 后者若域名对了
+      # 会报"路径不存在"——两种失败都不像"凭据错误", 容易被误诊。
       - name: Vault Authentication
         uses: hashicorp/vault-action@v4
         with:
-          url: https://vault.onwalk.net
+          url: https://vault.svc.plus
           role: github-actions-postgresql-${{ needs.prep.outputs.deployment_environment }}
           jwtGithubAudience: vault
           method: jwt
           secrets: |
-            secret/data/ci/ghcr token | GHCR_TOKEN ;
+            kv/data/CICD GHCR_TOKEN | GHCR_TOKEN ;
 
       - name: Set Up Docker Buildx
         uses: docker/setup-buildx-action@21162887f0d6e25b4e8eafb0cf44cf9bf7f6acd3
