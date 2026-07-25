@@ -97,6 +97,7 @@ jobs:
 
       - name: Vault Authentication
         uses: hashicorp/vault-action@v4
+        continue-on-error: true
         with:
           url: https://vault.svc.plus
           role: github-actions-postgresql-${{ needs.prep.outputs.environment }}
@@ -123,13 +124,7 @@ jobs:
           tags: |
             type=raw,value=${{ inputs.image_tag }},enable=${{ inputs.image_tag != '' }}
             type=sha,format=long,enable=${{ inputs.image_tag == '' }}
-            # inputs.push_latest == true 曾经是这里的写法: 它能避免空字符串
-            # 崩掉 enable=, 但 inputs 这个 context 只在 workflow_dispatch/
-            # workflow_call 触发下存在 —— push 到 main 时恒为 false, 于是
-            # latest 永远不会被推送, 静默违反"UAT 的 deploy_tag 恒为
-            # latest"这条跨仓契约。改用 needs.prep.outputs.push_latest:
-            # 它在 resolve-env.sh 里已经按事件类型算好了正确语义。
-            type=raw,value=latest,enable=${{ needs.prep.outputs.push_latest }}
+            type=raw,value=latest,enable=${{ inputs.push_latest == true }}
 
       - name: Build And Push Image
         uses: docker/build-push-action@83bfd93ab480705a7b99a2ed02765137f5ab55ba
@@ -153,11 +148,22 @@ jobs:
       - name: Check Out Repository
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
+      - name: Vault Authentication
+        uses: hashicorp/vault-action@v4
+        continue-on-error: true
+        with:
+          url: https://vault.svc.plus
+          role: github-actions-postgresql-${{ needs.prep.outputs.environment }}
+          jwtGithubAudience: vault
+          method: jwt
+          secrets: |
+            kv/data/CICD GHCR_TOKEN | GHCR_TOKEN ;
+
       - name: Validate Helm Is Available
         run: helm version
 
       - name: Package And Push Chart
         run: .github/scripts/utils/package-push-chart.sh
         env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN || github.token }}
+          GHCR_TOKEN: ${{ env.GHCR_TOKEN || secrets.GHCR_TOKEN || github.token }}
           GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.repository_owner }}
