@@ -58,10 +58,11 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
 
       - name: Vault Authentication
-        uses: hashicorp/vault-action@v3
+        uses: hashicorp/vault-action@v4
         with:
-          url: ${{ vars.VAULT_URL }}
+          url: https://vault.onwalk.net
           role: github-actions-postgresql-${{ needs.prep.outputs.deployment_environment }}
+          jwtGithubAudience: vault
           method: jwt
           secrets: |
             secret/data/ci/ghcr token | GHCR_TOKEN ;
