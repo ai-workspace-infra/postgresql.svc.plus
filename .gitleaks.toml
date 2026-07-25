@@ -1,0 +1,19 @@
+[extend]
+useDefault = true
+
+# docs/archive/TOKEN_AUTH_MANUAL.md 里的示例 access_token / refresh_token
+# 都是同一个截断占位值(字面以 "..." 结尾):
+#
+#   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+#
+# 解出来只是 JWT header {"alg":"HS256","typ":"JWT"}, 没有 payload/signature
+# 段 —— 是文档示例, 不是真实签发过的 token。
+#
+# 这条豁免刻意收得很窄: 只匹配这一个文件、这一个规则、且值必须以字面
+# "..." 结尾。gitleaks 报红的默认假设是"确有泄露, 去吊销并净化历史",
+# 不是"加进白名单"; 这里成立是因为已经逐一解码核对过被标记的内容。
+[[rules]]
+id = "generic-api-key"
+[rules.allowlist]
+paths = ['''docs/archive/TOKEN_AUTH_MANUAL\.md''']
+regexes = ['''"(access|refresh)_token":\s*"eyJ[A-Za-z0-9_-]*\.\.\."''']
