@@ -34,35 +34,8 @@ jobs:
       - name: Validate Helm Is Available
         run: helm version
 
-      - name: Log In To GHCR
-        run: |
-          set -euo pipefail
-          echo "${{ secrets.GHCR_TOKEN || github.token }}" | \
-            helm registry login "${REGISTRY}" \
-            --username "${{ vars.GHCR_USERNAME || github.repository_owner }}" \
-            --password-stdin
-
-      - name: Package Chart
-        id: package
-        run: |
-          set -euo pipefail
-          chart_name="$(awk '/^name:/ { print $2; exit }' "${CHART_DIR}/Chart.yaml")"
-          chart_version="$(awk '/^version:/ { print $2; exit }' "${CHART_DIR}/Chart.yaml")"
-          package_dir="$(mktemp -d)"
-
-          helm package "${CHART_DIR}" --destination "${package_dir}"
-
-          chart_archive="${package_dir}/${chart_name}-${chart_version}.tgz"
-          if [ ! -f "${chart_archive}" ]; then
-            echo "Chart archive not found: ${chart_archive}" >&2
-            exit 1
-          fi
-
-          echo "chart_name=${chart_name}" >> "${GITHUB_OUTPUT}"
-          echo "chart_version=${chart_version}" >> "${GITHUB_OUTPUT}"
-          echo "chart_archive=${chart_archive}" >> "${GITHUB_OUTPUT}"
-
-      - name: Push Chart
-        run: |
-          set -euo pipefail
-          helm push "${{ steps.package.outputs.chart_archive }}" "oci://${REGISTRY}/${OCI_NAMESPACE}"
+      - name: Package And Push Chart
+        run: .github/scripts/utils/package-push-chart.sh
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN || github.token }}
+          GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.repository_owner }}
