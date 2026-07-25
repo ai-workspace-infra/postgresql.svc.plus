@@ -1,0 +1,27 @@
+; =============================================================================
+; stunnel Client Configuration - PostgreSQL TLS Outbound Tunnel Example
+; =============================================================================
+;
+; Architecture:
+;   App (127.0.0.1:15432) → stunnel (client) → Remote TLS (postgresql.svc.plus:443)
+;
+; =============================================================================
+
+foreground = yes
+debug = 5
+
+[postgres-client]
+client = yes
+accept = 0.0.0.0:15432
+connect = postgresql-stunnel-server.database.svc.cluster.local:5433
+
+verify = 2
+CAfile = /etc/ssl/certs/ca-certificates.crt
+
+socket = l:TCP_NODELAY=1
+socket = r:TCP_NODELAY=1
+socket = l:SO_KEEPALIVE=1
+socket = r:SO_KEEPALIVE=1
+
+TIMEOUTclose = 0
+TIMEOUTidle = 43200
