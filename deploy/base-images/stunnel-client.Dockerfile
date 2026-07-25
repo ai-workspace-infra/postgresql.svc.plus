@@ -2,7 +2,7 @@ FROM alpine:3.21
 
 LABEL org.opencontainers.image.title="stunnel client runtime" \
       org.opencontainers.image.description="Minimal stunnel image for PostgreSQL TLS tunnel client" \
-      org.opencontainers.image.source="https://github.com/cloud-neutral-toolkit/postgresql.svc.plus"
+      org.opencontainers.image.source="https://github.com/ai-workspace-infra/postgresql.svc.plus"
 
 RUN set -eux; \
     apk add --no-cache ca-certificates stunnel; \

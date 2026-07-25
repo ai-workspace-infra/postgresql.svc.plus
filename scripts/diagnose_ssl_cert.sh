@@ -101,7 +101,7 @@ echo ""
 if [ ! -f "$CERT_PATH" ]; then
     echo -e "${RED}ISSUE: Certificate not found${NC}"
     echo "Solution: Run the initialization script to generate certificates:"
-    echo -e "${GREEN}curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.svc.plus/main/scripts/init_vhost.sh | bash -s -- 17 $DOMAIN${NC}"
+    echo -e "${GREEN}curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.plus/main/scripts/init_vhost.sh | bash -s -- 17 $DOMAIN${NC}"
     echo ""
 elif ! openssl x509 -in "$CERT_PATH" -noout -checkend 0 2>/dev/null; then
     echo -e "${RED}ISSUE: Certificate is expired${NC}"
