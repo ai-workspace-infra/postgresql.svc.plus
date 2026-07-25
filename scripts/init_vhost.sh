@@ -24,7 +24,7 @@
 set -e
 
 # Configuration
-REPO_URL="https://github.com/cloud-neutral-toolkit/postgresql.svc.plus.git"
+REPO_URL="https://github.com/ai-workspace-infra/postgresql.svc.plus.git"
 INSTALL_DIR="${HOME}/postgresql.svc.plus"
 
 # Colors

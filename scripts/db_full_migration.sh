@@ -202,7 +202,7 @@ init_target() {
     *) err "Invalid --acme-mode: $ACME_MODE (use auto|bootstrap|host-caddy)"; return 1 ;;
   esac
 
-  if ! run_ssh "$TARGET_HOST" "sudo DEBIAN_FRONTEND=noninteractive bash -lc 'if [ -x ${TARGET_REPO}/scripts/init_vhost.sh ]; then ${TARGET_REPO}/scripts/init_vhost.sh ${PG_MAJOR} ${TARGET_DOMAIN} ${ACME_MODE}; else curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.svc.plus/main/scripts/init_vhost.sh | bash -s -- ${PG_MAJOR} ${TARGET_DOMAIN} ${ACME_MODE}; fi'"; then
+  if ! run_ssh "$TARGET_HOST" "sudo DEBIAN_FRONTEND=noninteractive bash -lc 'if [ -x ${TARGET_REPO}/scripts/init_vhost.sh ]; then ${TARGET_REPO}/scripts/init_vhost.sh ${PG_MAJOR} ${TARGET_DOMAIN} ${ACME_MODE}; else curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.plus/main/scripts/init_vhost.sh | bash -s -- ${PG_MAJOR} ${TARGET_DOMAIN} ${ACME_MODE}; fi'"; then
     log "WARN: init_vhost failed, attempting ACME auto-fix"
     run_ssh "$TARGET_HOST" "sudo bash -s" <<EOS
 set -euo pipefail

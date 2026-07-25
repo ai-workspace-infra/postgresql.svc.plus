@@ -18,7 +18,7 @@
 ### 一键安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.svc.plus/main/scripts/init_vhost.sh \
+curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.plus/main/scripts/init_vhost.sh \
   | bash -s -- 17 db.example.com
 ```
 - bash -s -- <PG版本> <域名>
@@ -33,7 +33,7 @@ curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.sv
 1) 初始化目标机 + 全量迁移（源域名与目标域名独立）
 
 ```bash
-/Users/shenlan/workspaces/cloud-neutral-toolkit/postgresql.svc.plus/scripts/db_full_migration.sh \
+scripts/db_full_migration.sh \
   root@postgresql.svc.plus \
   ubuntu@57.183.19.25 \
   --init-db \
@@ -43,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.sv
 1.1) 与 `agent.svc.plus(caddy.service+xray)` 共存时（复用 host caddy 申请证书）
 
 ```bash
-/Users/shenlan/workspaces/cloud-neutral-toolkit/postgresql.svc.plus/scripts/db_full_migration.sh \
+scripts/db_full_migration.sh \
   root@postgresql.svc.plus \
   ubuntu@57.183.19.25 \
   --init-db \
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.sv
 2) 只测迁移流程（不重做目标机 init）
 
 ```bash
-/Users/shenlan/workspaces/cloud-neutral-toolkit/postgresql.svc.plus/scripts/db_full_migration.sh \
+scripts/db_full_migration.sh \
   root@postgresql.svc.plus \
   ubuntu@57.183.19.25 \
   --skip-init \
@@ -82,11 +82,11 @@ curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.sv
 
 ### 🔄 CI/CD 自动化
 
-GitHub Actions 工作流:
-- ✅ 自动构建和推送镜像
-- ✅ 一键部署到 VM (Docker Compose)
-- ✅ 一键部署到 K8s/K3s (Helm)
-- ✅ 多环境支持 (dev/staging/prod)
+GitHub Actions 工作流 (`.github/workflows/ci-pipeline.yaml` / `pipeline.yaml`):
+- ✅ **统一矩阵构建 (Matrix Strategy)**: 一键并发构建并推送镜像 (`stunnel-server`, `stunnel-client`, `postgresql`)
+- ✅ **Helm Chart 自动发布**: 自动打包并推送 Helm Chart 到 GHCR
+- ✅ **Vault OIDC 凭据接入**: 无缝对接 HashiCorp Vault 动态鉴权
+- ✅ **多环境智能路由**: 根据 Git 事件自动路由部署至 `sit` / `uat` / `prod` 环境
 
 ### 📦 GHCR 产物
 
