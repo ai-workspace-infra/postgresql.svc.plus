@@ -1,0 +1,40 @@
+; =============================================================================
+; stunnel Server Configuration - PostgreSQL TLS Tunnel Example
+; =============================================================================
+;
+; Architecture:
+;   External Client → TLS:443 → stunnel → postgres:5432
+;
+; Server modes:
+;   1. TLS (default)  - One-way TLS, server presents certificate
+;   2. mTLS (opt-in)  - Mutual TLS, also requires client certificate
+;
+; =============================================================================
+
+foreground = yes
+debug = 5
+; output = /var/log/stunnel/stunnel.log
+
+; -----------------------------------------------------------------------------
+; MODE 1: TLS (Default - Server Authentication Only)
+; -----------------------------------------------------------------------------
+[postgres-tls-server]
+client = no
+accept = 0.0.0.0:5433
+connect = postgres:5432
+
+cert = /etc/stunnel/certs/server-cert.pem
+key = /etc/stunnel/certs/server-key.pem
+
+sslVersionMin = TLSv1.2
+options = NO_SSLv2
+options = NO_SSLv3
+ciphers = ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305
+
+socket = l:TCP_NODELAY=1
+socket = r:TCP_NODELAY=1
+socket = l:SO_KEEPALIVE=1
+socket = r:SO_KEEPALIVE=1
+
+TIMEOUTclose = 0
+TIMEOUTidle = 43200
