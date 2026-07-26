@@ -92,10 +92,10 @@ GitHub Actions 工作流 (`.github/workflows/ci-pipeline.yaml` / `pipeline.yaml`
 
 当前 CI/CD 约定的发布路径如下:
 
-- `oci://ghcr.io/x-evor/charts/postgresql`
-- `ghcr.io/x-evor/images/postgresql`
-- `ghcr.io/x-evor/images/stunnel-client`
-- `ghcr.io/x-evor/images/stunnel-server`
+- `oci://ghcr.io/ai-workspace-infra/charts/postgresql`
+- `ghcr.io/ai-workspace-infra/postgresql`
+- `ghcr.io/ai-workspace-infra/stunnel-client`
+- `ghcr.io/ai-workspace-infra/stunnel-server`
 
 ## 📦 核心特性
 
