@@ -83,10 +83,10 @@ cat ~/.ssh/github_deploy
 
 **输出**:
 - GitHub Container Registry 发布产物遵循以下约定:
-  - `oci://ghcr.io/x-evor/charts/postgresql`
-  - `ghcr.io/x-evor/images/postgresql`
-  - `ghcr.io/x-evor/images/stunnel-client`
-  - `ghcr.io/x-evor/images/stunnel-server`
+  - `oci://ghcr.io/ai-workspace-infra/charts/postgresql`
+  - `ghcr.io/ai-workspace-infra/postgresql`
+  - `ghcr.io/ai-workspace-infra/stunnel-client`
+  - `ghcr.io/ai-workspace-infra/stunnel-server`
 
 > 说明: 该工作流本身负责 PostgreSQL 镜像构建；这里列出的是与本仓库 CI/CD 对齐的完整 GHCR 命名风格。
 

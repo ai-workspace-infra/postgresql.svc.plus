@@ -79,17 +79,17 @@ jobs:
       matrix:
         include:
           - name: build-push-ghcr-image-stunnel-server
-            image_name: x-evor/images/stunnel-server
+            image_name: stunnel-server
             dockerfile: deploy/base-images/stunnel-server.Dockerfile
             context: deploy/base-images
             build_args: ""
           - name: build-push-ghcr-image-stunnel-client
-            image_name: x-evor/images/stunnel-client
+            image_name: stunnel-client
             dockerfile: deploy/base-images/stunnel-client.Dockerfile
             context: deploy/base-images
             build_args: ""
           - name: build-push-ghcr-image-postgresql
-            image_name: x-evor/images/postgresql
+            image_name: postgresql
             dockerfile: deploy/base-images/postgres-runtime-wth-extensions.Dockerfile
             context: deploy/base-images
             build_args: |
@@ -127,7 +127,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@c3b064c6d7c32446d6bc214ea075f1caad2de35a
         with:
-          images: ${{ env.REGISTRY }}/${{ matrix.image_name }}
+          # 用调用方仓库的实际 owner, 不写死 org 名 —— 与本仓其余四个
+          # 业务仓的做法一致(accounts/billing-service/docs 都是从
+          # github.repository 动态取, 不会跟仓库实际所在 org 脱节)。
+          # 这里原来硬编码 x-evor/images/<name>, 是这个仓库改名/迁移到
+          # ai-workspace-infra 之前留下的旧路径, 从没跟着更新过 ——
+          # gitops 仓的 compose .env 按当前仓库 owner 拼地址, 拼出来的
+          # ghcr.io/ai-workspace-infra/postgresql.svc.plus 从来没被这里
+          # 发布过, web-saas 整个 stack 因此拉不到镜像却不报任何错
+          # (compose 合法、CI 全绿、只有 Doco-CD 在主机上静默重试)。
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}
           tags: |
             type=raw,value=${{ inputs.image_tag }},enable=${{ inputs.image_tag != '' }}
             type=sha,format=long,enable=${{ inputs.image_tag == '' }}
@@ -149,7 +158,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
-      OCI_NAMESPACE: x-evor/charts
+      # 与镜像同理: 不写死历史 org 名, 跟着实际仓库 owner 走。
+      # ghcr.io/x-evor/charts/postgresql 在 GHCR 上从未真正发布过
+      # (docker manifest inspect 确认 ABSENT) —— 这条路径本来就是死的。
+      OCI_NAMESPACE: ${{ github.repository_owner }}/charts
       CHART_DIR: deploy/helm/postgresql
     steps:
       - name: Check Out Repository
