@@ -145,7 +145,7 @@ jobs:
           build-args: ${{ matrix.build_args }}
 
   build-and-push-chart:
-    needs: prep
+    needs: [prep, build-and-push-images]
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
