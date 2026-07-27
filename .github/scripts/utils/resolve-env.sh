@@ -3,13 +3,23 @@ set -euo pipefail
 
 EVENT_NAME="${1:-${GITHUB_EVENT_NAME:-}}"
 REF="${2:-${GITHUB_REF:-}}"
+INPUT_ENVIRONMENT="${3:-}"
 # workflow_dispatch/workflow_call 的 push_latest input, 直接用 ${{ inputs.push_latest }}
 # 展开传入 —— 在 push/pull_request 触发下 GHA 不会展开 inputs.*(那个 context
-# 在这两种事件里不存在), 于是 $3 在这里收到的是字面量空字符串, 与"未传参"
+# 在这两种事件里不存在), 于是参数里收到的是字面量空字符串, 与"未传参"
 # 无法区分, 只能靠下面的 EVENT_NAME 分支兜底。
-INPUT_PUSH_LATEST="${3:-}"
+INPUT_PUSH_LATEST="${4:-}"
 
-if [ "${EVENT_NAME}" = "pull_request" ]; then
+if [ "${EVENT_NAME}" = "workflow_dispatch" ] || [ "${EVENT_NAME}" = "workflow_call" ]; then
+  case "${INPUT_ENVIRONMENT}" in
+    sit|uat|prod)
+      ENV="${INPUT_ENVIRONMENT}"
+      ;;
+    *)
+      ENV="uat"
+      ;;
+  esac
+elif [ "${EVENT_NAME}" = "pull_request" ]; then
   ENV="sit"
 elif [[ "${REF}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
   ENV="prod"

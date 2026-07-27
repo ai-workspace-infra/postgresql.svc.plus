@@ -8,6 +8,15 @@ on:
     tags: [ "v*.*.*" ]
   workflow_dispatch:
     inputs:
+      deployment_environment:
+        description: Deployment environment for Vault and downstream release metadata.
+        required: false
+        default: "uat"
+        type: choice
+        options:
+          - sit
+          - uat
+          - prod
       image_tag:
         description: Optional image tag. Defaults to the current commit SHA.
         required: false
@@ -24,6 +33,11 @@ on:
         type: string
   workflow_call:
     inputs:
+      deployment_environment:
+        description: Deployment environment for Vault and downstream release metadata.
+        required: false
+        default: "uat"
+        type: string
       image_tag:
         description: Optional image tag. Defaults to the current commit SHA.
         required: false
@@ -69,7 +83,7 @@ jobs:
         # $3 只在 workflow_dispatch/workflow_call 触发时展开成 true/false;
         # push/pull_request 下 inputs 这个 context 不存在, 展开为空字符串 ——
         # 脚本内部按 EVENT_NAME 分支消解这个歧义。
-        run: .github/scripts/utils/resolve-env.sh "" "" "${{ inputs.push_latest }}"
+        run: .github/scripts/utils/resolve-env.sh "" "" "${{ inputs.deployment_environment }}" "${{ inputs.push_latest }}"
 
   build-and-push-images:
     needs: prep
