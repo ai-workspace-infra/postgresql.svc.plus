@@ -13,8 +13,12 @@ if [ "${EVENT_NAME}" = "pull_request" ]; then
   ENV="sit"
 elif [[ "${REF}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
   ENV="prod"
-else
+elif [ "${REF}" = "refs/heads/main" ]; then
   ENV="uat"
+else
+  # Vault OIDC roles for uat and prod require main or release/* refs.
+  # Custom or feature branches must use sit to satisfy Vault claim validation.
+  ENV="sit"
 fi
 
 # push_latest 曾经在 metadata-action 里直接写 ${{ inputs.push_latest }} ——
