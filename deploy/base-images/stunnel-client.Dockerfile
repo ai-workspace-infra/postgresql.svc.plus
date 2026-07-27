@@ -10,7 +10,10 @@ RUN set -eux; \
     id -u stunnel >/dev/null 2>&1 || adduser -S -D -H -G stunnel -s /sbin/nologin stunnel; \
     mkdir -p /etc/stunnel/certs /var/log/stunnel /var/run/stunnel; \
     chown -R stunnel:stunnel /etc/stunnel /var/log/stunnel /var/run/stunnel; \
-    cp /etc/stunnel/stunnel.conf /etc/stunnel/stunnel.conf.original || true
+    chmod 755 /etc/stunnel /etc/stunnel/certs; \
+    chmod 777 /var/log/stunnel /var/run/stunnel
+
+COPY --chown=stunnel:stunnel stunnel-client.conf.example /etc/stunnel/stunnel.conf.example
 
 USER stunnel
 
