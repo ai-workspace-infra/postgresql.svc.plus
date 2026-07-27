@@ -5,7 +5,10 @@ on:
     branches: [ "main" ]
   push:
     branches: [ "main" ]
-    tags: [ "v*.*.*" ]
+    tags:
+      - "v*"
+      - "uat-*"
+      - "snapshot-*"
   workflow_dispatch:
     inputs:
       image_tag:
