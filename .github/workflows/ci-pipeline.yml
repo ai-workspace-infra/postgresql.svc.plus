@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
   push:
     branches: [ "main" ]
-    tags: [ "v*.*.*" ]
+    tags: [ "v*.*.*", "daily-build-*" ]
   workflow_dispatch:
     inputs:
       deployment_environment:
@@ -153,6 +153,7 @@ jobs:
           # (compose 合法、CI 全绿、只有 Doco-CD 在主机上静默重试)。
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}
           tags: |
+            type=raw,value=${{ github.ref_name }},enable=${{ github.ref_type == 'tag' }}
             type=raw,value=${{ inputs.image_tag }},enable=${{ inputs.image_tag != '' }}
             type=sha,format=long,enable=${{ inputs.image_tag == '' }}
             type=raw,value=latest,enable=${{ inputs.push_latest == true }}
@@ -202,3 +203,26 @@ jobs:
         env:
           GHCR_TOKEN: ${{ steps.vault.outputs.GHCR_TOKEN }}
           GHCR_USERNAME: ${{ steps.vault.outputs.GHCR_USERNAME }}
+
+  release:
+    name: Publish release manifest and assets
+    needs: [build-and-push-images, build-and-push-chart]
+    if: ${{ startsWith(github.ref, 'refs/tags/daily-build-') && needs.build-and-push-images.result == 'success' && needs.build-and-push-chart.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - name: Prepare release assets
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          IMAGE_REFS: |
+            ghcr.io/${{ github.repository_owner }}/stunnel-server:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/stunnel-client:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/postgresql:${{ github.ref_name }}
+          CHART_DIR: deploy/helm/postgresql
+          CHART_REFS: oci://ghcr.io/${{ github.repository_owner }}/charts/postgresql
+          CHART_VERSION: 0.0.0-${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/publish-release-artifacts.sh

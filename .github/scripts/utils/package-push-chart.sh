@@ -12,10 +12,13 @@ if [ -n "${TOKEN}" ]; then
 fi
 
 chart_name="$(awk '/^name:/ { print $2; exit }' "${CHART_DIR}/Chart.yaml")"
-chart_version="$(awk '/^version:/ { print $2; exit }' "${CHART_DIR}/Chart.yaml")"
+chart_version="${CHART_VERSION:-}"
+if [[ -z "${chart_version}" ]]; then
+  chart_version="$(awk '/^version:/ { print $2; exit }' "${CHART_DIR}/Chart.yaml")"
+fi
 package_dir="$(mktemp -d)"
 
-helm package "${CHART_DIR}" --destination "${package_dir}"
+helm package "${CHART_DIR}" --version "${chart_version}" --destination "${package_dir}"
 
 chart_archive="${package_dir}/${chart_name}-${chart_version}.tgz"
 if [ ! -f "${chart_archive}" ]; then
