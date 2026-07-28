@@ -23,6 +23,8 @@ elif [ "${EVENT_NAME}" = "pull_request" ]; then
   ENV="sit"
 elif [[ "${REF}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
   ENV="prod"
+elif [[ "${REF}" =~ ^refs/tags/daily-build- ]]; then
+  ENV="uat"
 elif [ "${REF}" = "refs/heads/main" ]; then
   ENV="uat"
 else
