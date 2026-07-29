@@ -223,6 +223,6 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/postgresql:${{ github.ref_name }}
           CHART_DIR: deploy/helm/postgresql
           CHART_REFS: oci://ghcr.io/${{ github.repository_owner }}/charts/postgresql
-          CHART_VERSION: 0.0.0-${{ github.ref_name }}
+          CHART_VERSION: 0.0.0-${{ replace(github.ref_name, '.', '-') }}
           GH_TOKEN: ${{ github.token }}
         run: .github/scripts/publish-release-artifacts.sh
