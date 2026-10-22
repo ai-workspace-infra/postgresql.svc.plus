@@ -101,7 +101,7 @@ if [ -z "$BACKUP_FILE" ]; then
 fi
 
 # Cleanup handler for ephemeral container
-# shellcheck disable=SC2329
+# shellcheck disable=SC2329,SC2317
 cleanup() {
     local exit_code=$?
     if [ -n "$DRILL_CONTAINER" ]; then

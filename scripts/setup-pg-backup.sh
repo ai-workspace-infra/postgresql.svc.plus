@@ -606,7 +606,7 @@ if [ -z "$BACKUP_FILE" ] && [ -d "$BACKUP_DIR" ]; then
     BACKUP_FILE=$(find "$BACKUP_DIR" -maxdepth 1 \( -name "pg_backup_*.sql.gz" -o -name "pg_backup_*.sql" \) -type f 2>/dev/null | sort -r | head -n 1 || true)
 fi
 
-# shellcheck disable=SC2329
+# shellcheck disable=SC2329,SC2317
 cleanup() {
     local exit_code=$?
     if [ -n "$DRILL_CONTAINER" ]; then
