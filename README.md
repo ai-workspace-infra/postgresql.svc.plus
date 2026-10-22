@@ -13,9 +13,9 @@
 
 > **提示**: `80/TCP` 仅用于 ACME 证书验证。本服务默认使用 **`5443/TCP`** 作为 Stunnel 安全入口；如需兼容历史客户端可改为 `443`。
 
-## 快速开始
+## 🚀 快速开始
 
-### 一键安装
+### 一键安装 PostgreSQL 运行时
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.plus/main/scripts/init_vhost.sh \
@@ -25,6 +25,41 @@ curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.p
 - 默认安装最新稳定版 (PG 16)，使用当前主机名作为域名
 
 > **详细指南**: 查看 [docs/QUICKSTART.md](docs/QUICKSTART.md) | [完整指南](docs/PROJECT_DETAILS.md)
+
+### 数据库备份与恢复演练 (S3 灾备 + 隔离容器恢复)
+
+在 Debian 12+ / Ubuntu 22.04+ 主机上一键配置生产级 PostgreSQL 备份至 S3 兼容对象存储，并支持在轻量隔离容器中自动化执行恢复演练校验。
+
+#### 单机模式 (Standalone)
+
+本地保留轮转归档（默认保留 7 天，路径 `/var/backups/postgresql`），可选同步至远端对象存储：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.plus/main/scripts/setup-pg-backup.sh | \
+  bash -s -- --domain db.example.com --standalone
+```
+
+#### 团队模式 (Team / Vault 运行时凭据注入)
+
+严格防泄露校验（Fail-closed），自动同步归档至 S3 兼容对象存储并拉起临时隔离容器验证数据库结构与行数：
+
+```bash
+export PG_DOMAIN="db.example.com"
+export BACKUP_S3_ENDPOINT="https://s3.example.com"
+export BACKUP_S3_SECRET_KEY="<runtime-secret>"
+curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.plus/main/scripts/setup-pg-backup.sh | \
+  bash -s -- --domain "$PG_DOMAIN" --restore-drill
+unset BACKUP_S3_SECRET_KEY
+```
+
+#### 卸载服务
+
+停止定时器与服务单元并清理 `/opt/pg-backup`，保留已有历史备份数据：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ai-workspace-infra/postgresql.svc.plus/main/scripts/setup-pg-backup.sh | \
+  bash -s -- --uninstall
+```
 
 ### 数据库全量迁移示例
 
