@@ -1,0 +1,108 @@
+name: Test Setup PG Backup
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/setup-pg-backup.sh'
+      - 'scripts/restore-drill.sh'
+      - '.github/workflows/test-setup-pg-backup.yml'
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'scripts/setup-pg-backup.sh'
+      - 'scripts/restore-drill.sh'
+      - '.github/workflows/test-setup-pg-backup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-syntax:
+    name: ShellCheck & Syntax Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck scripts/setup-pg-backup.sh
+          shellcheck scripts/restore-drill.sh
+
+      - name: Bash Syntax Validation (-n)
+        run: |
+          bash -n scripts/setup-pg-backup.sh
+          bash -n scripts/restore-drill.sh
+
+      - name: Test --help flag
+        run: |
+          bash scripts/setup-pg-backup.sh --help
+          bash scripts/restore-drill.sh --help
+
+  smoke-tests:
+    name: Container Smoke Tests
+    needs: lint-and-syntax
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro:
+          - image: "debian:12-slim"
+            name: "Debian 12"
+          - image: "ubuntu:22.04"
+            name: "Ubuntu 22.04"
+          - image: "ubuntu:24.04"
+            name: "Ubuntu 24.04"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Smoke Test --help (${{ matrix.distro.name }})
+        run: |
+          docker run --rm -v "$PWD:$PWD" -w "$PWD" ${{ matrix.distro.image }} bash scripts/setup-pg-backup.sh --help
+
+      - name: Smoke Test Standalone --dry-run (${{ matrix.distro.name }})
+        run: |
+          docker run --rm -v "$PWD:$PWD" -w "$PWD" ${{ matrix.distro.image }} \
+            bash scripts/setup-pg-backup.sh --domain db.example.com --standalone --dry-run
+
+      - name: Smoke Test Team Mode --restore-drill --dry-run (${{ matrix.distro.name }})
+        run: |
+          docker run --rm -v "$PWD:$PWD" -w "$PWD" \
+            -e PG_DOMAIN="db.example.com" \
+            -e BACKUP_S3_ENDPOINT="https://s3.example.com" \
+            -e BACKUP_S3_SECRET_KEY="mock-vault-secret" \
+            ${{ matrix.distro.image }} \
+            bash scripts/setup-pg-backup.sh --domain db.example.com --restore-drill --dry-run
+
+      - name: Verify Team Mode Fail-Closed on Missing Secret (${{ matrix.distro.name }})
+        run: |
+          if docker run --rm -v "$PWD:$PWD" -w "$PWD" \
+            -e PG_DOMAIN="db.example.com" \
+            -e BACKUP_S3_ENDPOINT="https://s3.example.com" \
+            ${{ matrix.distro.image }} \
+            bash scripts/setup-pg-backup.sh --domain db.example.com --restore-drill --dry-run; then
+            echo "Expected failure when BACKUP_S3_SECRET_KEY is missing, but command succeeded!"
+            exit 1
+          else
+            echo "Team mode successfully failed closed without secret key."
+          fi
+
+      - name: Verify Team Mode Fail-Closed on Missing Endpoint (${{ matrix.distro.name }})
+        run: |
+          if docker run --rm -v "$PWD:$PWD" -w "$PWD" \
+            -e PG_DOMAIN="db.example.com" \
+            -e BACKUP_S3_SECRET_KEY="mock-vault-secret" \
+            ${{ matrix.distro.image }} \
+            bash scripts/setup-pg-backup.sh --domain db.example.com --restore-drill --dry-run; then
+            echo "Expected failure when BACKUP_S3_ENDPOINT is missing, but command succeeded!"
+            exit 1
+          else
+            echo "Team mode successfully failed closed without S3 endpoint."
+          fi
+
+      - name: Verify Restore Drill Dry-Run (${{ matrix.distro.name }})
+        run: |
+          docker run --rm -v "$PWD:$PWD" -w "$PWD" ${{ matrix.distro.image }} \
+            bash scripts/restore-drill.sh --dry-run
