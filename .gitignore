@@ -27,6 +27,7 @@ logs/
 *.sql
 *.dump
 backups/
+!deploy/docker/init-scripts/*.sql
 
 # IDE
 .vscode/

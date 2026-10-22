@@ -70,6 +70,14 @@ FROM postgres:${PG_MAJOR}-bookworm
 ARG PG_MAJOR
 ARG PG_VERSION
 
+# pg_stat_statements is part of PostgreSQL's contrib package.  pg_net is a
+# Supabase-specific extension and is intentionally not installed here: adding
+# it would make this generic image Debian-dependent and would not provide the
+# Supabase API/runtime that consumes it.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-contrib-${PG_MAJOR} \
+    && rm -rf /var/lib/apt/lists/*
+
 LABEL maintainer="Cloud-Neutral Toolkit" \
     description="PostgreSQL ${PG_VERSION} + pgvector + pg_jieba + pgmq (Debian 12 Bookworm Base)"
 

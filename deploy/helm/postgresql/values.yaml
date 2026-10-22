@@ -84,11 +84,23 @@ initScripts:
   scripts:
     01-init-extensions.sql: |
       CREATE EXTENSION IF NOT EXISTS vector;
-      CREATE EXTENSION IF NOT EXISTS pg_jieba;
-      CREATE EXTENSION IF NOT EXISTS pgmq;
       CREATE EXTENSION IF NOT EXISTS pg_trgm;
       CREATE EXTENSION IF NOT EXISTS hstore;
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+      DO $$
+      BEGIN
+        CREATE EXTENSION IF NOT EXISTS pg_jieba;
+        RAISE NOTICE 'pg_jieba is available';
+      EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'pg_jieba is unavailable; continuing without it';
+      END $$;
+      DO $$
+      BEGIN
+        CREATE EXTENSION IF NOT EXISTS pgmq;
+        RAISE NOTICE 'pgmq is available';
+      EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'pgmq is unavailable; continuing without it';
+      END $$;
 
 # Persistence
 persistence:
