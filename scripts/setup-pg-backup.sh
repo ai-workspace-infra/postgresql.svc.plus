@@ -16,6 +16,8 @@ PINNED_INSTALLER_VERSION="1.0.0"
 PINNED_PG_CLIENT="postgresql-client-16"
 PINNED_DRILL_IMAGE="postgres:16.4-alpine"
 PINNED_MC_VERSION="RELEASE.2024-10-08T09-37-26Z"
+MC_SHA256_AMD64="b1f0ef2319c0428f10c04e2338a9a84f686bf73c46fc7823c1bffb4fc1c6d45f"
+MC_SHA256_ARM64="4c970b9da5a88b203ec685e025f728b6cf9cf5650baca60f55b57974fd013eb6"
 export PINNED_RCLONE_VERSION="v1.68.1"
 
 INSTALL_ROOT="/opt/pg-backup"
@@ -390,21 +392,56 @@ chmod 700 "${BACKUP_DIR}"
 # Step 3: Pinned MinIO Client (mc) binary
 ARCH=$(uname -m)
 case "$ARCH" in
-    x86_64|amd64) MC_ARCH="amd64" ;;
-    aarch64|arm64) MC_ARCH="arm64" ;;
-    *) MC_ARCH="amd64" ;;
+    x86_64|amd64)
+        MC_ARCH="amd64"
+        EXPECTED_MC_SHA256="$MC_SHA256_AMD64"
+        ;;
+    aarch64|arm64)
+        MC_ARCH="arm64"
+        EXPECTED_MC_SHA256="$MC_SHA256_ARM64"
+        ;;
+    *)
+        log_error "Unsupported CPU architecture for MinIO client: ${ARCH}"
+        exit 1
+        ;;
 esac
 
 MC_BIN="${INSTALL_ROOT}/bin/mc"
-if [ ! -x "$MC_BIN" ]; then
-    log_step "Downloading pinned MinIO client mc (${PINNED_MC_VERSION})..."
-    if curl -fsSL "https://dl.min.io/client/mc/release/linux-${MC_ARCH}/archive/mc.${PINNED_MC_VERSION}" -o "$MC_BIN" 2>/dev/null || \
-       curl -fsSL "https://dl.min.io/client/mc/release/linux-${MC_ARCH}/mc" -o "$MC_BIN" 2>/dev/null; then
-        chmod 755 "$MC_BIN"
-        log_info "Installed mc binary to ${MC_BIN}."
+MC_NEEDS_DOWNLOAD=true
+if [ -x "$MC_BIN" ]; then
+    CURRENT_SHA="$(sha256sum "$MC_BIN" 2>/dev/null | awk '{print $1}')"
+    if [ "$CURRENT_SHA" = "$EXPECTED_MC_SHA256" ]; then
+        log_info "Pinned MinIO client mc (${PINNED_MC_VERSION}) already verified at ${MC_BIN}. Skipping download."
+        MC_NEEDS_DOWNLOAD=false
     else
-        log_warn "Failed to download pinned mc binary. System mc/rclone will be checked as fallback."
+        log_info "Existing mc binary at ${MC_BIN} checksum mismatch. Re-downloading..."
     fi
+fi
+
+if [ "$MC_NEEDS_DOWNLOAD" = true ]; then
+    log_step "Downloading pinned MinIO client mc (${PINNED_MC_VERSION})..."
+    TMP_MC_BIN="${MC_BIN}.tmp.$$"
+    # Download exclusively from official pinned GitHub release (fail-closed, no fallback to unpinned latest)
+    MC_URL="https://github.com/minio/mc/releases/download/${PINNED_MC_VERSION}/mc.linux-${MC_ARCH}.${PINNED_MC_VERSION}"
+    if ! curl -fsSL "$MC_URL" -o "$TMP_MC_BIN"; then
+        log_error "Failed to download pinned mc binary from ${MC_URL} (fail-closed)."
+        rm -f "$TMP_MC_BIN"
+        exit 1
+    fi
+
+    # Verify SHA256 checksum
+    DOWNLOADED_SHA="$(sha256sum "$TMP_MC_BIN" 2>/dev/null | awk '{print $1}')"
+    if [ "$DOWNLOADED_SHA" != "$EXPECTED_MC_SHA256" ]; then
+        log_error "SHA256 checksum mismatch for downloaded mc binary!"
+        log_error "Expected: ${EXPECTED_MC_SHA256}"
+        log_error "Actual:   ${DOWNLOADED_SHA}"
+        rm -f "$TMP_MC_BIN"
+        exit 1
+    fi
+
+    mv "$TMP_MC_BIN" "$MC_BIN"
+    chmod 755 "$MC_BIN"
+    log_info "Verified SHA256 checksum (${EXPECTED_MC_SHA256}) and installed mc to ${MC_BIN}."
 fi
 
 # Step 4: Write Configuration File
