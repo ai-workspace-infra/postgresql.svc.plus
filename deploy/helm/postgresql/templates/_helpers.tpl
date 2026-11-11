@@ -76,7 +76,7 @@ Get the password key
 {{- define "postgresql.secretKey" -}}
 {{- if .Values.auth.existingSecret }}
 {{- .Values.auth.secretKey }}
-{{- else }}
+{{- else -}}
 password
 {{- end }}
 {{- end }}
