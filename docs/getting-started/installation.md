@@ -30,7 +30,7 @@ curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/postgresql.sv
 适合：企业级生产与多环境部署。
 
 ```bash
-helm install postgresql ${ARTIFACTS_CHARTS}/infra-platform/standalone/postgresql \
+helm install postgresql ${ARTIFACTS_CHARTS}/open-platform/standalone/postgresql \
   --set auth.password=your-secure-password \
   --set persistence.size=10Gi
 ```
@@ -38,7 +38,7 @@ helm install postgresql ${ARTIFACTS_CHARTS}/infra-platform/standalone/postgresql
 如需启用 stunnel sidecar：
 
 ```bash
-helm install postgresql ${ARTIFACTS_CHARTS}/infra-platform/standalone/postgresql \
+helm install postgresql ${ARTIFACTS_CHARTS}/open-platform/standalone/postgresql \
   --set auth.password=your-secure-password \
   --set stunnel.enabled=true \
   --set stunnel.certificatesSecret=stunnel-certs
