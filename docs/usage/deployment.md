@@ -47,7 +47,7 @@ bash scripts/init_vhost.sh 16 db.example.com
 ## 3) Kubernetes / Helm
 
 ```bash
-helm install postgresql ./deploy/helm/postgresql \
+helm install postgresql ${ARTIFACTS_CHARTS}/infra-platform/standalone/postgresql \
   --set auth.password=your-secure-password \
   --set persistence.size=10Gi
 ```
@@ -55,7 +55,7 @@ helm install postgresql ./deploy/helm/postgresql \
 启用 stunnel sidecar：
 
 ```bash
-helm install postgresql ./deploy/helm/postgresql \
+helm install postgresql ${ARTIFACTS_CHARTS}/infra-platform/standalone/postgresql \
   --set auth.password=your-secure-password \
   --set stunnel.enabled=true \
   --set stunnel.certificatesSecret=stunnel-certs

@@ -110,13 +110,16 @@ deploy-docker:
 	@echo "✅ PostgreSQL deployed. Check status with:"
 	@echo "   cd deploy/docker && docker-compose ps"
 
+# Chart source: ai-workspace-infra/artifacts (oci/charts). Override with a checkout path.
+ARTIFACTS_CHARTS ?= ../artifacts/oci/charts
+
 deploy-helm:
 	@echo "🚀 Deploying with Helm..."
 	@if ! command -v helm &> /dev/null; then \
 		echo "❌ Helm not found. Please install Helm first."; \
 		exit 1; \
 	fi
-	helm upgrade --install postgresql ./deploy/helm/postgresql \
+	helm upgrade --install postgresql $(ARTIFACTS_CHARTS)/infra-platform/standalone/postgresql \
 		--set image.repository=$(POSTGRES_IMAGE_NAME) \
 		--set image.tag=$(POSTGRES_IMAGE_TAG) \
 		--create-namespace

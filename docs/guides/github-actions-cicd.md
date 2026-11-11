@@ -83,7 +83,6 @@ cat ~/.ssh/github_deploy
 
 **输出**:
 - GitHub Container Registry 发布产物遵循以下约定:
-  - `oci://ghcr.io/ai-workspace-infra/charts/postgresql`
   - `ghcr.io/ai-workspace-infra/postgresql`
   - `ghcr.io/ai-workspace-infra/stunnel-client`
   - `ghcr.io/ai-workspace-infra/stunnel-server`

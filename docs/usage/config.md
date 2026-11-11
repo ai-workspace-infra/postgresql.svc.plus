@@ -25,7 +25,7 @@
 
 ## Helm values
 
-位置：`deploy/helm/postgresql/values.yaml`
+位置：ai-workspace-infra/artifacts `oci/charts/infra-platform/standalone/postgresql/values.yaml`
 
 重点字段：
 
