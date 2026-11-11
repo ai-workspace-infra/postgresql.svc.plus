@@ -61,7 +61,7 @@ conn = psycopg2.connect("postgresql://user:pass@localhost:15432/db")
 | Nginx + Certbot | `docker-compose.nginx.yml` | 证书管理 + Web 界面 |
 | Caddy | `docker-compose.caddy.yml` | 零配置 HTTPS |
 | pgAdmin | `--profile admin` | Web 管理界面 |
-| Kubernetes | `deploy/helm/postgresql/` | 企业级部署 |
+| Kubernetes | ai-workspace-infra/artifacts `oci/charts/infra-platform/standalone/postgresql/` | 企业级部署 |
 
 ### 3. 配置文件
 
@@ -200,7 +200,7 @@ docker-compose \
 ### 场景 3: Kubernetes 生产环境
 
 ```bash
-helm install postgresql ./deploy/helm/postgresql \
+helm install postgresql ${ARTIFACTS_CHARTS}/infra-platform/standalone/postgresql \
   --set auth.password=secure-password \
   --set stunnel.enabled=true \
   --set persistence.size=20Gi

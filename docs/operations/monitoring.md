@@ -5,7 +5,7 @@
 Helm Chart 内置可选的 `postgres-exporter`：
 
 ```bash
-helm upgrade --install postgresql ./deploy/helm/postgresql \
+helm upgrade --install postgresql ${ARTIFACTS_CHARTS}/infra-platform/standalone/postgresql \
   --set metrics.enabled=true
 ```
 

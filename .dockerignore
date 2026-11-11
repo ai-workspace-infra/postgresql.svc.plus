@@ -49,7 +49,6 @@ __pycache__/
 
 # Deployment configs (not needed in image)
 deploy/docker/
-deploy/helm/
 deploy/ansible/
 deploy/charts/
 deploy/nginx/

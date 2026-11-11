@@ -16,7 +16,7 @@
 ## 部署与编排
 
 - Docker Compose：`deploy/docker/` 目录
-- Helm Chart：`deploy/helm/postgresql/`
+- Helm Chart：ai-workspace-infra/artifacts `oci/charts/infra-platform/standalone/postgresql/`
 
 ## 运维与测试
 

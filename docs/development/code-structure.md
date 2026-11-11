@@ -16,5 +16,5 @@ postgresql.svc.plus/
 关键目录说明：
 
 - `deploy/docker/`：compose 文件、证书、stunnel 配置
-- `deploy/helm/postgresql/`：chart 模板与默认 values
+- ai-workspace-infra/artifacts `oci/charts/infra-platform/standalone/postgresql/`：chart 模板与默认 values
 - `deploy/base-images/`：扩展镜像构建文件

@@ -119,7 +119,7 @@ scripts/db_full_migration.sh \
 
 GitHub Actions 工作流 (`.github/workflows/ci-pipeline.yaml` / `pipeline.yaml`):
 - ✅ **统一矩阵构建 (Matrix Strategy)**: 一键并发构建并推送镜像 (`stunnel-server`, `stunnel-client`, `postgresql`)
-- ✅ **Helm Chart 自动发布**: 自动打包并推送 Helm Chart 到 GHCR
+- ✅ **Helm Chart**: 不在本仓库维护；统一在 [ai-workspace-infra/artifacts](https://github.com/ai-workspace-infra/artifacts) `oci/charts/infra-platform/standalone/postgresql`
 - ✅ **Vault OIDC 凭据接入**: 无缝对接 HashiCorp Vault 动态鉴权
 - ✅ **多环境智能路由**: 根据 Git 事件自动路由部署至 `sit` / `uat` / `prod` 环境
 
@@ -127,7 +127,6 @@ GitHub Actions 工作流 (`.github/workflows/ci-pipeline.yaml` / `pipeline.yaml`
 
 当前 CI/CD 约定的发布路径如下:
 
-- `oci://ghcr.io/ai-workspace-infra/charts/postgresql`
 - `ghcr.io/ai-workspace-infra/postgresql`
 - `ghcr.io/ai-workspace-infra/stunnel-client`
 - `ghcr.io/ai-workspace-infra/stunnel-server`

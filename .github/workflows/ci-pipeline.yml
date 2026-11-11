@@ -171,51 +171,15 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
           build-args: ${{ matrix.build_args }}
 
-  build-and-push-chart:
-    needs: [prep, build-and-push-images]
-    runs-on: ubuntu-latest
-    env:
-      REGISTRY: ghcr.io
-      # 与镜像同理: 不写死历史 org 名, 跟着实际仓库 owner 走。
-      # ghcr.io/x-evor/charts/postgresql 在 GHCR 上从未真正发布过
-      # (docker manifest inspect 确认 ABSENT) —— 这条路径本来就是死的。
-      OCI_NAMESPACE: ${{ github.repository_owner }}/charts
-      CHART_DIR: deploy/helm/postgresql
-    steps:
-      - name: Check Out Repository
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
-
-      - name: Vault Authentication
-        id: vault
-        uses: hashicorp/vault-action@v4
-        with:
-          url: https://vault.svc.plus
-          role: github-actions-postgresql-${{ needs.prep.outputs.environment }}
-          jwtGithubAudience: vault
-          method: jwt
-          secrets: |
-            kv/data/CICD GHCR_USERNAME | GHCR_USERNAME ;
-            kv/data/CICD GHCR_TOKEN | GHCR_TOKEN ;
-
-      - name: Validate Helm Is Available
-        run: helm version
-
-      - name: Package And Push Chart
-        run: .github/scripts/utils/package-push-chart.sh
-        env:
-          GHCR_TOKEN: ${{ steps.vault.outputs.GHCR_TOKEN }}
-          GHCR_USERNAME: ${{ steps.vault.outputs.GHCR_USERNAME }}
-
   release:
     name: Publish release manifest and assets
-    needs: [build-and-push-images, build-and-push-chart]
-    if: ${{ startsWith(github.ref, 'refs/tags/daily-build-') && needs.build-and-push-images.result == 'success' && needs.build-and-push-chart.result == 'success' }}
+    needs: [build-and-push-images]
+    if: ${{ startsWith(github.ref, 'refs/tags/daily-build-') && needs.build-and-push-images.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: azure/setup-helm@v4
       - name: Prepare release assets
         env:
           RELEASE_TAG: ${{ github.ref_name }}
@@ -223,8 +187,5 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/stunnel-server:${{ github.ref_name }}
             ghcr.io/${{ github.repository_owner }}/stunnel-client:${{ github.ref_name }}
             ghcr.io/${{ github.repository_owner }}/postgresql:${{ github.ref_name }}
-          CHART_DIR: deploy/helm/postgresql
-          CHART_REFS: oci://ghcr.io/${{ github.repository_owner }}/charts/postgresql
-          CHART_VERSION: 0.0.0-${{ replace(github.ref_name, '.', '-') }}
           GH_TOKEN: ${{ github.token }}
         run: .github/scripts/publish-release-artifacts.sh
