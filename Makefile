@@ -119,7 +119,7 @@ deploy-helm:
 		echo "❌ Helm not found. Please install Helm first."; \
 		exit 1; \
 	fi
-	helm upgrade --install postgresql $(ARTIFACTS_CHARTS)/infra-platform/standalone/postgresql \
+	helm upgrade --install postgresql $(ARTIFACTS_CHARTS)/open-platform/standalone/postgresql \
 		--set image.repository=$(POSTGRES_IMAGE_NAME) \
 		--set image.tag=$(POSTGRES_IMAGE_TAG) \
 		--create-namespace
